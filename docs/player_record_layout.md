@@ -28,6 +28,7 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x4D | u8 | Ball Handling | W |
 | 0x4E | u8 | Pass | W |
 | 0x4F, 0x55 | u8 | tier 50/75/99, unknown (r~0.6 with average rating) | W (50) |
+| 0x50 | u8 | unknown, 50-99 (Iverson 99) | W (70) |
 | 0x51 | u8 | Low Post Offense | W |
 | 0x52 | u8 | Low Post Defense | W |
 | 0x53 | u8 | Block | W |

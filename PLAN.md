@@ -19,7 +19,15 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [ ] Rework the skill/attribute estimation step to output the 19 2K5 attributes directly
       (Shot Close/Med/3pt, FT, Layup, Dunk, Ball Handling, Pass, Low Post Off/Def, Block, Steal, Off/Def Reb,
       Speed, Stamina, Durability, Def/Off Awareness) and one-time convert the existing dataset
-- [ ] Decode unknown record bytes (0x4C, 0x4F, 0x55, 0x5A, 0x5C, 0x5F, 0x60, 0x30, 0x14, tendencies/signature fields)
+- [ ] **Decode the hidden/unknown player record bytes using the NBA default export.** Data:
+      `data/nba_defaults/players_unknown.csv` (792 records, 575 on teams, 51 non-constant unknown byte columns
+      `uXX` next to name, team, birthday, jersey, position, height, weight, years pro) and `teams_unknown.csv`,
+      exported from the freshly reset default roster with `scripts/export_unknown_attrs.py`. Method: correlate
+      each column with real-life data (draft year/pick, minutes, usage, stats, awards, tendencies, handedness,
+      signature styles, contract, etc.) and with the known ratings; tiered columns (0/50/99, 50/75/99) look like
+      tendency/skill-tier flags. Until decoded, `build_roster.py` writes neutral values for 0x4C/0x4F/0x50/0x55/
+      0x5A/0x5C/0x5F/0x60 and ProA players inherit the NBA slot's bytes for the rest (u00-u0a, u14, u2c-u30, u32,
+      u3c-u44, u61-u67, u69, u75-u7f, u83-u85, u8e-u92), which should be reset/overwritten once understood.
 - [ ] Check whether in-game "Overall" is computed or stored; birthday/years pro display check (player card)
 - [ ] Years pro: currently estimated from the birth year
 

@@ -13,7 +13,7 @@ ATTR_OFFSETS = {
     "durability": 0x5B, "def_aware": 0x5D, "off_aware": 0x5E,
 }
 # bytes whose meaning is unknown; neutral values (modal NBA value) so NBA star traits do not leak
-NEUTRAL_BYTES = {0x4F: 50, 0x55: 50, 0x5A: 0, 0x5C: 60, 0x5F: 75, 0x60: 75}
+NEUTRAL_BYTES = {0x4F: 50, 0x50: 70, 0x55: 50, 0x5A: 0, 0x5C: 60, 0x5F: 75, 0x60: 75}
 DUNK_FLAG = 0x4C  # tiers 0/50/99, correlates with dunking (r=0.69)
 
 
