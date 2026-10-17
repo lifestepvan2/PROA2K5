@@ -1,0 +1,92 @@
+[
+  {
+    "team_id": 38,
+    "city_name": "Artland",
+    "team_name": "Dragons"
+  },
+  {
+    "team_id": 39,
+    "city_name": "Bayer Giants",
+    "team_name": "Leverkusen"
+  },
+  {
+    "team_id": 40,
+    "city_name": "BBC",
+    "team_name": "Bayreuth"
+  },
+  {
+    "team_id": 41,
+    "city_name": "BG",
+    "team_name": "Göttingen"
+  },
+  {
+    "team_id": 42,
+    "city_name": "Bozic Estriche",
+    "team_name": "Knights Kirchheim"
+  },
+  {
+    "team_id": 43,
+    "city_name": "Eisbären",
+    "team_name": "Bremerhaven"
+  },
+  {
+    "team_id": 44,
+    "city_name": "EPG Baskets",
+    "team_name": "Koblenz"
+  },
+  {
+    "team_id": 45,
+    "city_name": "GIESSEN",
+    "team_name": "46ers"
+  },
+  {
+    "team_id": 46,
+    "city_name": "HAKRO",
+    "team_name": "Crailsheim Merlins"
+  },
+  {
+    "team_id": 47,
+    "city_name": "Nürnberg",
+    "team_name": "Falcons"
+  },
+  {
+    "team_id": 48,
+    "city_name": "Paderborn",
+    "team_name": "Baskets"
+  },
+  {
+    "team_id": 49,
+    "city_name": "Phoenix",
+    "team_name": "Hagen"
+  },
+  {
+    "team_id": 50,
+    "city_name": "PS Karlsruhe",
+    "team_name": "LIONS"
+  },
+  {
+    "team_id": 51,
+    "city_name": "RheinStars",
+    "team_name": "Köln"
+  },
+  {
+    "team_id": 52,
+    "city_name": "SBB Baskets",
+    "team_name": "Wolmirstedt"
+  },
+  {
+    "team_id": 53,
+    "city_name": "Tigers",
+    "team_name": "Tübingen"
+  },
+  {
+    "team_id": 54,
+    "city_name": "Uni Baskets",
+    "team_name": "Münster"
+  },
+  {
+    "team_id": 55,
+    "city_name": "VfL Sparkassen",
+    "team_name": "Stars Bochum"
+  }
+]
