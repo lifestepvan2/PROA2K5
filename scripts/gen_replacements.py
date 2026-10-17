@@ -27,11 +27,38 @@ def make_face(src):
     return canvas
 
 
+ICON_WIN = (4, 5, 28, 27)  # visible part of the 32x32 team icon
+ICON_DISPLAY = (80, 62)    # on-screen size of that part (non-square pixels)
+LOGO_ID0 = 38              # nba2k_editor/assets/<38 + team_slot>.png
+
+
+def make_icon(src):
+    img = Image.open(src).convert("RGBA")
+    ww, wh = ICON_WIN[2] - ICON_WIN[0], ICON_WIN[3] - ICON_WIN[1]
+    s = min(ICON_DISPLAY[0] / img.width, ICON_DISPLAY[1] / img.height) * 0.92
+    w = max(1, round(img.width * s * ww / ICON_DISPLAY[0]))
+    h = max(1, round(img.height * s * wh / ICON_DISPLAY[1]))
+    logo = img.resize((w, h), Image.LANCZOS)
+    canvas = Image.new("RGBA", (32, 32), (255, 255, 255, 255))
+    canvas.alpha_composite(logo, (ICON_WIN[0] + (ww - w) // 2, ICON_WIN[1] + (wh - h) // 2))
+    return canvas.convert("RGB")
+
+
+def write_icons(out):
+    n = 0
+    for r in csv.DictReader(open(ROOT / "data/texture_map/team_icons.csv", encoding="utf-8")):
+        src = ROOT / "nba2k_editor/assets" / f"{LOGO_ID0 + int(r['team_slot'])}.png"
+        make_icon(src).save(out / f"{r['key']}.png")
+        n += 1
+    print(n, "team icons written")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
+    write_icons(args.out)
     pm = {r["record"]: r for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))}
     n = 0
     for r in csv.DictReader(open(ROOT / "data/texture_map/starter_faces.csv", encoding="utf-8")):

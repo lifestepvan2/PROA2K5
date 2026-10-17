@@ -40,8 +40,13 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [ ] Years pro: currently estimated from the birth year
 
 ### Textures
-- [ ] Map player record / team to texture keys (face 128x128 family `00001dd3`, logos `00002213`), see `docs/pcsx2_texture_mapping.md`
-- [ ] Generate replacement PNGs from `assets/PS_out`, headshot map and logo map; install in PCSX2 `textures\SLES-53022\replacements`
+Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per team, match crops offline against the dump folder).
+- [x] Starter faces (90, 18 teams): `data/texture_map/starter_faces.csv`, `scripts/gen_replacements.py`, verified in-game
+- [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv`, verified in-game
+- [ ] Bench faces (up to 15 players per team): scan Team Rotation / lineup screens the same way
+- [ ] Large team logos and jerseys (Team Select, scoreboards, court): `00002213` family etc.
+- [ ] Re-run the scan whenever the roster slot order changes; `replacements\` must be empty during a scan
+- [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [ ] Team jerseys/colours (optional)
 
 ### Roster/data quality
