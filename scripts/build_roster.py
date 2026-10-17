@@ -26,13 +26,15 @@ import openpyxl
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
+from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, convert, dunk_flag  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
 
 # --- payload layout (see docs/roster_payload_format.md) -------------------
 PLAYER_BASE, PLAYER_STRIDE, PLAYER_COUNT = 0x64F4, 0x94, 0x318
-P_LAST, P_FIRST = 0xC, 0x10
+P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
+P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
 T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
@@ -42,6 +44,7 @@ POOL_MIN = 0x675DC
 # player records used as spare slots when a ProA team has more players than its NBA slot
 SPARE_RECORDS = list(range(577, 481, -1))
 
+REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
 RATING_COLS = range(11, 45)
 TRANSLIT = {"Ã¤": "ae", "Ã¶": "oe", "Ã¼": "ue", "Ã„": "Ae", "Ã–": "Oe", "Ãœ": "Ue", "ÃŸ": "ss"}
@@ -86,6 +89,9 @@ class Payload:
             if v & 1:
                 t = o + v - 1
                 if POOL_MIN <= t < len(self.d) - 2 and t % 2 == 0 and o < POOL_MIN:
+                    rel = o - PLAYER_BASE
+                    if 0 <= rel < PLAYER_COUNT * PLAYER_STRIDE and rel % PLAYER_STRIDE not in (P_LAST, P_FIRST, P_NICK, P_BDAY):
+                        continue  # stat bytes that merely look like pointers
                     self.refs[t].add(o)
         self.free = [GAP]
         assert not any(self.d[GAP[0]:GAP[1]]), "gap not zero"
@@ -115,6 +121,8 @@ class Payload:
 
     def free_string(self, t):
         n = len(self.read_str(t)) * 2 + 2
+        if n == 2:
+            return 0  # empty strings may alias another string's terminator
         if self.refs[t] or any(t < r < t + n and self.refs[r] for r in range(t + 2, t + n, 2) if r in self.refs):
             return 0
         self.d[t:t + n] = bytes(n)
@@ -155,13 +163,42 @@ def load_proa(path):
             if not r[1]:
                 continue
             rt = [v for v in r[11:45] if isinstance(v, (int, float))]
+            rowd = dict(zip(hdr, r))
             players.append({
+                "attrs": convert(rowd), "rowd": rowd,
                 "first": str(r[0] or ""), "last": str(r[1] or ""), "pos": POS.get(str(r[2]), 2),
                 "jersey": r[4], "ovr": sum(rt) / len(rt) if rt else 0, "proa_id": r[hdr.index("ProA ID")] if "ProA ID" in hdr else None,
                 "row": r,
             })
         teams[name] = players
     return teams
+
+
+def _num(v, default):
+    return v if isinstance(v, (int, float)) else default
+
+
+def birthday_text(row):
+    y, m, d = (_num(row.get(k), None) for k in ("Birth Year", "Birth Month", "Birth Day"))
+    if None in (y, m, d):
+        return "1/1/95"
+    return f"{int(m)}/{int(d)}/{int(y) % 100:02d}"
+
+
+def write_record_fields(buf, off, p):
+    """Jersey, position, size, years pro and the 19 ratings (see docs/player_record_layout.md)."""
+    row = p["rowd"]
+    buf[off + P_JERSEY] = int(_num(p["jersey"], 0)) & 0xFF
+    buf[off + P_POS] = p["pos"]
+    buf[off + P_HEIGHT] = int(round(_num(row.get("Height"), 1.96) * 39.3701))
+    struct.pack_into("<H", buf, off + P_WEIGHT, int(round(_num(row.get("Weight"), 92) * 2.20462)))
+    by = _num(row.get("Birth Year"), 1995)
+    buf[off + P_YEARS] = max(1, min(21, REF_YEAR - int(by) - 19))
+    for k, o in ATTR_OFFSETS.items():
+        buf[off + o] = p["attrs"][k]
+    for o, v in NEUTRAL_BYTES.items():
+        buf[off + o] = v
+    buf[off + DUNK_FLAG] = dunk_flag(p["attrs"]["dunk"])
 
 
 def order_roster(players):
@@ -257,6 +294,9 @@ def main():
                 first, last, note = fit_names(f0, l0, a.max_first, a.max_last)
             assignments.append((rec_off(r) + P_LAST, last))
             assignments.append((rec_off(r) + P_FIRST, first))
+            assignments.append((rec_off(r) + P_NICK, ""))
+            assignments.append((rec_off(r) + P_BDAY, birthday_text(p["rowd"])))
+            write_record_fields(pl.d, rec_off(r), p)
             player_rows.append({"team_slot": k, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "orig_first": p["first"], "orig_last": p["last"],
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],

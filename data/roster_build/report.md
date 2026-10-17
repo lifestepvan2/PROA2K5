@@ -1,8 +1,8 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `9ee66a60`
+- payload: 725056 bytes, CRC32 `a1d58a9c`
 - teams: 18, players: 269
-- string pool: free before 4000 B, freed 7144 B, free after 3024 B
+- string pool: free before 4000 B, freed 11338 B, free after 3136 B
 - spare player records used: see player_map.csv
 - longest last names: [(11, 'Monninghoff', 'Gottingen'), (11, 'Seckendorff', 'Bremerhaven'), (11, 'Williams Jr', 'Leverkusen'), (12, 'Lee Zurliene', 'Munster'), (12, 'Marty-Decker', 'Baskets'), (12, 'Niedermanner', 'Koblenz'), (12, 'Pickett Lazo', 'Stars Bochum'), (12, 'Schwanenberg', 'Knights Kirchheim')]
 
