@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 docs/pcsx2_screen.png
 docs/_*.png
+docs/_scans/
 docs/ps2_ram_base.txt
 data/roster_build/*.bin
 data/nba_defaults/*.bin
