@@ -240,3 +240,5 @@ cycles can be driven with `pcsx2_controller.py`; remember the PS2 RAM host base 
 * Season/franchise modes use schedules keyed by team index; quick game first.
 * Keep a pristine copy of the original card and of the game's default roster. Never write to the card while PCSX2 runs.
 * Restore the SDL pad bindings in `PCSX2.ini` (`docs/pad1_sdl_backup.txt`) when automation is finished.
+
+**E4 (full build).** scripts/build_roster.py output (18 ProA teams / 269 players, 75 name adjustments) loaded from the card and a quick game ran with ProA abbreviations and names (HAG vs TUE). Layout details: docs/roster_payload_format.md.

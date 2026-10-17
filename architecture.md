@@ -1,4 +1,4 @@
-# PS2 2K5 architecture
+﻿# PS2 2K5 architecture
 
 ## Objective
 Turn ESPN NBA 2K5 (PS2, PCSX2) into a ProA game: replace team/player names, lineup textures and ratings
@@ -7,6 +7,7 @@ with the current ProA roster, reproducibly for each new roster.
 ## Layer 1: data pipeline (frozen, cached)
 - `scripts/scrape_proa_roster.py` / `scripts/proa_attr_model.py` produced `proa*.xlsx` (not rerun).
 - `nba2k_editor/assets/team_mapping.json`, `proa_headshot_map.json` - cached mappings.
+- TODO: replace photoshop batch edit step (for cropping original player portraits to auto-select the face) with a python script
 
 ## Layer 2: game data formats (reverse engineered, see `docs/`)
 - Roster save on the memory card (`/BESLES-53022Roster1/`): uncompressed heap snapshot with
