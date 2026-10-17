@@ -1,0 +1,8 @@
+data/roster_test/*.ps2
+data/roster_test/*.bin
+archive/
+__pycache__/
+*.pyc
+docs/pcsx2_screen.png
+docs/_*.png
+docs/ps2_ram_base.txt

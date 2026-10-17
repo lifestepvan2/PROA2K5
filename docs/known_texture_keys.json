@@ -1,0 +1,51 @@
+{
+  "phase": "pcsx2-live-asset-linking",
+  "notes": [
+    "The exact dumped texture keys are present in the live PCSX2 process memory.",
+    "This strongly indicates the game references the replacement/dump texture filenames directly as resource identifiers."
+  ],
+  "player_textures": [
+    {
+      "label": "K. Thomas",
+      "key": "336d3eccf0e668f5-43ba0221943876ba-00001dd3",
+      "memory_addresses": [
+        "0x1798E632C30",
+        "0x1798E8A33A4",
+        "0x1798E95F670",
+        "0x17AD5986B30"
+      ],
+      "path_hint": "C:\\Users\\Sebastian\\Documents\\PCSX2\\textures\\SLES-53022\\replacements\\336d3eccf0e668f5-43ba0221943876ba-00001dd3.png"
+    },
+    {
+      "label": "Allen Iverson",
+      "key": "c3a55f457f58ff69-e39984b39648c466-00001dd3",
+      "memory_addresses": [
+        "0x17993396500"
+      ],
+      "path_hint": "C:\\Users\\Sebastian\\Documents\\PCSX2\\textures\\SLES-53022\\dumps\\c3a55f457f58ff69-e39984b39648c466-00001dd3.png"
+    }
+  ],
+  "team_textures": [
+    {
+      "label": "Sixers logo",
+      "key": "bc8a0c3c2468cc58-8d51603fc90a99a6-00002213",
+      "memory_addresses": [
+        "0x1798B97ECD4"
+      ],
+      "path_hint": "C:\\Users\\Sebastian\\Documents\\PCSX2\\textures\\SLES-53022\\dumps\\bc8a0c3c2468cc58-8d51603fc90a99a6-00002213.png"
+    },
+    {
+      "label": "Spurs logo",
+      "key": "bd859887167be8fc-8218e5904033c8cf-00002213",
+      "memory_addresses": [
+        "0x1798B97EC90",
+        "0x1798E97E0B0"
+      ],
+      "path_hint": "C:\\Users\\Sebastian\\Documents\\PCSX2\\textures\\SLES-53022\\dumps\\bd859887167be8fc-8218e5904033c8cf-00002213.png"
+    }
+  ],
+  "resource_family": {
+    "00001dd3": "likely player portrait / face texture family",
+    "00002213": "likely team logo / badge or larger asset family"
+  }
+}

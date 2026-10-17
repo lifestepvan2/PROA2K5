@@ -1,17 +1,19 @@
-﻿# PROA2K5
+# PROA2K5
 
-This repo is the PS2-era counterpart to the neighboring NBA 2K26 live-memory editor work.
+Replace the NBA teams/players of ESPN NBA 2K5 (PS2, SLES-53022, run in PCSX2) with the German ProA
+roster. Companion of the 2K26 live-memory project; only its data pipeline is reused.
 
-We intentionally reused the known, cached data and pipeline code from the neighboring repo without rerunning any generation jobs. The goal for this phase is to establish a stable baseline on top of the already-collected roster and import data before moving to the PS2/PCSX2 memory layer.
+## Layout
+- `proa.xlsx`, `proa_rosters.xlsx`, `proa_scraped.xlsx` - frozen ProA datasets (do not regenerate).
+- `scripts/scrape_proa_roster.py`, `scripts/proa_attr_model.py` - cached data pipeline from the 2K26 project.
+- `scripts/` PS2 tooling: PCSX2 RAM access (`fast_scan.py`, `full_scan_ps2_base.py`, `pine_client.py`),
+  input/screen automation (`pcsx2_controller.py`, `pcsx2_capture.py`), live name patching (`patch_names.py`),
+  memory-card roster reader/writer with ECC (`mc_inspect.py`, `mc_write.py`), repack experiment (`repack_test1.py`).
+- `docs/` - findings: `poc_findings.md`, `roster_budget_plan.md`, `pcsx2_texture_mapping.md`, `pcsx2_memory_attach.md`.
+- `assets/PS_out`, `nba2k_editor/assets` - cached player/team images and name/logo mappings.
+- `archive/` - git-ignored leftovers from the 2K26 editor and early experiments (not used).
 
-## Reused baseline
-- `scripts/` copies the ProA roster scraping and attribute-model pipeline from the 2K26 project.
-- `docs/` carries the field reverse-engineering notes and export schema reference.
-- `nba2k_editor/core/`, `importing/`, `models/`, and `memory/` are kept as the base runtime and import logic for reference.
-- `proa.xlsx`, `proa_rosters.xlsx`, `proa_scraped.xlsx`, and related cached workbooks are the frozen dataset to work from initially.
-
-## Project goal
-Build a 2K5 PS2 emulation workflow that is easier to manipulate than the Windows 2K26 title, while reusing the proven roster-generation and import pipeline as much as possible.
-
-## Immediate next task
-Read the cached data and reverse-engineer the PCSX2 process/memory layout so we can hook into the emulated NBA 2K5 instance and prepare the first in-memory writes.
+## Status
+- Names: proven live (RAM patch) and via the memory-card roster file (strings may be lengthened/relocated).
+- Textures: PCSX2 replacement PNGs named after the dump keys work.
+- Next: `scripts/build_roster.py` - generate a complete roster payload from the ProA data and write it to the card.

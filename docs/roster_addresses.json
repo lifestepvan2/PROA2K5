@@ -1,0 +1,94 @@
+{
+  "76ers": {
+    "Iverson": {
+      "addr": 11544584,
+      "context": "I.v.e.r.s.o.n...A.l.l.e.n...T.h.e. .A.n.s.w.e.r...6./."
+    },
+    "McKie": {
+      "addr": 10942742,
+      "context": "M.c.K.i.e..........................N<NAF7.G.l.e.n."
+    },
+    "Robinson": {
+      "addr": 10942814,
+      "context": "R.o.b.i.n.s.o.n....................RFKJA<.M.a.r.c......."
+    },
+    "Dalembert": {
+      "addr": 11544796,
+      "context": "D.a.l.e.m.b.e.r.t...S.a.m.u.e.l.....5./.1.0./.8.1...O.l.l."
+    },
+    "Skinner": {
+      "addr": 11544892,
+      "context": "S.k.i.n.n.e.r...B.r.i.a.n.....5./.1.9./.7.6...G.r.e.e."
+    },
+    "Thomas": {
+      "addr": 10946198,
+      "context": "T.h.o.m.a.s........................NP2XAK.J.e.r.o.m."
+    },
+    "Salmons": {
+      "addr": 11544982,
+      "context": "S.a.l.m.o.n.s...J.o.h.n.....1.2./.1.2./.7.9...K.o.r.v."
+    },
+    "Green": {
+      "addr": 11537436,
+      "context": "G.r.e.e.n...B.u.f.f.a.l.o...C. .M.i.c.h.i.g.a.n..."
+    },
+    "Williamson": {
+      "addr": 11545070,
+      "context": "W.i.l.l.i.a.m.s.o.n...C.o.r.l.i.s.s...B.i.g. .N.a.s.t.y...1."
+    },
+    "Jackson": {
+      "addr": 10942886,
+      "context": "J.a.c.k.s.o.n......................><2K2A.K.e.i.t.h..."
+    },
+    "Rogers": {
+      "addr": 11551598,
+      "context": "R.o.g.e.r.s...R.o.d.n.e.y.....6./.2.0./.7.1...S.m.i."
+    }
+  },
+  "Pistons": {
+    "Billups": {
+      "addr": 11557280,
+      "context": "B.i.l.l.u.p.s...C.h.a.u.n.c.e.y.....9./.2.5./.7.6...H."
+    },
+    "Hamilton": {
+      "addr": 10948286,
+      "context": "H.a.m.i.l.t.o.n....................VFK<<7.R.a.s.h.e.e.d."
+    },
+    "Prince": {
+      "addr": 11537188,
+      "context": "P.r.i.n.c.e.t.o.n...Y.a.l.e...C.a.n.i.s.i.u.s...F.a."
+    },
+    "Wallace": {
+      "addr": 10948358,
+      "context": "W.a.l.l.a.c.e......................VPKPFU.B.e.n......."
+    },
+    "Hunter": {
+      "addr": 10948502,
+      "context": "H.u.n.t.e.r........................A2O2A2.D.e.r.r.i."
+    },
+    "McDyess": {
+      "addr": 11557542,
+      "context": "M.c.D.y.e.s.s...A.n.t.o.n.i.o.....9./.7./.7.4...H.u.n."
+    },
+    "Arroyo": {
+      "addr": 11551740,
+      "context": "A.r.r.o.y.o...C.a.r.l.o.s.....7./.3.0./.7.9...H.a.r."
+    },
+    "Ham": {
+      "addr": 10948286,
+      "context": "H.a.m.i.l.t.o.n....................VFK<<7.R.a."
+    },
+    "Milicic": {
+      "addr": 11557834,
+      "context": "M.i.l.i.c.i.c...D.a.r.k.o.....6./.2.0./.8.5...D.u.p.r."
+    },
+    "Parker": {
+      "addr": 10949366,
+      "context": "P.a.r.k.e.r........................R2K2F2.T.i.m....."
+    },
+    "Dupree": {
+      "addr": 11557880,
+      "context": "D.u.p.r.e.e...R.o.n.a.l.d.....1./.2.6./.8.1...A.l.s."
+    }
+  }
+}
