@@ -35,6 +35,7 @@ DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
 PLAYER_BASE, PLAYER_STRIDE, PLAYER_COUNT = 0x64F4, 0x94, 0x318
 P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
 P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
+P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
 T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
@@ -194,6 +195,10 @@ def write_record_fields(buf, off, p):
     struct.pack_into("<H", buf, off + P_WEIGHT, int(round(_num(row.get("Weight"), 92) * 2.20462)))
     by = _num(row.get("Birth Year"), 1995)
     buf[off + P_YEARS] = max(1, min(21, REF_YEAR - int(by) - 19))
+    hand = row.get("Right Handed")  # optional manual column; default right-handed
+    buf[off + P_HAND] = 0 if hand in (0, False, "0", "L", "l", "left", "Left") else 1
+    buf[off + P_SIZE_INT] = max(60, min(95, int(round(0.9856 * buf[off + P_HEIGHT] + 0.70))))
+    buf[off + P_FAME] = p.get("fame", 20)
     for k, o in ATTR_OFFSETS.items():
         buf[off + o] = p["attrs"][k]
     for o, v in NEUTRAL_BYTES.items():
@@ -234,6 +239,9 @@ def main():
     pl = Payload(Path(a.base).read_bytes())
     base_snapshot = pl.snapshot()
     proa = load_proa(a.proa)
+    allp = sorted((p for t in proa.values() for p in t), key=lambda p: p["ovr"])
+    for i, p in enumerate(allp):
+        p["fame"] = 10 + round(30 * i / max(1, len(allp) - 1))  # u32: overall percentile -> 10..40
     team_rows = list(csv.DictReader(open(a.teams, encoding="utf-8")))
     overrides = {}
     if Path(a.overrides).exists():

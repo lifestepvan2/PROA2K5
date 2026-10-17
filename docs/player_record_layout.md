@@ -14,7 +14,9 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x24 | ptr | nickname string (may be empty) | W (set empty) |
 | 0x28 | ptr | birthday string `m/d/yy` | W |
 | 0x2D | u8 | index in team roster (0-4 starters), 0xFF otherwise | |
-| 0x30 | u8 | unknown, ~72-89 (not the displayed height) | |
+| 0x2E | u8 | **handedness**: 1 = right-handed, 0 = left-handed (user finding, boolean) | W |
+| 0x30 | u8 | blocking/rebounding/dunking-type trait; big centers ~90, speedy guards ~70; correlates with height (r=0.93, `0.9856*height_in+0.70`) | W (from height) |
+| 0x32 | u8 | "fame" indicator, 10 (low) to ~40-44 (superstars); mapped from overall percentile | W (from overall) |
 | 0x31 | u8 | height in inches (73 = 6'1") | W |
 | 0x34 | u16 | weight in lb | W |
 | 0x41 | u8 | years pro | W |

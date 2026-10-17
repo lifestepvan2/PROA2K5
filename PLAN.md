@@ -28,6 +28,14 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
       tendency/skill-tier flags. Until decoded, `build_roster.py` writes neutral values for 0x4C/0x4F/0x50/0x55/
       0x5A/0x5C/0x5F/0x60 and ProA players inherit the NBA slot's bytes for the rest (u00-u0a, u14, u2c-u30, u32,
       u3c-u44, u61-u67, u69, u75-u7f, u83-u85, u8e-u92), which should be reset/overwritten once understood.
+      Findings so far (user, from the export): **u2e = handedness** (1 right, 0 left), **u30 = height-correlated
+      big-man trait** (~70 guards to ~90 centers), **u32 = fame** (10..~44, superstars highest). Many of the
+      remaining bytes are probably equipment (sleeves, shoes, bands, ...) or animation indexes; animation
+      indexes could be found by correlating columns with position.
+- [ ] **Add a "Right Handed" (or "Handedness") column to the ProA database** for u2e. Not public information, so it
+      will be filled by manual edits only; `build_roster.py` reads an optional `Right Handed` column
+      (0/L = left) and defaults to right-handed. u30 is generated from height and u32 from the overall percentile
+      (see `write_record_fields`).
 - [ ] Check whether in-game "Overall" is computed or stored; birthday/years pro display check (player card)
 - [ ] Years pro: currently estimated from the birth year
 
