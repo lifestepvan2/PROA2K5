@@ -10,3 +10,5 @@ docs/ps2_ram_base.txt
 data/roster_build/*.bin
 data/nba_defaults/*.bin
 docs/_faces/
+texture_workspace/
+docs/_tmp/

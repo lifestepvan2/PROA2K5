@@ -53,6 +53,15 @@ def write_icons(out):
     print(n, "team icons written")
 
 
+def managed_keys():
+    """Texture keys this generator writes (faces of ProA players, team icons); the workspace never overrides them."""
+    pm = csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))
+    recs = {int(r["record"]) for r in pm}
+    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
+    icons = {r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/team_icons.csv", encoding="utf-8"))}
+    return {keys[r] for r in recs if r in keys} | icons
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)

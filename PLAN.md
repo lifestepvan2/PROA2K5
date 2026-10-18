@@ -46,8 +46,10 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] Bench faces (all 269 players): `data/texture_map/record_faces.csv` via live injection scan, record allocation in `build_roster.py`, spot-checked in-game (see `docs/pcsx2_texture_mapping.md`)
 - [ ] Verify shrunken donor teams 18-22 (7-9 players) in-game, and low-score matches (records 70, 103, 231) - low prio
 - [ ] in-game player faces (and body textures) - figure out existing mapping and work on re-mapping (by figuring out visual matches) as a first step. replacement file generation down the line.
-- [ ] Large team logos and jerseys (Team Select, scoreboards, court): `00002213` family etc.
-- [ ] create a workflow allowing for systematic, part automated, part manual, asset replacement. e.g. by creating a mirrored folder with a good, readable structure (clustering and labelling assets by group - e.g. a folder "sponsor logos", a folder "jerseys"...) where the user can replace dumped image files with any image (using the same name), then the pipeline crops it to the right dimensions and routes it back to the live replacement folder
+- [x] Team logo variants on Team Select, courts, scoreboards etc. (`00002213` / `00001993`): 46 variants of the 18 ProA logos found by template matching and verified by eye (`scripts/build_logo_map.py` -> `data/texture_map/logo_variants.csv`, `scripts/gen_logo_replacements.py`). Only variants that have been rendered/dumped exist; more dumps (e.g. playing a game per team) -> re-run both scripts
+- [ ] Cavaliers wordmark is split over two textures (`PARTIAL_REFS`); needs a composite reference. Logos inside arena signs (mode B matches) and team-name wordmarks are not handled automatically; use the workspace
+- [x] Manual replacement workspace (`scripts/texture_workspace.py`, folder `texture_workspace/`, gitignored): dumps grouped into named folders, edits synced back resized to the original resolution; pipeline-managed textures always win. Alpha convention verified in-game (see `docs/pcsx2_texture_mapping.md`)
+- [ ] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
 - [ ] Re-run the scan whenever the roster slot order changes; `replacements\` must be empty during a scan
 - [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [ ] Team jerseys/colours (optional)
@@ -67,6 +69,12 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 
 ### QOL
 - [ ] make the default matchup (Lakers at Pistons) be a full ProA game. e.g. by shifting the overwritten teams from slots 1-18 to slots 12-30 instead
+
+### release
+- [ ] re-scrape online data for 2026/27 season, update textures of new teams. 
+- [ ] manual refinement pass over player attributes
+- [ ] re-do player face mapping
+- [ ] rollout and test
 
 ### Nice-to-have (last)
 - [ ] Fill the remaining 12 NBA team slots (18-29) with filler/other teams; shift the teams handle all-star/legend teams referencing NBA 

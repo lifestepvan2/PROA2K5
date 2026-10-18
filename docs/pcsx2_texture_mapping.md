@@ -55,5 +55,26 @@ legend-team reference (335 records; 207 in ProA slots 0-17, 128 in donor slots 1
 from donor teams 18-22, which shrink to 7-9 players. Legend and conference teams stay untouched, so historic
 players keep their faces. `gen_replacements.py` writes one face per ProA player keyed by its record.
 
+## Team logos
+The 32x32 icons are zoomed crops of the full logos, so a multi-scale `cv2.matchTemplate` of each icon finds the
+full-size logo textures (`logo_refs.csv`: 18 ProA + 12 donor reference frames, picked by eye). `build_logo_map.py`
+(about 5 minutes) then matches every dump against those references: mode A = the dump is a window of the reference
+frame (cropped/partial logos, different sizes), mode B = the reference sits inside the dump (signs). Raw matches are
+noisy (number strips, faces), so `gen_logo_replacements.ACCEPT` filters on score, MAE, content fraction and window
+size; 46 ProA variants pass and were confirmed visually. The ProA logo is fitted into the reference's content box and
+cut to each variant's window. Alpha is written in PS2 range 0..128.
+
+## Texture workspace (manual replacements)
+`python scripts/texture_workspace.py export` mirrors all dumps (`dumps` + the older `bu` session) into
+`texture_workspace/<group>/<subgroup>/<label>__<token>.png`: known maps first (faces by NBA player, team logos), then
+family rules (video tiles, crowd sprites, name plates, jerseys...), then k-means content clusters for the mixed
+families (`texcluster.py`, names in `cluster_names.json`). Edit files in place (any size/format; keep the `__token`;
+folders may be rearranged), then `texture_workspace.py sync` writes them to `replacements\` resized to the original
+resolution (`--fit stretch|contain|cover`) and F10 reloads in PCSX2. Restoring a file reverts it. Exported files use
+normal 0..255 alpha; sync converts back to PS2 0..128, and images without alpha keep the original transparency.
+Textures managed by the pipeline (ProA faces, team icons, logo variants) are not exported and win on conflicts.
+Verified in-game: stretched RGB replacement of full jerseys, alpha cut-outs of numbers, revert. PCSX2 must be
+unpaused (Space) for a reload to take effect on screen.
+
 ## Open
-Large logos, jerseys: see `PLAN.md`.
+Jerseys and name plates: see `PLAN.md`.
