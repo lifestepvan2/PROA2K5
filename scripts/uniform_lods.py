@@ -108,11 +108,13 @@ def analyse():
     groups = collections.defaultdict(list)
     for i in range(len(hk)):
         groups[find(i)].append(hk[i])
+    prev_master = {r["master"] for r in load_mapping().values() if r["role"] == "master"}
     glist = []
     for mem in groups.values():
         mem = sorted(mem)
         ed = sorted((k for k in mem if k in edited), key=lambda k: -edited[k])
-        glist.append(dict(master=ed[0] if ed else mem[0], members=mem))
+        kept = [k for k in mem if k in prev_master]  # keep earlier master choices stable when new duplicates get dumped
+        glist.append(dict(master=ed[0] if ed else kept[0] if kept else mem[0], members=mem))
     glist.sort(key=lambda g: g["master"])
     lods = []
     prev = []  # accepted LODs of the next larger size
