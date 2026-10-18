@@ -67,8 +67,16 @@ full-size logo textures (`logo_refs.csv`: 18 ProA + 12 donor reference frames, p
 (about 5 minutes) then matches every dump against those references: mode A = the dump is a window of the reference
 frame (cropped/partial logos, different sizes), mode B = the reference sits inside the dump (signs). Raw matches are
 noisy (number strips, faces), so `gen_logo_replacements.ACCEPT` filters on score, MAE, content fraction and window
-size; 46 ProA variants pass and were confirmed visually. The ProA logo is fitted into the reference's content box and
-cut to each variant's window. Alpha is written in PS2 range 0..128.
+size; 108 ProA variants pass (after a home game per ProA team was dumped) and were reviewed visually. 128x128 variants
+live in the face family `00001dd3` (pre-game banner), so that family is matched too. Pistons (the default home team =
+Falcons) has two references: the PISTONS ball (Team Select) and the horse logo (banner, `a252ef5c...-00002213`).
+Incremental runs: `build_logo_map.py --since "YYYY-MM-DD HH:MM"` or `--families "00002213,00001993"` match only part of
+the dumps and merge into the csv (quote the family list). The ProA logo is fitted into the reference's content box and
+cut to each variant's window. Alpha is written in PS2 range 0..128. The content threshold scales with the reference's
+own content (thin logos such as Rockets/Wizards), and score >= 0.75 adds the right halves of split logos (Lakers).
+
+PCSX2 only dumps textures without a replacement, once per process: to see what is still unreplaced, restart PCSX2 with
+an empty `dumps` folder (the in-memory set is not reset by F10 or by moving files), replay, then merge the folder back.
 
 ## Texture workspace (manual replacements)
 `python scripts/texture_workspace.py export` mirrors all dumps (`dumps` + the older `bu` session) into

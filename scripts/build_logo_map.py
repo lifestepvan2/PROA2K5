@@ -5,19 +5,21 @@ candidate with an isotropic scale search (normalised cross correlation, colour):
   A  the candidate is a window of the reference frame (full logos at other resolutions, split/cropped logos)
   B  the reference sits inside the candidate (logo on a sign / composite texture)
 Output: data/texture_map/logo_variants.csv. gen_logo_replacements.py turns the A matches into replacements.
-Usage: python scripts/build_logo_map.py [--min 0.6]
+Usage: python scripts/build_logo_map.py [--min 0.6] [--since "2026-10-18 12:00"] [--families 00001dd3,00001dd4]
 """
 import argparse
 import csv
 import multiprocessing as mp
+from datetime import datetime
+from pathlib import Path
 
 import cv2
 import numpy as np
 
-from texlib import FACE_FAMILIES, ROOT, dump_files, family, load_white
+from texlib import ROOT, dump_files, family, load_white
 
 OUT = ROOT / "data/texture_map/logo_variants.csv"
-SKIP_FAMILIES = FACE_FAMILIES | {"00001994", "00001553", "00001554"}  # faces, video tiles, small team icons
+SKIP_FAMILIES = {"00001994", "00001553", "00001554"}  # video tiles, small team icons
 WIN_A = [128, 112, 96, 80, 64, 48, 40, 32, 24, 16]  # candidate size inside the 128-px reference frame
 REF_B = [192, 128, 96, 64, 48, 32, 24]
 PAD = 64
@@ -92,13 +94,28 @@ def match(key):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--min", type=float, default=0.6)
+    ap.add_argument("--since", help="only match dumps written after this local time (YYYY-MM-DD HH:MM) and merge "
+                                    "the result into the existing csv")
+    ap.add_argument("--families", help="comma separated families: only match those and merge into the csv")
     args = ap.parse_args()
     init()
     keys = sorted(k for k in FILES if family(k) not in SKIP_FAMILIES)
+    old_rows = []
+    if args.since or args.families:
+        if args.since:
+            cut = datetime.strptime(args.since, "%Y-%m-%d %H:%M").timestamp()
+            keys = [k for k in keys if Path(FILES[k]).stat().st_mtime > cut]
+        if args.families:
+            fams = set(args.families.split(","))
+            keys = [k for k in keys if family(k) in fams]
+        done = set(keys)
+        if OUT.exists():
+            old_rows = [r for r in csv.reader(open(OUT, encoding="utf-8"))][1:]
+            old_rows = [r for r in old_rows if r[0] not in done]
     print(len(keys), "candidates,", len(REFS), "references")
     with mp.Pool(max(1, mp.cpu_count() - 1), initializer=init) as pool:
         res = pool.map(match, keys, chunksize=8)
-    rows = []
+    rows = old_rows
     for key, b in res:
         if b and b[0] >= args.min:
             rows.append([key, b[2], b[3], b[4], b[1], f"{b[0]:.3f}"] + [f"{v:.4f}" for v in b[5:]])
