@@ -1,4 +1,4 @@
-"""Uniform texture LODs: the 16x8 / 32x16 / 64x32 / 128x64 uniform textures are low-res LODs of the 512x256 originals,
+"""Uniform texture LODs: the 16x8 / 32x16 / 64x32 / 128x64 / 256x128 uniform textures are low-res LODs of the 512x256 originals,
 and some 512x256 originals exist several times (visually identical duplicates; one of them is the MASTER).
 
     python scripts/uniform_lods.py match   match LODs / duplicates from the ORIGINAL dumps, write data/uniform_lods/candidates.csv
@@ -24,8 +24,8 @@ from PIL import Image, ImageDraw
 from texlib import ROOT, dump_files, family, load_rgba
 
 HI = ("00002253", "00002254")
-LOD_FAMILY = {"00000d13": (16, 8), "00001153": (32, 16), "00001593": (64, 32), "000019d3": (128, 64)}
-THRESH = {(128, 64): 0.90, (64, 32): 0.85, (32, 16): 0.80, (16, 8): 0.75}
+LOD_FAMILY = {"00001e13": (256, 128), "00000d13": (16, 8), "00001153": (32, 16), "00001593": (64, 32), "000019d3": (128, 64)}
+THRESH = {(256, 128): 0.93, (128, 64): 0.90, (64, 32): 0.85, (32, 16): 0.80, (16, 8): 0.75}
 DUP_NCC = 0.995
 CHAIN_NCC = 0.93
 OUT = ROOT / "data/uniform_lods"
@@ -118,10 +118,17 @@ def analyse():
         kept = [k for k in mem if k in prev_master]  # keep earlier master choices stable when new duplicates get dumped
         glist.append(dict(master=ed[0] if ed else kept[0] if kept else mem[0], members=mem))
     glist.sort(key=lambda g: g["master"])
+    # the middle hash of a dump key is shared by all mip levels of a texture: exact evidence for LOD -> group
+    mid_groups = collections.defaultdict(set)
+    for gi, g in enumerate(glist):
+        for k in g["members"]:
+            mid_groups[k.split("-")[1]].add(gi)
     lods = []
     prev = []  # accepted LODs of the next larger size
     for fam, size in sorted(LOD_FAMILY.items(), key=lambda kv: -kv[1][0]):
-        keys = sorted(k for k in files if family(k) == fam and k in uni)
+        # 256x128 (family 1e13) is classified as 'uniform_parts' in the workspace until it is mapped
+        keys = sorted(k for k in files if family(k) == fam and (k in uni or fam == "00001e13"))
+        keys = [k for k in keys if load_rgba(files[k]).shape[:2] == (size[1], size[0])]
         if not keys:
             continue
         L = ncc_rows(np.stack([small(load_rgba(files[k]), size) for k in keys]))
@@ -140,8 +147,13 @@ def analyse():
             if P is not None and P[j].max() >= CHAIN_NCC:
                 pj = int(P[j].argmax())
                 group, via, ok = prev[pj]["group"], f"lod {sid(prev[pj]['key'])}", True
+            hg = mid_groups.get(k.split("-")[1], set())
+            if len(hg) == 1:
+                group, via, ok = next(iter(hg)), "hash", True
             cur.append(dict(key=k, size=f"{size[0]}x{size[1]}", group=group, score=score, second=score - margin, ok=ok, via=via,
                             direct_group=int(order[0])))
+        if fam == "00001e13":  # not every 256x128 dump is a uniform mip: keep only the matched ones
+            cur = [l for l in cur if l["ok"]]
         lods += cur
         prev = [l for l in cur if l["ok"]]
     return files, harr, glist, lods
