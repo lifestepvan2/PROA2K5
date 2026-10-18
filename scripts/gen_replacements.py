@@ -66,16 +66,38 @@ def write_icons(out):
     return [k for k, _ in rows]
 
 
+def pid_keys():
+    """{pid: [lineup portrait keys]}. The portrait follows the player model: it is the one of the NBA record(s) that
+    originally had that pid (players_unknown.csv), not the one of the record the pid is now written to."""
+    rec_key = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
+    out = {}
+    for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8")):
+        k = rec_key.get(int(r["record"]))
+        pid = int.from_bytes(bytes.fromhex(r["hex"])[4:6], "little")
+        if k and k not in out.setdefault(pid, []):
+            out[pid].append(k)
+    return out
+
+
 def face_keys():
-    """{record: texture key} for the current roster build (player_map.csv)."""
-    recs = {int(r["record"]) for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))}
-    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
-    return {r: keys[r] for r in recs if r in keys}
+    """[(player_map row, [portrait keys])] for the current roster build, best overall first. A pid used by several players
+    can show only one portrait: the first (best) player keeps it, the others are listed in the returned conflicts."""
+    keys = pid_keys()
+    pm = sorted(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")), key=lambda r: -float(r["ovr"]))
+    rows, owner, conflicts = [], {}, []
+    for r in pm:
+        pid = int(r["pid"])
+        if pid in owner:
+            conflicts.append((r, owner[pid]))
+            continue
+        owner[pid] = r
+        rows.append((r, keys[pid]))
+    return rows, conflicts
 
 
 def managed_keys():
     """Texture keys this generator writes (faces of ProA players, team icons); the workspace never overrides them."""
-    return set(face_keys().values()) | {k for k, _ in icon_rows()}
+    return {k for _, ks in face_keys()[0] for k in ks} | {k for k, _ in icon_rows()}
 
 
 def main():
@@ -84,18 +106,22 @@ def main():
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     written = write_icons(args.out)
-    pm = list(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")))
-    keys = face_keys()
+    rows, conflicts = face_keys()
     n = 0
-    for r in pm:
+    for r, ks in rows:
         src = ROOT / "assets/PS_out" / f"{r['proa_id']}.png"
         if not src.exists():
             print("no image for", r["first"], r["last"])
             continue
-        make_face(src).save(args.out / f"{keys[int(r['record'])]}.png")
-        written.append(keys[int(r["record"])])
+        img = make_face(src)
+        for k in ks:
+            img.save(args.out / f"{k}.png")
+            written.append(k)
         n += 1
     print(n, "faces written to", args.out)
+    for r, o in conflicts:
+        print(f"CONFLICT pid {r['pid']}: {r['first']} {r['last']} ({r['sheet']}) shares the portrait of {o['first']} {o['last']} ({o['sheet']})")
+    print(len(conflicts), "players share a pid (and so a portrait) with a better player; make their pids unique in proa_pid_map.csv")
     print(prune("faces_icons", args.out, written), "stale files removed")
 
 

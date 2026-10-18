@@ -9,7 +9,7 @@ Output: data/face_match/proa_pid_map.csv - the single, editable source of truth 
   build_roster.py uses override_pid if set, else pid). Players already in the file keep their pid on later runs
   (new/changed seasons only match the new players); --rematch redoes the automatic matches, keeping overrides.
 Contact sheets go to docs/_face_sheets/ (scratch, git-ignored).
-Usage: python scripts/face_match.py [--rematch] [--w-skin 1.0] [--reuse 0.08] [--max-uses 4]
+Usage: python scripts/face_match.py [--rematch] [--w-skin 1.0] [--reuse 0.08] [--max-uses 1]
 """
 import argparse
 import csv
@@ -24,6 +24,7 @@ from scipy.optimize import linear_sum_assignment
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from face_embed import FACES, proa_portrait, tex_face  # noqa: E402
+from gen_replacements import pid_keys  # noqa: E402
 
 OUT = ROOT / "data/face_match"
 SHEETS = ROOT / "docs/_face_sheets"
@@ -37,6 +38,14 @@ def load():
         if r["team_slot"] and int(r["team_slot"]) < 39:
             names.setdefault(int.from_bytes(bytes.fromhex(r["hex"])[4:6], "little"), f"{r['first']} {r['last']}")
     pids = sorted(int(k[4:]) for k in E.files if k.startswith("tex:") and int(k[4:]) in names)
+    # lineup portraits are keyed by pid: a pid whose portrait texture is shared with other pids (generic placeholders) cannot
+    # get an individual headshot
+    pk = pid_keys()
+    owners = {}
+    for p, ks in pk.items():
+        for k in ks:
+            owners.setdefault(k, set()).add(p)
+    pids = [p for p in pids if pk.get(p) and all(len(owners[k]) == 1 for k in pk[p])]
     seen, uniq = set(), []
     for p in pids:  # several pids share an identical face texture (e.g. classic-team duplicates): keep one
         h = hashlib.md5((FACES / f"{p}_face.png").read_bytes()).hexdigest()
@@ -69,7 +78,10 @@ def sheet(team, rows, names):
             d.text((W * (j + 1) + 4, i * W + 4), f"{names[pid]} ({pid})\n{sc:.2f}" + (f" <== {tag}" if j == 0 else ""), fill="red")
         d.text((W * 4 + 8, i * W + 8), f"{r['first']} {r['last']}\n(was {r['orig_first']} {r['orig_last']})\n"
                f"slot {r['slot']} ovr {r['ovr']}", fill="black")
-    img.save(SHEETS / f"{team}.png")
+    try:
+        img.save(SHEETS / f"{team}.png")
+    except OSError:  # file open in a viewer
+        print("could not write sheet", team)
 
 
 MAP = OUT / "proa_pid_map.csv"
@@ -91,7 +103,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--w-skin", type=float, default=1.0)
     ap.add_argument("--reuse", type=float, default=0.08)
-    ap.add_argument("--max-uses", type=int, default=4)
+    ap.add_argument("--max-uses", type=int, default=1, help="1 = every pid at most once (needed: the lineup portrait is keyed by pid)")
     ap.add_argument("--rematch", action="store_true", help="ignore cached matches and match everybody again (override_pid is kept)")
     a = ap.parse_args()
     pids, names, ne, nl, players, pe, pl, E = load()
@@ -115,6 +127,9 @@ if __name__ == "__main__":
     for p in final.values():
         if p in col:
             uses[col[p]] += 1
+    for i in range(len(players)):  # manual picks of players that are matched anew still occupy their pid
+        if i not in cached and manual(i) in col:
+            uses[col[manual(i)]] += 1
     teams = {}
     for i, r in enumerate(players):
         teams.setdefault((int(r["team_slot"]), r["sheet"]), []).append(i)

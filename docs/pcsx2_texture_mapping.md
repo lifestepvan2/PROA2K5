@@ -161,6 +161,10 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
    open them in a viewer that steals focus while PCSX2 automation runs.
 4. `build_roster.py` writes the pid into both record fields (`player_map.csv` gets a `pid` column); unknown pids abort the build,
    players without a map entry keep the model of their record (reported in `report.md`).
+5. **Lineup headshots follow the pid, not the record.** `gen_replacements.py` therefore writes each ProA headshot to the portrait
+   key(s) of the NBA record that originally had the player's pid (`pid_keys()`). Consequences: a pid can only be used once
+   (`face_match.py --max-uses 1`, default; `gen_replacements.py` reports players that share a pid/portrait), and pids whose
+   portrait texture is shared with other pids (generic placeholders) are excluded from the candidates.
 
 New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again.
 
