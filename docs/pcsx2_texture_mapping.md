@@ -107,6 +107,8 @@ stay unmatched and remain manually editable. Missing links can be added by hand:
 (workspace file names + best guess), add a row `lod,master` to `data/uniform_lods/manual.csv` (file name, `__token`, 6-char id or key),
 then `uniform_lods.py save`, `texture_workspace.py export`, `texture_workspace.py sync`.
 
+(Short step-by-step version: [JerseyTextureWorkflow.md](./JerseyTextureWorkflow.md).)
+
 **Folder sorting (no typing):** `uniform_sort.py populate` fills `texture_workspace/uniforms/visual_sort/` with *copies* (names kept):
 one folder `unknown/g_<master token>` per group (the `MASTER_` hi-res file, its duplicates and LODs) and an `unsorted/` bin with
 everything unmapped (unmatched LODs, the 64x64 files). Move group folders into your own team/Home/Jersey tree, drag LODs between
