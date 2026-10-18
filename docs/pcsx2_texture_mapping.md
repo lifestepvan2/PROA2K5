@@ -90,5 +90,20 @@ Textures managed by the pipeline (ProA faces, team icons, logo variants) are not
 Verified in-game: stretched RGB replacement of full jerseys, alpha cut-outs of numbers, revert. PCSX2 must be
 unpaused (Space) for a reload to take effect on screen.
 
+### Uniform LODs and duplicates (`scripts/uniform_lods.py`, `data/uniform_lods/`)
+Uniform textures exist at five resolutions: 512x256 (families `2253`/`2254`) and the LODs 128x64 (`19d3`), 64x32 (`1593`),
+32x16 (`1153`), 16x8 (`0d13`). The LODs are mip levels of the 512x256 originals; some originals exist 2-3 times as
+visually identical duplicates (NCC > 0.995 at 128x64; 139 visual groups from 210 files). `uniform_lods.py match` finds them
+on the original dumps (never on the edited workspace): 128x64 against the hi-res (normalised cross-correlation), every
+smaller LOD against the next larger one (strong evidence, independent of the hi-res) or directly against the hi-res.
+Contact sheets for visual confirmation go to `docs/_tmp/uniform_lods/` (`dups_*`, `lods_*`, `unmatched_*`);
+`uniform_lods.py save` freezes them as `data/uniform_lods/mapping.csv` (`key, role, master, size, score`;
+`exclude.txt` removes wrong entries). Roles: `master` (the one duplicate you edit; the one you already edited wins,
+otherwise the lexicographically first), `copy` (other duplicates), `lod`.
+`texture_workspace.py sync` writes the master's replacement to every copy and box-downscales it for every LOD, so only the
+`MASTER_*` files in `uniforms/512x256` need editing; `uniforms/512x256_duplicates` and `uniforms/auto_lods_*` are generated
+(hand edits there are ignored). LODs without a dumped hi-res original (mostly shorts of teams never seen close up)
+stay unmatched and remain manually editable.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.

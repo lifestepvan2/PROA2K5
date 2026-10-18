@@ -12,6 +12,7 @@ Alpha: files are exported with normal 0..255 alpha (PS2 0..128 is converted back
 channel keep the original's transparency.
 """
 import argparse
+import collections
 import csv
 import hashlib
 import json
@@ -25,7 +26,9 @@ from PIL import Image
 import gen_logo_replacements as logos
 import gen_replacements as faces
 import texcluster
+import uniform_lods
 from texlib import REPL_DIR, ROOT, dump_files, family, load_rgba
+from uniform_lods import sid
 
 DEFAULT_WS = ROOT / "texture_workspace"
 EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".webp"}
@@ -105,7 +108,29 @@ def catalog(files=None):
         if key in sign_of:
             label += f"_has-{sign_of[key]}-logo"
         out.append(dict(key=key, family=fam, w=w, h=h, group=group, sub=sub, label=safe(label)))
-    return out
+    return mark_uniform_roles(out)
+
+
+def mark_uniform_roles(rows):
+    """Uniform LOD mapping (scripts/uniform_lods.py): label the MASTER, its duplicates and the auto-generated LODs."""
+    mp = uniform_lods.load_mapping()
+    if not mp:
+        return rows
+    by_key = {r["key"]: r for r in rows}
+    base = {r["key"]: r["label"] for r in rows}
+    for r in rows:
+        m = mp.get(r["key"])
+        if not m:
+            continue
+        tag = sid(m["master"])
+        r["group"] = "uniforms"
+        if m["role"] == "master":
+            r["sub"], r["label"] = "512x256", safe(f"MASTER_{base[r['key']]}")
+        elif m["role"] == "copy":
+            r["sub"], r["label"] = "512x256_duplicates", safe(f"copy-of-MASTER-{tag}_{base.get(m['master'], '')}")
+        else:
+            r["sub"], r["label"] = f"auto_lods_{m['size']}", safe(f"AUTO-LOD-of-MASTER-{tag}_{r['w']}x{r['h']}")
+    return rows
 
 
 def rel_path(row):
@@ -137,6 +162,7 @@ def export(ws):
     toks = [token(r["key"]) for r in rows]
     assert len(set(toks)) == len(toks), "token collision"
     old, found = read_manifest(ws), scan(ws)
+    uniform_map = uniform_lods.load_mapping()  # these are renamed/regrouped even when edited (MASTER / duplicate / auto LOD)
     new, added, moved, dropped, kept = {}, 0, 0, 0, 0
     for r in rows:
         t = token(r["key"])
@@ -150,7 +176,7 @@ def export(ws):
         p = found.get(t)
         if p is not None and t in old:
             osha = old[t]["sha1"]
-            if p == ws / old[t]["relpath"] and p != ws / want and sha1(p) == osha:
+            if p == ws / old[t]["relpath"] and p != ws / want and (sha1(p) == osha or r["key"] in uniform_map):
                 (ws / want).parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(p, ws / want)
                 p, moved = ws / want, moved + 1
@@ -204,20 +230,86 @@ def convert(path, orig_path, mode):
     return Image.fromarray(arr, "RGBA")
 
 
+def lod_from(img, size):
+    """Mip-style downscale of an RGBA image (alpha-weighted so transparent texels do not bleed)."""
+    return img.convert("RGBa").resize(size, Image.BOX).convert("RGBA")
+
+
+def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry):
+    """Duplicates and LODs of a uniform inherit from the MASTER 512x256 (mapping: data/uniform_lods/mapping.csv)."""
+    ed = {}  # key -> edited working file
+    for m in manifest.values():
+        p = found.get(m["token"])
+        if p is not None and sha1(p) != m["sha1"]:
+            ed[m["key"]] = p
+    masters = collections.defaultdict(list)
+    for k, r in mp.items():
+        masters[r["master"]].append(k)
+    n_write = n_revert = 0
+    for mk, members in sorted(masters.items()):
+        if mk in managed or mk not in files:
+            continue
+        copies = [k for k in members if mp[k]["role"] == "copy"]
+        src = ed.get(mk)
+        if src is None:
+            alt = sorted((ed[k] for k in copies if k in ed), key=lambda p: -p.stat().st_mtime)
+            src = alt[0] if alt else None
+            if src:
+                print(f"note: master {sid(mk)} unchanged but duplicate {src.name} edited - using it as the source "
+                      f"(edit the MASTER file to avoid this)")
+        targets = [k for k in members if k != mk]
+        if src is None:
+            for k in [mk] + targets:
+                if str(state.get(k, "")).startswith("auto:"):
+                    n_revert += 1
+                    print("revert (auto)", k)
+                    if not dry:
+                        (REPL_DIR / f"{k}.png").unlink(missing_ok=True)
+                        del state[k]
+            continue
+        want = f"auto:{sha1(src)}:{mode}"
+        img = None
+        for k in ([mk] if src != ed.get(mk) else []) + targets:
+            if k in managed:
+                continue
+            target = REPL_DIR / f"{k}.png"
+            if state.get(k) == want and target.exists():
+                continue
+            n_write += 1
+            print(f"write (auto {mp[k]['role']}{' ' + mp[k]['size'] if mp[k]['role'] == 'lod' else ''})", k)
+            if dry:
+                continue
+            img = img or convert(src, files[mk], mode)
+            out = img
+            if mp[k]["role"] == "lod":
+                with Image.open(files[k]) as o:
+                    out = lod_from(img, o.size)
+            REPL_DIR.mkdir(parents=True, exist_ok=True)
+            out.save(target)
+            state[k] = want
+    return n_write, n_revert
+
+
 def sync(ws, mode, dry):
     manifest, found = read_manifest(ws), scan(ws)
     if not manifest:
         raise SystemExit("no manifest - run export first")
     files, managed = dump_files(), managed_keys()
+    mp = uniform_lods.load_mapping()
     state_f = ws / "_state.json"
     state = json.loads(state_f.read_text()) if state_f.exists() else {}
-    written = reverted = skipped = 0
+    written = reverted = skipped = ignored = 0
     for t, m in manifest.items():
         p, key = found.get(t), m["key"]
         if p is None:
             continue
         sha = sha1(p)
         target = REPL_DIR / f"{key}.png"
+        role = mp.get(key, {}).get("role")
+        if role in ("copy", "lod"):
+            continue  # generated from the master below; edits of the copy itself are applied only if the master is unedited
+        if role == "master" and str(state.get(key, "")).startswith("auto:") and sha == m["sha1"]:
+            continue
         if sha == m["sha1"]:
             if key in state:
                 reverted += 1
@@ -238,9 +330,19 @@ def sync(ws, mode, dry):
             REPL_DIR.mkdir(parents=True, exist_ok=True)
             convert(p, files[key], mode).save(target)
             state[key] = sha
+    if mp:
+        for t, m in manifest.items():
+            p = found.get(t)
+            if p is not None and mp.get(m["key"], {}).get("role") == "lod" and sha1(p) != m["sha1"]:
+                ignored += 1
+        w, r = sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
+        written, reverted = written + w, reverted + r
     if not dry:
         state_f.write_text(json.dumps(state, indent=1))
-    print(f"sync: {written} written, {reverted} reverted, {skipped} skipped. Press F10 in PCSX2 to reload.")
+    msg = f"sync: {written} written, {reverted} reverted, {skipped} skipped"
+    if ignored:
+        msg += f", {ignored} hand-edited auto LODs ignored (they are generated from the MASTER)"
+    print(msg + ". Press F10 in PCSX2 to reload.")
 
 
 def main():
