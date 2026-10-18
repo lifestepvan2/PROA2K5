@@ -22,6 +22,20 @@ BOX_W, BOX_H = 202, 203
 SHIFTS = range(-12, 13, 4)
 
 
+REF_SIZE = (1934, 1039)
+# Window with menu + status bar (2057x1039 capture) -> reference frame: ref = S * cap + (TX, TY)
+NORM = (1.05, -112, -24)
+
+
+def normalize(img):
+    """Warp a capture of a differently shaped PCSX2 window into the 1934x1039 reference frame."""
+    img = img.convert("RGB")
+    if img.size == REF_SIZE:
+        return img
+    s, tx, ty = NORM
+    return img.transform(REF_SIZE, Image.AFFINE, (1 / s, 0, -tx / s, 0, 1 / s, -ty / s), Image.BICUBIC)
+
+
 def vec(img, size=N):
     g = np.asarray(img.convert("L").resize((size, size), Image.BOX), dtype=np.float32).ravel()
     g = g - g.mean()

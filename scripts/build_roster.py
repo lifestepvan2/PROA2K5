@@ -42,8 +42,11 @@ T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
 T_STARTERS = 0x90
 GAP = (0x6663C, 0x675DC)  # zero gap before the string pool
 POOL_MIN = 0x675DC
-# player records used as spare slots when a ProA team has more players than its NBA slot
-SPARE_RECORDS = list(range(577, 481, -1))
+FACE_CSV = ROOT / "data/texture_map/record_faces.csv"
+MIN_FACE_SCORE = 0.87
+NBA_RECORDS = 395  # records 0-394 are NBA-team players; 395+ are legend-team players and unused dummies
+LEGEND_TEAMS = range(32, 50)
+FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA takes the first len(proa) of them, the rest donate players if needed
 
 REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
@@ -220,6 +223,72 @@ def order_roster(players):
     return starters + left
 
 
+def read_roster(pl, team):
+    base = TEAM_BASE + team * TEAM_STRIDE
+    recs = []
+    for i in range(ROSTER_SLOTS):
+        if not struct.unpack_from("<I", pl.d, base + 4 * i)[0] & 1:
+            break
+        recs.append((pl.target(base + 4 * i) - PLAYER_BASE) // PLAYER_STRIDE)
+    return recs
+
+
+def write_roster(pl, team, recs):
+    base = TEAM_BASE + team * TEAM_STRIDE
+    for i in range(ROSTER_SLOTS):
+        struct.pack_into("<I", pl.d, base + 4 * i, 0)
+    for i, r in enumerate(recs):
+        pl.set_ptr(base + 4 * i, PLAYER_BASE + r * PLAYER_STRIDE)
+
+
+def face_pool(pl):
+    """Records that own an individual face texture (data/texture_map/record_faces.csv): the dump key is
+    not shared with another record (placeholder / duplicated portraits) and the record is not used by a
+    legend team (those stay untouched)."""
+    ok = {int(r["record"]) for r in csv.DictReader(open(FACE_CSV)) if int(r["record"]) < NBA_RECORDS
+          and r["shared"] == "1" and float(r["score"]) >= MIN_FACE_SCORE}
+    legend = {r for t in LEGEND_TEAMS for r in read_roster(pl, t)}
+    return ok - legend
+
+
+def allocate_records(pl, team_players):
+    """Choose one face-owning player record per ProA player.
+    A team first uses its own NBA records; missing ones are taken from the bench of the remaining NBA
+    teams (round-robin), which receive the unused records of the ProA teams in exchange (or shrink).
+    Returns {team: [record per player]}."""
+    pool = face_pool(pl)
+    n = len(team_players)
+    own = {k: read_roster(pl, k) for k in range(n)}
+    donors = {}
+    for t in range(n, FIRST_FREE_TEAM):
+        base = TEAM_BASE + t * TEAM_STRIDE
+        starters = {(pl.target(base + T_STARTERS + 4 * i) - PLAYER_BASE) // PLAYER_STRIDE for i in range(5)}
+        donors[t] = [r for r in reversed(read_roster(pl, t)) if r in pool and r not in starters]
+    queue = []
+    while any(donors.values()):
+        for t in sorted(donors, reverse=True):
+            if donors[t]:
+                queue.append((t, donors[t].pop(0)))
+    alloc, leftover, taken = {}, [], collections.defaultdict(list)
+    for k in range(n):
+        need = len(team_players[k])
+        mine = [r for r in own[k] if r in pool]
+        alloc[k] = mine[:need]
+        leftover += [r for r in own[k] if r not in alloc[k]]
+        while len(alloc[k]) < need:
+            if not queue:
+                raise SystemExit("not enough face-owning records for all ProA players")
+            t, r = queue.pop(0)
+            alloc[k].append(r)
+            taken[t].append(r)
+    for t, gone in taken.items():
+        roster = read_roster(pl, t)
+        for r in gone:
+            roster[roster.index(r)] = leftover.pop(0) if leftover else None
+        write_roster(pl, t, [r for r in roster if r is not None])
+    return alloc
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=str(ROOT / "data/roster_test/payload_current.bin"))
@@ -248,33 +317,17 @@ def main():
         for r in csv.DictReader(open(a.overrides, encoding="utf-8")):
             overrides[(r["sheet"], r["orig_last"])] = (r["first"], r["last"])
 
-    used_records = set()
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
-    spare = list(SPARE_RECORDS)
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
 
-    # all roster records currently used by slots we are about to rewrite
-    slot_records = {}
-    for k in range(len(team_rows)):
-        base = TEAM_BASE + k * TEAM_STRIDE
-        recs = []
-        for i in range(ROSTER_SLOTS):
-            v = struct.unpack_from("<I", pl.d, base + 4 * i)[0]
-            if not v & 1:
-                break
-            recs.append((pl.target(base + 4 * i) - PLAYER_BASE) // PLAYER_STRIDE)
-        slot_records[k] = recs
-        used_records.update(recs)
-    spare = [r for r in spare if r not in used_records]
+    team_players = [order_roster(proa[tr["sheet"]][:ROSTER_SLOTS]) for tr in team_rows]
+    alloc = allocate_records(pl, team_players)
 
     for k, tr in enumerate(team_rows):
         base = TEAM_BASE + k * TEAM_STRIDE
-        players = order_roster(proa[tr["sheet"]][:ROSTER_SLOTS])
-        recs = slot_records[k][:]
-        while len(recs) < len(players):
-            recs.append(spare.pop(0))
-        recs = recs[:len(players)]
+        players = team_players[k]
+        recs = alloc[k]
 
         # team strings: replace every referrer of the old strings
         old = {f: pl.target(base + f) for f in (T_NICK, T_ABBR, T_CITY_A, T_CITY_B)}
@@ -359,7 +412,7 @@ def main():
         f"- payload: {len(data)} bytes, CRC32 `{crc[::-1].hex()}`",
         f"- teams: {len(team_out)}, players: {len(player_rows)}",
         f"- string pool: free before {free_before} B, freed {freed} B, free after {pl.free_bytes()} B",
-        f"- spare player records used: {len(SPARE_RECORDS) - len(spare) if False else 'see player_map.csv'}",
+        f"- records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: {FIRST_FREE_TEAM - len(team_rows)}",
         f"- longest last names: {long_last}", "",
         "## Name adjustments", *[f"- {n}" for n in notes],
     ]

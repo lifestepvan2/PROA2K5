@@ -31,5 +31,29 @@ replacement with that key exists, so **scans need an empty `replacements\` and a
 Matching scores are 0.88-0.98 for the right dump and clearly lower for others; the matchers print shared keys
 and low scores. Matching must run after the scans because PCSX2 writes dump files with a delay.
 
+## All 792 player records (exact, no per-team scrolling)
+The dump key is a content hash of the image and the ISO archive (`/VC_53022/*.`) is hashed and compressed, so the
+game's record -> texture link cannot be derived statically. Instead, the live injection scan reads it directly:
+the Start Game screen draws the faces of the team's *starter pointers* (team record +0x90), so writing 10 arbitrary
+player-record pointers there shows 10 arbitrary faces.
+
+1. Empty `replacements\` (dumps are only written for keys without a replacement), refresh `docs/ps2_ram_base.txt`
+   (`python scripts/full_scan_ps2_base.py`, changes every launch), open Start Game for slot 15 vs 9.
+2. `python scripts/face_scan_inject.py 0 792` (80 batches, ~31 s each) -> `docs/_faces/b<first>.png`.
+   Writes use `fast_scan.write_ps2_ram` (WriteProcessMemory); PINE writes fail.
+3. `python scripts/build_record_faces.py` -> `data/texture_map/record_faces.csv` (record, key, score, runner_up, shared).
+   `texture_scan.normalize()` warps screenshots of other window sizes into the 1934x1039 reference frame.
+
+Record classes: 0-394 = players of NBA teams 0-29; 395-574 = legend-team-only players (teams 32-49);
+578-791 and a few others = unreferenced create-a-player dummies, all sharing one silhouette texture.
+Ten NBA records share the same placeholder portrait (39, 94, 95, 119, 121, 161, 171, 208, 226, 329), five more share a
+second generic face (122, 172, 242, 315, 342), and some NBA players share their face with a legend duplicate
+(e.g. Iverson 0 / 529 / 554). A replacement PNG replaces the texture for every user of the key.
+
+`build_roster.py` therefore only places ProA players on records with a unique key, a match score >= 0.87 and no
+legend-team reference (335 records; 207 in ProA slots 0-17, 128 in donor slots 18-29). Missing records are borrowed
+from donor teams 18-22, which shrink to 7-9 players. Legend and conference teams stay untouched, so historic
+players keep their faces. `gen_replacements.py` writes one face per ProA player keyed by its record.
+
 ## Open
-Bench faces, large logos, jerseys: see `PLAN.md`.
+Large logos, jerseys: see `PLAN.md`.

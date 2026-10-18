@@ -3,7 +3,7 @@
 Each key (<h1>-<h2>-00001dd3) is a 128x128 face; the game displays only the (0,3,102,125) window.
 The ProA headshot (assets/PS_out/<proa_id>.png, 512x512 RGBA) is cropped to head + shoulders and
 fitted into that window on a white canvas.
-Usage: python scripts/gen_replacements.py [--out DIR]
+Usage: python scripts/gen_replacements.py [--out DIR]   (faces: data/texture_map/record_faces.csv + player_map.csv)
 """
 import argparse
 import csv
@@ -59,14 +59,15 @@ def main():
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     write_icons(args.out)
-    pm = {r["record"]: r for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))}
+    pm = list(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")))
+    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
     n = 0
-    for r in csv.DictReader(open(ROOT / "data/texture_map/starter_faces.csv", encoding="utf-8")):
-        src = ROOT / "assets/PS_out" / f"{pm[r['record']]['proa_id']}.png"
+    for r in pm:
+        src = ROOT / "assets/PS_out" / f"{r['proa_id']}.png"
         if not src.exists():
-            print("no image for", r["name"])
+            print("no image for", r["first"], r["last"])
             continue
-        make_face(src).save(args.out / f"{r['key']}.png")
+        make_face(src).save(args.out / f"{keys[int(r['record'])]}.png")
         n += 1
     print(n, "faces written to", args.out)
 

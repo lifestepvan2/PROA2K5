@@ -43,7 +43,8 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per team, match crops offline against the dump folder).
 - [x] Starter faces (90, 18 teams): `data/texture_map/starter_faces.csv`, `scripts/gen_replacements.py`, verified in-game
 - [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv`, verified in-game
-- [ ] Bench faces (up to 15 players per team): scan Team Rotation / lineup screens the same way
+- [x] Bench faces (all 269 players): `data/texture_map/record_faces.csv` via live injection scan, record allocation in `build_roster.py`, spot-checked in-game (see `docs/pcsx2_texture_mapping.md`)
+- [ ] Verify shrunken donor teams 18-22 (7-9 players) in-game, and low-score matches (records 70, 103, 231)
 - [ ] Large team logos and jerseys (Team Select, scoreboards, court): `00002213` family etc.
 - [ ] Re-run the scan whenever the roster slot order changes; `replacements\` must be empty during a scan
 - [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
