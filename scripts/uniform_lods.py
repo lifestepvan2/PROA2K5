@@ -4,7 +4,10 @@ and some 512x256 originals exist several times (visually identical duplicates; o
     python scripts/uniform_lods.py match   match LODs / duplicates from the ORIGINAL dumps, write data/uniform_lods/candidates.csv
                                            and contact sheets (docs/_tmp/uniform_lods/*.png) for visual confirmation
     python scripts/uniform_lods.py save    freeze the confirmed result as data/uniform_lods/mapping.csv
-                                           (honours data/uniform_lods/exclude.txt: one key or 6-char id per line)
+                                           (honours data/uniform_lods/exclude.txt: one key or 6-char id per line, and
+                                           data/uniform_lods/manual.csv: columns lod,master - add LODs/duplicates by hand;
+                                           each cell may be a workspace file name, its 8-char __token, a 6-char id or a full key)
+                                           and lists the still unmatched LODs in data/uniform_lods/unmatched.csv
 
 mapping.csv columns: key, role (master | copy | lod), master (key of the master), size, score
 `texture_workspace.py sync` regenerates every `copy` and `lod` from its master's replacement.
@@ -217,17 +220,59 @@ def match():
     print(f"sheets: {SHEETS}")
 
 
+def tok(key):
+    return hashlib.sha1(key.encode()).hexdigest()[:8]
+
+
 def save():
     cand = list(csv.DictReader(open(OUT / "candidates.csv", encoding="utf-8")))
     excl_f = OUT / "exclude.txt"
     excl = set(excl_f.read_text().split()) if excl_f.exists() else set()
-    rows = [r for r in cand if r["accepted"] == "1" and r["key"] not in excl and sid(r["key"]) not in excl]
+    rows = {r["key"]: r for r in cand if r["accepted"] == "1" and r["key"] not in excl and sid(r["key"]) not in excl}
+    files = dump_files()
+
+    def resolve(ref):
+        """workspace file name / 8-char token / 6-char id / full key -> dump key"""
+        ref = ref.strip()
+        m = TOKEN.search(ref + " ")
+        ref = m.group(1) if m else ref
+        hit = [k for k in files if ref == k or ref == tok(k) or ref == sid(k)]
+        if len(hit) != 1:
+            raise SystemExit(f"manual.csv: '{ref}' matches {len(hit)} textures")
+        return hit[0]
+
+    manual_f = OUT / "manual.csv"
+    if not manual_f.exists():
+        manual_f.write_text("lod,master\n", encoding="utf-8")
+    n_manual = 0
+    for r in csv.DictReader(open(manual_f, encoding="utf-8")):
+        if not r["lod"].strip() or r["lod"].lstrip().startswith("#"):
+            continue
+        lk, mk = resolve(r["lod"]), resolve(r["master"])
+        mk = rows[mk]["master"] if mk in rows and rows[mk]["role"] != "master" else mk
+        if mk not in rows or rows[mk]["role"] != "master":
+            raise SystemExit(f"manual.csv: {r['master']} is not a 512x256 uniform master")
+        with Image.open(files[lk]) as im:
+            size = f"{im.width}x{im.height}"
+        rows[lk] = dict(key=lk, role="copy" if size == "512x256" else "lod", master=mk, size=size, score="manual")
+        n_manual += 1
     with open(OUT / "mapping.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["key", "role", "master", "size", "score"])
-        for r in rows:
+        for r in rows.values():
             w.writerow([r["key"], r["role"], r["master"], r["size"], r["score"]])
-    print(f"saved {OUT / 'mapping.csv'}: {dict(collections.Counter(r['role'] for r in rows))} (left out {len(cand) - len(rows)})")
+    # LODs still unmatched, with the workspace file names to use in manual.csv
+    ws_file = {}
+    if (WS / "_manifest.csv").exists():
+        ws_file = {r["key"]: r["relpath"] for r in csv.DictReader(open(WS / "_manifest.csv", encoding="utf-8"))}
+    with open(OUT / "unmatched.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["token", "size", "workspace_file", "best_master_token", "best_master_file", "score"])
+        for r in cand:
+            if r["role"] == "lod" and r["key"] not in rows:
+                w.writerow([tok(r["key"]), r["size"], ws_file.get(r["key"], ""), tok(r["master"]), ws_file.get(r["master"], ""), r["score"]])
+    print(f"saved {OUT / 'mapping.csv'}: {dict(collections.Counter(r['role'] for r in rows.values()))} "
+          f"({n_manual} manual, left out {len(cand) - len(rows) + n_manual}); unmatched list: {OUT / 'unmatched.csv'}")
 
 
 if __name__ == "__main__":

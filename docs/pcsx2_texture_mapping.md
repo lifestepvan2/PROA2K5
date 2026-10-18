@@ -103,7 +103,9 @@ otherwise the lexicographically first), `copy` (other duplicates), `lod`.
 `texture_workspace.py sync` writes the master's replacement to every copy and box-downscales it for every LOD, so only the
 `MASTER_*` files in `uniforms/512x256` need editing; `uniforms/512x256_duplicates` and `uniforms/auto_lods_*` are generated
 (hand edits there are ignored). LODs without a dumped hi-res original (mostly shorts of teams never seen close up)
-stay unmatched and remain manually editable.
+stay unmatched and remain manually editable. Missing links can be added by hand: pick the LOD from `data/uniform_lods/unmatched.csv`
+(workspace file names + best guess), add a row `lod,master` to `data/uniform_lods/manual.csv` (file name, `__token`, 6-char id or key),
+then `uniform_lods.py save`, `texture_workspace.py export`, `texture_workspace.py sync`.
 
 ## Open
 Jerseys and name plates: see `PLAN.md`.
