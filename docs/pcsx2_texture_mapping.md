@@ -145,5 +145,24 @@ back; ~12 batches cover all 269 ProA pids; `--retry` re-loads pids whose face/ne
 has dumped can be matched; some faces never got dumped even when loaded on court (needs a close-up or more play).
 `txtr_inventory.py` lists all TXTRs in RAM, `ram_dump.py ADDR LEN` hexdumps RAM, `head_ram_probe.py` finds a PNG's palette window.
 
+## Casting ProA players with existing NBA models (pid swap)
+
+Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's model (face, neck, arm textures; verified with
+`scripts/pid_swap_test.py`). Name, number and ratings still come from the record. Only pids of NBA-team records (team slot < 39 in
+`data/nba_defaults/players_unknown.csv`) are safe; higher slots are staff/placeholder models.
+
+1. `face_load_scan.py --faces` saves every NBA pid's face/neck/arm texture from RAM to `data/face_match/faces/` (untracked, ~50 MB).
+2. `face_embed.py` embeds ProA headshots (`assets/PS_out`) and those face textures (ArcFace `buffalo_l`, insightface).
+3. `face_match.py` assigns each ProA player the most similar model (cosine similarity + skin lightness, usage penalty so a model is
+   not reused too often; teammates always get distinct pids) and writes **`data/face_match/proa_pid_map.csv`**, the single editable
+   file: `pid` = automatic match, `override_pid` = manual pick (never written by the script, wins in `build_roster.py`).
+   Players already in the file keep their pid on later runs (season updates only match new players); `--rematch` redoes all
+   automatic matches and keeps overrides. Review via the contact sheets in `docs/_face_sheets/` (one per team, git-ignored); don't
+   open them in a viewer that steals focus while PCSX2 automation runs.
+4. `build_roster.py` writes the pid into both record fields (`player_map.csv` gets a `pid` column); unknown pids abort the build,
+   players without a map entry keep the model of their record (reported in `report.md`).
+
+New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.

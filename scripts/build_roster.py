@@ -35,6 +35,7 @@ DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
 PLAYER_BASE, PLAYER_STRIDE, PLAYER_COUNT = 0x64F4, 0x94, 0x318
 P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
 P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
+P_PID = 0x4  # u16 player-model id (p<ID>h/a.iff: face, body, ...), duplicated at +6
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
@@ -293,10 +294,32 @@ def allocate_records(pl, team_players, slots):
     return alloc
 
 
+def load_pids(path):
+    """{proa_id: pid} from the face_match map: override_pid if set, else the automatic pid. Pids must be NBA player
+    models that exist on the disc (the ones of NBA-team records in data/nba_defaults/players_unknown.csv)."""
+    if not Path(path).exists():
+        return {}
+    safe = set()
+    for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8")):
+        if r["team_slot"] and int(r["team_slot"]) < 39:
+            safe.add(int.from_bytes(bytes.fromhex(r["hex"])[4:6], "little"))
+    out = {}
+    for r in csv.DictReader(open(path, encoding="utf-8-sig")):
+        v = (r.get("override_pid") or "").strip() or (r.get("pid") or "").strip()
+        if not v:
+            continue
+        if int(v) not in safe:
+            raise SystemExit(f"{path}: pid {v} of {r['first']} {r['last']} is not a known NBA player model")
+        out[r["proa_id"]] = int(v)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default=str(ROOT / "data/roster_test/payload_current.bin"))
     ap.add_argument("--proa", default=str(ROOT / "proa_scraped.xlsx"))
+    ap.add_argument("--pids", default=str(ROOT / "data/face_match/proa_pid_map.csv"),
+                    help="csv from face_match.py: proa_id, pid (automatic), override_pid (manual, wins) -> player model")
     ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"))
     ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
     ap.add_argument("--arenas", default=str(ROOT / "data/proa_arenas.csv"), help="csv: sheet,arena (home arena names)")
@@ -328,6 +351,7 @@ def main():
         for r in csv.DictReader(open(a.overrides, encoding="utf-8")):
             overrides[(r["sheet"], r["orig_last"])] = (r["first"], r["last"])
 
+    pid_of = load_pids(a.pids)
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
@@ -370,10 +394,15 @@ def main():
             assignments.append((rec_off(r) + P_NICK, ""))
             assignments.append((rec_off(r) + P_BDAY, birthday_text(p["rowd"])))
             write_record_fields(pl.d, rec_off(r), p)
+            pid = pid_of.get(str(p["proa_id"]))
+            if pid is None:
+                notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' has no pid in {Path(a.pids).name}, keeps the model of record {r}")
+                pid = struct.unpack_from("<H", pl.d, rec_off(r) + P_PID)[0]
+            struct.pack_into("<HH", pl.d, rec_off(r) + P_PID, pid, pid)
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "orig_first": p["first"], "orig_last": p["last"],
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],
-                                "starter": i < 5, "note": note})
+                                "starter": i < 5, "pid": pid, "note": note})
             if note:
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' -> '{first} {last}' ({note})")
 
