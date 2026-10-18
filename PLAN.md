@@ -44,8 +44,10 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] Starter faces (90, 18 teams): `data/texture_map/starter_faces.csv`, `scripts/gen_replacements.py`, verified in-game
 - [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv`, verified in-game
 - [x] Bench faces (all 269 players): `data/texture_map/record_faces.csv` via live injection scan, record allocation in `build_roster.py`, spot-checked in-game (see `docs/pcsx2_texture_mapping.md`)
-- [ ] Verify shrunken donor teams 18-22 (7-9 players) in-game, and low-score matches (records 70, 103, 231)
+- [ ] Verify shrunken donor teams 18-22 (7-9 players) in-game, and low-score matches (records 70, 103, 231) - low prio
+- [ ] in-game player faces (and body textures) - figure out existing mapping and work on re-mapping (by figuring out visual matches) as a first step. replacement file generation down the line.
 - [ ] Large team logos and jerseys (Team Select, scoreboards, court): `00002213` family etc.
+- [ ] create a workflow allowing for systematic, part automated, part manual, asset replacement. e.g. by creating a mirrored folder with a good, readable structure (clustering and labelling assets by group - e.g. a folder "sponsor logos", a folder "jerseys"...) where the user can replace dumped image files with any image (using the same name), then the pipeline crops it to the right dimensions and routes it back to the live replacement folder
 - [ ] Re-run the scan whenever the roster slot order changes; `replacements\` must be empty during a scan
 - [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [ ] Team jerseys/colours (optional)
@@ -63,5 +65,12 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [ ] Replace the photoshop batch step (cropping portraits) with a python script (see `architecture.md`)
 - [ ] CRC/ECC experiments (E3), glyph-set test (E5)
 
+### QOL
+- [ ] make the default matchup (Lakers at Pistons) be a full ProA game. e.g. by shifting the overwritten teams from slots 1-18 to slots 12-30 instead
+
 ### Nice-to-have (last)
-- [ ] Fill the remaining 12 NBA team slots (18-29) with filler/other teams; handle all-star/legend teams referencing NBA records
+- [ ] Fill the remaining 12 NBA team slots (18-29) with filler/other teams; shift the teams handle all-star/legend teams referencing NBA 
+records
+- [ ] create a pipeline to generate in game player face assets from our portrait database
+## out of scope:
+- sound replacements
