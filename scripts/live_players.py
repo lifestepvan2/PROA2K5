@@ -43,6 +43,29 @@ def collect(ram):
     return {pid: {k: keys.get(f"{v:08x}", "") for k, v in t.items()} for pid, side, a, t in live_players(ram)}
 
 
+def save_textures(ram, outdir, names=("face", "neck", "arm")):
+    """Save the loaded players' textures straight from RAM as <pid>_<name>.png (opaque RGB); returns the pids saved."""
+    import numpy as np
+    from PIL import Image
+    from txtr_match import rgba_of
+    outdir.mkdir(parents=True, exist_ok=True)
+    pids = set()
+    for pid, side, a, t in live_players(ram):
+        for nm in names:
+            o = t.get(nm)
+            if not o:
+                continue
+            d = struct.unpack_from("<I", ram, o + 0x14)[0]
+            pix = struct.unpack_from("<I", ram, d + 0x18)[0]
+            w, h = struct.unpack_from("<HH", ram, d + 0x2C)
+            if not (w and h and 0x100000 < pix and pix + w * h + 1024 <= len(ram)):
+                continue
+            rgb = np.frombuffer(rgba_of(ram, pix, w, h).tobytes(), dtype=np.uint8).reshape(h, w, 4)[:, :, :3]
+            Image.fromarray(rgb).save(outdir / f"{pid}_{nm}.png")
+            pids.add(pid)
+    return pids
+
+
 def merge_csv(found, path=ROOT / "data/texture_map/pid_textures.csv"):
     cols = ["face", "arm", "neck", "hair"]
     rows = {}

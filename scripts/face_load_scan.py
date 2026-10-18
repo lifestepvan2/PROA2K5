@@ -23,6 +23,7 @@ PLAYER_BASE, PLAYER_STRIDE = PAYLOAD + 0x64F4, 0x94
 TEAM_BASE, TEAM_STRIDE, T_STARTERS = PAYLOAD + 0x11F0, 0x124, 0x90
 HOME_TEAM, AWAY_TEAM = 28, 16
 PID_CSV = ROOT / "data/texture_map/pid_textures.csv"
+FACES_DIR = ROOT / "data/face_match/faces"
 
 
 def press(b, wait=1.0):
@@ -41,8 +42,8 @@ def pid_of(ram, rec):
     return struct.unpack_from("<H", ram, PLAYER_BASE + rec * PLAYER_STRIDE + 4)[0]
 
 
-def load_batch(records, timeout=150, settle=60):
-    """records: 24 record indices (12 home, 12 away). Returns {pid: {...}} read back from RAM."""
+def load_batch(records, timeout=150, settle=60, grab=False):
+    """records: 24 record indices (12 home, 12 away). Returns {pid: {...}} read back from RAM (grab: save the RAM textures)."""
     press("f3", 8)
     # starters (first 5 of each roster) are the players on court at tip-off and are reliably drawn
     home = records[:5] + records[10:17]
@@ -60,8 +61,28 @@ def load_batch(records, timeout=150, settle=60):
         got = {p for p, *_ in live_players.live_players(ram)}
         if want <= got:
             time.sleep(settle)
-            return live_players.collect(read_ps2_ram()), want, got
-    return live_players.collect(ram), want, {p for p, *_ in live_players.live_players(ram)}
+            ram = read_ps2_ram()
+            break
+    got = {p for p, *_ in live_players.live_players(ram)}
+    if grab:
+        live_players.save_textures(ram, FACES_DIR)
+        return {}, want, got
+    return live_players.collect(ram), want, got
+
+
+def todo_faces():
+    """One record per person (real NBA/legend slots) whose face PNG has not been saved yet."""
+    ram = read_ps2_ram()
+    seen, out = set(), []
+    for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8")):
+        if not r["team_slot"] or int(r["team_slot"]) >= 39:
+            continue
+        rec = int(r["record"])
+        pid = pid_of(ram, rec)
+        if pid not in seen and not (FACES_DIR / f"{pid}_face.png").exists():
+            seen.add(pid)
+            out.append(rec)
+    return out
 
 
 def todo_records(retry_incomplete=False):
@@ -82,6 +103,15 @@ def todo_records(retry_incomplete=False):
 if __name__ == "__main__":
     limit = int(sys.argv[sys.argv.index("--limit") + 1]) if "--limit" in sys.argv else 10 ** 9
     for n in range(limit):
+        if "--faces" in sys.argv:
+            recs = todo_faces()
+            if not recs:
+                print("all faces saved")
+                break
+            batch = recs[:24] + [r for r in range(150, 792) if r not in recs[:24]][:max(0, 24 - len(recs))]
+            _, want, got = load_batch(batch, settle=25, grab=True)
+            print(f"batch {n}: {len(recs)} pids left; wanted {len(want)}, loaded {len(want & got)}", flush=True)
+            continue
         retry = "--retry" in sys.argv
         recs = todo_records(retry)
         if not recs:
