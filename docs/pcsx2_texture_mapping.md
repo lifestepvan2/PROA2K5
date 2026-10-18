@@ -107,5 +107,15 @@ stay unmatched and remain manually editable. Missing links can be added by hand:
 (workspace file names + best guess), add a row `lod,master` to `data/uniform_lods/manual.csv` (file name, `__token`, 6-char id or key),
 then `uniform_lods.py save`, `texture_workspace.py export`, `texture_workspace.py sync`.
 
+**Folder sorting (no typing):** `uniform_sort.py populate` fills `texture_workspace/uniforms/visual_sort/` with *copies* (names kept):
+one folder `unknown/g_<master token>` per group (the `MASTER_` hi-res file, its duplicates and LODs) and an `unsorted/` bin with
+everything unmapped (unmatched LODs, the 64x64 files). Move group folders into your own team/Home/Jersey tree, drag LODs between
+folders or out of `unsorted/`, then `uniform_sort.py apply` (`--check` = dry run). The folder is the group: 512x256 files are
+hi-res (the `MASTER_*` one is the master, the rest its duplicates), smaller 2:1 files are its LODs, files in `unsorted/` or in a
+folder without a 512x256 file are unmapped. To change a master, add `MASTER_` to another hi-res file. `apply` writes
+`data/uniform_lods/sorted.csv` (overrides the automatic matching and `manual.csv`) and regenerates `mapping.csv`; then run
+`texture_workspace.py export` + `sync`. `populate` is idempotent (only adds new files; new unmatched ones go to `unsorted/`),
+and `visual_sort/` is ignored by the workspace scans, so editing the copies there changes nothing.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.

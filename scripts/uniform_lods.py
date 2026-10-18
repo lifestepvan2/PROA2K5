@@ -66,6 +66,8 @@ def workspace_state():
         raise SystemExit("no texture workspace manifest - run texture_workspace.py export first")
     found = {}
     for p in WS.rglob("*.png"):
+        if "visual_sort" in p.parts:
+            continue
         m = TOKEN.search(p.stem + " ")
         if m and (m.group(1) not in found or p.stat().st_mtime > found[m.group(1)].stat().st_mtime):
             found[m.group(1)] = p
@@ -258,6 +260,16 @@ def save():
             size = f"{im.width}x{im.height}"
         rows[lk] = dict(key=lk, role="copy" if size == "512x256" else "lod", master=mk, size=size, score="manual")
         n_manual += 1
+    sorted_f = OUT / "sorted.csv"  # written by uniform_sort.py apply: the folder sort wins over automatic matching and manual.csv
+    if sorted_f.exists():
+        for r in csv.DictReader(open(sorted_f, encoding="utf-8")):
+            if r["role"] == "none":
+                rows.pop(r["key"], None)
+            else:
+                rows[r["key"]] = dict(key=r["key"], role=r["role"], master=r["master"], size=r["size"], score="sorted")
+    for k in [k for k, r in rows.items() if r["role"] != "master" and rows.get(r["master"], {}).get("role") != "master"]:
+        print(f"warning: dropped {k}: its master is not a master any more")
+        del rows[k]
     with open(OUT / "mapping.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["key", "role", "master", "size", "score"])

@@ -142,7 +142,7 @@ def scan(ws):
     """token -> newest file in the working folder."""
     found = {}
     for p in ws.rglob("*"):
-        if p.is_file() and p.suffix.lower() in EXTS:
+        if p.is_file() and p.suffix.lower() in EXTS and "visual_sort" not in p.parts:  # visual_sort holds sorting copies only
             m = TOKEN.search(p.stem + " ")
             if m and (m.group(1) not in found or p.stat().st_mtime > found[m.group(1)].stat().st_mtime):
                 found[m.group(1)] = p
