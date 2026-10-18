@@ -1,7 +1,7 @@
 """Build a ProA roster payload for NBA 2K5 (PS2) from the cached ProA data.
 
 Takes the roster-save payload (extracted from the memory card), replaces team
-names and the player names/rosters/starters of the first 18 NBA team slots with
+names and the player names/rosters/starters of the 18 NBA team slots in data/team_slots.csv (12-29) with
 the 18 ProA teams, repacks the string pool (ref-counted, first/best-fit
 allocator, size unchanged), recomputes CRC32 into EXTRA and optionally writes
 the result into the virtual memory card (PCSX2 must be closed).
@@ -46,7 +46,7 @@ FACE_CSV = ROOT / "data/texture_map/record_faces.csv"
 MIN_FACE_SCORE = 0.87
 NBA_RECORDS = 395  # records 0-394 are NBA-team players; 395+ are legend-team players and unused dummies
 LEGEND_TEAMS = range(32, 50)
-FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA takes the first len(proa) of them, the rest donate players if needed
+FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA teams sit on the slots of data/team_slots.csv, the others donate players if needed
 
 REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
@@ -251,16 +251,18 @@ def face_pool(pl):
     return ok - legend
 
 
-def allocate_records(pl, team_players):
+def allocate_records(pl, team_players, slots):
     """Choose one face-owning player record per ProA player.
-    A team first uses its own NBA records; missing ones are taken from the bench of the remaining NBA
+    A team first uses the records of its NBA slot; missing ones are taken from the bench of the remaining NBA
     teams (round-robin), which receive the unused records of the ProA teams in exchange (or shrink).
-    Returns {team: [record per player]}."""
+    Returns {team index: [record per player]}."""
     pool = face_pool(pl)
     n = len(team_players)
-    own = {k: read_roster(pl, k) for k in range(n)}
+    own = {k: read_roster(pl, slots[k]) for k in range(n)}
     donors = {}
-    for t in range(n, FIRST_FREE_TEAM):
+    for t in range(FIRST_FREE_TEAM):
+        if t in slots:
+            continue
         base = TEAM_BASE + t * TEAM_STRIDE
         starters = {(pl.target(base + T_STARTERS + 4 * i) - PLAYER_BASE) // PLAYER_STRIDE for i in range(5)}
         donors[t] = [r for r in reversed(read_roster(pl, t)) if r in pool and r not in starters]
@@ -294,6 +296,7 @@ def main():
     ap.add_argument("--base", default=str(ROOT / "data/roster_test/payload_current.bin"))
     ap.add_argument("--proa", default=str(ROOT / "proa_scraped.xlsx"))
     ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"))
+    ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
     ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
                     help="csv: sheet,orig_last,first,last (manual name overrides)")
     ap.add_argument("--out", default=str(ROOT / "data/roster_build"))
@@ -312,6 +315,11 @@ def main():
     for i, p in enumerate(allp):
         p["fame"] = 10 + round(30 * i / max(1, len(allp) - 1))  # u32: overall percentile -> 10..40
     team_rows = list(csv.DictReader(open(a.teams, encoding="utf-8")))
+    slot_of = {r["sheet"]: int(r["nba_slot"]) for r in csv.DictReader(open(a.slots, encoding="utf-8"))}
+    for tr in team_rows:
+        tr["nba_slot"] = slot_of[tr["sheet"]]
+    slots = [tr["nba_slot"] for tr in team_rows]  # team index -> NBA slot
+    assert len(set(slots)) == len(slots) and max(slots) < FIRST_FREE_TEAM, "bad data/team_slots.csv"
     overrides = {}
     if Path(a.overrides).exists():
         for r in csv.DictReader(open(a.overrides, encoding="utf-8")):
@@ -322,12 +330,13 @@ def main():
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
 
     team_players = [order_roster(proa[tr["sheet"]][:ROSTER_SLOTS]) for tr in team_rows]
-    alloc = allocate_records(pl, team_players)
+    alloc = allocate_records(pl, team_players, slots)
 
-    for k, tr in enumerate(team_rows):
+    for i_team, tr in enumerate(team_rows):
+        k = tr["nba_slot"]
         base = TEAM_BASE + k * TEAM_STRIDE
-        players = team_players[k]
-        recs = alloc[k]
+        players = team_players[i_team]
+        recs = alloc[i_team]
 
         # team strings: replace every referrer of the old strings
         old = {f: pl.target(base + f) for f in (T_NICK, T_ABBR, T_CITY_A, T_CITY_B)}
@@ -358,7 +367,7 @@ def main():
             assignments.append((rec_off(r) + P_NICK, ""))
             assignments.append((rec_off(r) + P_BDAY, birthday_text(p["rowd"])))
             write_record_fields(pl.d, rec_off(r), p)
-            player_rows.append({"team_slot": k, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
+            player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "orig_first": p["first"], "orig_last": p["last"],
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],
                                 "starter": i < 5, "note": note})

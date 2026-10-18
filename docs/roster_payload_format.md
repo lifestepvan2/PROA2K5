@@ -34,7 +34,9 @@ The game encodes an apostrophe as char `0x19`.
 | +0x90..+0xA0 | 5 starter pointers (PG, SG, SF, PF, C) |
 
 Slots 0-29 are NBA teams (alphabetical by city/nickname, 0 = 76ers/PHI), 30-31 East/West,
-32-49 all-star/legend teams, 50-53 Ballers/Ringers/dummies. ProA uses slots 0-17.
+32-49 all-star/legend teams, 50-53 Ballers/Ringers/dummies. ProA uses slots 12-29 (final mapping in
+`data/team_slots.csv`: Dragons 12 ... Falcons 21 = Pistons, the default home team of Quick Match, Gottingen 15 = Lakers,
+the default visitor); slots 0-11 stay NBA teams and donate players.
 Team-name strings are also referenced by a nickname/`pbNN.iff` playbook pointer table at
 `0x10E8-0x11E8`; `build_roster.py` rewrites **all referrers** of an old string.
 
@@ -69,5 +71,5 @@ in-game, experiment E1) because the string is relocated and the pointer rewritte
 
 ## Not changed by build_roster.py (yet)
 
-Jersey numbers, positions, ratings, birthdays, nicknames, textures, NBA slots 18-29 (still NBA
+Jersey numbers, positions, ratings, birthdays, nicknames, textures, NBA slots 0-11 (still NBA
 teams), all-star/legend teams referencing NBA player records.

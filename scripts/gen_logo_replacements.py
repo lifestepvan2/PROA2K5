@@ -1,9 +1,10 @@
 """Generate ProA team logo replacements for every matched variant of an NBA team logo.
 
 Matches come from data/texture_map/logo_variants.csv (build_logo_map.py, mode A = the texture is a window of the
-reference logo frame). The ProA logo (nba2k_editor/assets/<38+slot>.png) is fitted into the content box of the
+reference logo frame). The ProA logo (nba2k_editor/assets/<38+ProA team index>.png) is fitted into the content box of the
 reference logo, then the matching window is cut out and resized to the texture's own resolution, so
-full logos, small versions and split/cropped logos all get the right piece.
+full logos, small versions and split/cropped logos all get the right piece. The ProA logo of an NBA slot is
+chosen by data/team_slots.csv.
 Textures keep the PS2 alpha convention (0..128, 128 = opaque).
 Usage: python scripts/gen_logo_replacements.py [--out DIR] [--list]
 """
@@ -13,22 +14,22 @@ import csv
 import numpy as np
 from PIL import Image
 
-from texlib import REPL_DIR, ROOT, dump_files, load_rgba
+from texlib import REPL_DIR, ROOT, dump_files, load_rgba, proa_slots, prune
 
 SRC = ROOT / "data/texture_map/logo_variants.csv"
 LOGO_ID0 = 38
-N_PROA = 18
 CANON = 512
 ACCEPT = dict(score=0.80, mae=27.0, content=0.25, size=0.45)  # tuned on the first review of ~90 matches
 _cache = {}
 
 
-def logo_matches(max_slot=99):
-    """All logo-variant rows that pass the acceptance thresholds (mode A: window of a reference logo frame)."""
+def logo_matches(slots=None):
+    """All logo-variant rows that pass the acceptance thresholds (mode A: window of a reference logo frame),
+    optionally restricted to a set of NBA team slots."""
     out = []
     files = dump_files()
     for r in csv.DictReader(open(SRC, encoding="utf-8")):
-        if int(r["team_slot"]) >= max_slot or r["mode"] != "A" or r["key"] not in files:
+        if (slots is not None and int(r["team_slot"]) not in slots) or r["mode"] != "A" or r["key"] not in files:
             continue
         w, h = float(r["w"]), float(r["h"])
         if (float(r["score"]) < ACCEPT["score"] or float(r["mae"]) > ACCEPT["mae"]
@@ -39,9 +40,9 @@ def logo_matches(max_slot=99):
 
 
 def accepted():
-    """ProA-team matches that can be replaced (the reference frame is not one half of a split logo)."""
+    """Matches of NBA slots occupied by ProA teams that can be replaced (the reference frame is not one half of a split logo)."""
     files = dump_files()
-    return [r for r in logo_matches(N_PROA) if ref_box(r["ref_key"], files) is not None]
+    return [r for r in logo_matches(set(proa_slots())) if ref_box(r["ref_key"], files) is not None]
 
 
 PARTIAL_REFS = ("190a7d68", "31fbe669")  # Cavaliers wordmark halves ("Cav" / "ALIERS"): one logo split over two textures
@@ -65,7 +66,7 @@ def canonical(slot, ref_key, files):
         (x0, y0, x1, y1), (w, h) = ref_box(ref_key, files)
         s = CANON / w
         bx0, by0, bx1, by1 = x0 * s, y0 * s, x1 * s, y1 * s
-        logo = Image.open(ROOT / "nba2k_editor/assets" / f"{LOGO_ID0 + slot}.png").convert("RGBA")
+        logo = Image.open(ROOT / "nba2k_editor/assets" / f"{LOGO_ID0 + proa_slots()[slot]}.png").convert("RGBA")
         bb = logo.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
         logo = logo.crop(bb)
         f = min((bx1 - bx0) / logo.width, (by1 - by0) / logo.height)
@@ -122,6 +123,7 @@ def main():
     for r in rows:
         make(r, files).save(out / f"{r['key']}.png")
     print(len(rows), "logo variants written to", out)
+    print(prune("logos", out, [r["key"] for r in rows]), "stale files removed")
 
 
 if __name__ == "__main__":

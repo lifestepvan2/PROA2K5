@@ -8,7 +8,7 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [x] Data pipeline and cached data copied over; PCSX2 attach/inspection (PINE, RAM, screenshots, key input)
 - [x] Memory card roster read/write (in place, ECC + CRC)
 - [x] Team names/abbreviations/cities, player names (relocated strings, longer names work)
-- [x] Rosters and starters for 18 ProA teams in NBA slots 0-17
+- [x] Rosters and starters for 18 ProA teams in NBA slots 12-29 (final mapping `data/team_slots.csv`; Falcons = Pistons slot 21, Gottingen = Lakers slot 15, so the default Quick Match is a full ProA game)
 - [x] Jersey, position, height, weight, years pro, birthday, 19 ratings written and verified in-game (ratings confirmed correct)
 
 ## Todo
@@ -41,16 +41,16 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 
 ### Textures
 Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per team, match crops offline against the dump folder).
-- [x] Starter faces (90, 18 teams): `data/texture_map/starter_faces.csv`, `scripts/gen_replacements.py`, verified in-game
-- [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv`, verified in-game
+- [x] Starter faces (90, 18 teams): superseded by `record_faces.csv` (`starter_faces.csv` is stale), `scripts/gen_replacements.py`
+- [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv` keyed by NBA slot, all 30 slots mapped (scores 0.90-0.99)
 - [x] Bench faces (all 269 players): `data/texture_map/record_faces.csv` via live injection scan, record allocation in `build_roster.py`, spot-checked in-game (see `docs/pcsx2_texture_mapping.md`)
-- [ ] Verify shrunken donor teams 18-22 (7-9 players) in-game, and low-score matches (records 70, 103, 231) - low prio
+- [ ] Verify shrunken donor teams (NBA slots 0-11) in-game, and low-score matches (records 70, 103, 231) - low prio
 - [ ] in-game player faces (and body textures) - figure out existing mapping and work on re-mapping (by figuring out visual matches) as a first step. replacement file generation down the line.
-- [x] Team logo variants on Team Select, courts, scoreboards etc. (`00002213` / `00001993`): 46 variants of the 18 ProA logos found by template matching and verified by eye (`scripts/build_logo_map.py` -> `data/texture_map/logo_variants.csv`, `scripts/gen_logo_replacements.py`). Only variants that have been rendered/dumped exist; more dumps (e.g. playing a game per team) -> re-run both scripts
+- [x] Team logo variants on Team Select, courts, scoreboards etc. (`00002213` / `00001993`): 31 variants of the 18 ProA logos at their current slots (46 accepted for all 30 NBA slots) found by template matching and verified by eye (`scripts/build_logo_map.py` -> `data/texture_map/logo_variants.csv`, `scripts/gen_logo_replacements.py`). Only variants that have been rendered/dumped exist; more dumps (e.g. playing a game per team) -> re-run both scripts
 - [ ] Cavaliers wordmark is split over two textures (`PARTIAL_REFS`); needs a composite reference. Logos inside arena signs (mode B matches) and team-name wordmarks are not handled automatically; use the workspace
 - [x] Manual replacement workspace (`scripts/texture_workspace.py`, folder `texture_workspace/`, gitignored): dumps grouped into named folders, edits synced back resized to the original resolution; pipeline-managed textures always win. Alpha convention verified in-game (see `docs/pcsx2_texture_mapping.md`)
 - [ ] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
-- [ ] Re-run the scan whenever the roster slot order changes; `replacements\` must be empty during a scan
+- [x] Team mapping is final (`data/team_slots.csv`). `record_faces.csv` is record-keyed, icons/logos are keyed by NBA slot: no re-scan needed when the ProA order changes, only re-run the generators. More logo variants need more dumps (only rendered textures exist); NBA slots 12-29 variants not yet reviewed by the user (13 new: Nets x4, Nuggets, Pacers, Pistons, Raptors, Sonics, Spurs, Suns, Timberwolves, Warriors)
 - [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [ ] Team jerseys/colours (optional)
 
@@ -68,16 +68,17 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [ ] CRC/ECC experiments (E3), glyph-set test (E5)
 
 ### QOL
-- [ ] make the default matchup (Lakers at Pistons) be a full ProA game. e.g. by shifting the overwritten teams from slots 1-18 to slots 12-30 instead
+- [x] Default matchup (Lakers at Pistons) is a full ProA game: Gottingen at Falcons (ProA teams moved to slots 12-29)
 
 ### release
 - [ ] re-scrape online data for 2026/27 season, update textures of new teams. 
 - [ ] manual refinement pass over player attributes
+- [ ] manual editing of Falcons home court
 - [ ] re-do player face mapping
 - [ ] rollout and test
 
 ### Nice-to-have (last)
-- [ ] Fill the remaining 12 NBA team slots (18-29) with filler/other teams; shift the teams handle all-star/legend teams referencing NBA 
+- [ ] Fill the remaining 12 NBA team slots (0-11, now the donor teams) with filler/other teams; handle all-star/legend teams referencing NBA 
 records
 - [ ] create a pipeline to generate in game player face assets from our portrait database
 ## out of scope:

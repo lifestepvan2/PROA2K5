@@ -1,270 +1,270 @@
-team_slot,sheet,slot,record,offset,first,last,orig_first,orig_last,pos,jersey,ovr,proa_id,starter,note
-0,Dragons,0,1,0x6588,Connor Van,Anthony,Connor Van,Anthony,0,9,66.9,2000116,True,
-0,Dragons,1,2,0x661c,Dominik,Dolic,Dominik,Dolic,1,8,65.3,2001879,True,
-0,Dragons,2,3,0x66b0,Amir Jabbar,Hinton,Amir Jabbar,Hinton,2,3,65.0,2001689,True,
-0,Dragons,3,4,0x6744,Dejan,Bruce,Dejan,Bruce,3,13,62.4,2001690,True,
-0,Dragons,4,5,0x67d8,Robert,Oehle,Robert,Oehle,4,11,63.4,2000616,True,
-0,Dragons,5,6,0x686c,Epke,Kruthaup,Epke,Kruthaup,0,2,66.1,2003111,False,
-0,Dragons,6,7,0x6900,Nathan,Petrone,Nathan Joseph,Petrone,1,1,64.3,2001634,False,first-trunc
-0,Dragons,7,8,0x6994,Timo,Lanmuller,Timo,Lanmüller,1,7,63.7,2002185,False,
-0,Dragons,8,9,0x6a28,Djairo,Bernardina,Djairo,Bernardina,1,5,63.6,2002110,False,
-0,Dragons,9,10,0x6abc,Elijah,Ndi,Elijah,Ndi,2,12,63.1,2001880,False,
-0,Dragons,10,12,0x6be4,Linus,Ruf,Linus,Ruf,4,20,62.3,2001876,False,
-0,Dragons,11,13,0x6c78,Benjamin,Burnham,Benjamin Forrest,Burnham,3,25,62.1,2001847,False,first-trunc
-0,Dragons,12,40,0x7c14,Linus,Trettin,Linus,Trettin,2,15,62.1,2002205,False,
-0,Dragons,13,381,0x14138,Ivan,Volf,Ivan,Volf,2,44,62.1,2002191,False,
-0,Dragons,14,355,0x13230,Fynn,Lastring,Fynn,Lastring,4,16,61.3,2001878,False,
-1,Leverkusen,0,356,0x132c4,Kobe,Langley,Kobe,Langley,0,8,68.6,2002258,True,
-1,Leverkusen,1,357,0x13358,David,Koch,David,Koch,1,26,63.2,2002123,True,
-1,Leverkusen,2,358,0x133ec,Donte,Nicholas,Donte,Nicholas,2,15,66.9,2000498,True,
-1,Leverkusen,3,359,0x13480,Lok Lol,Wur,Lok Lol,Wur,3,4,63.5,2003056,True,
-1,Leverkusen,4,360,0x13514,Dennis,Heinzmann,Dennis,Heinzmann,4,22,64.7,4035,True,
-1,Leverkusen,5,361,0x135a8,Luca Finn,Kahl,Luca Finn,Kahl,0,3,65.9,2000500,False,
-1,Leverkusen,6,363,0x136d0,John,Williams Jr,John,Williams Jr,0,21,65.3,2001721,False,
-1,Leverkusen,7,364,0x13764,Sebastian,Brach,Sebastian,Brach,0,10,65.2,6647,False,
-1,Leverkusen,8,365,0x137f8,Viktor,Ziring,Viktor,Ziring,0,2,65.0,2001421,False,
-1,Leverkusen,9,366,0x1388c,Calin,Nita,Calin,Nita,0,24,64.7,2000016,False,
-1,Leverkusen,10,367,0x13920,Lars,Kremer,Lars,Kremer,0,0,64.6,2000584,False,
-1,Leverkusen,11,368,0x139b4,Jug,Bogdan,Jug,Bogdan,1,5,62.9,2000585,False,
-1,Leverkusen,12,369,0x13a48,Ricardo,Lynch,Ricardo,Lynch,3,11,62.5,2002193,False,
-1,Leverkusen,13,343,0x12b40,Soren,Urbansky,Sören,Urbansky,4,51,62.3,6653,False,
-1,Leverkusen,14,330,0x123bc,Calvin,Oldham JR,Calvin Eugene,Oldham JR,3,1,62.2,6648,False,first-trunc
-2,Bayreuth,0,382,0x141cc,Jonathan,Zeisberger,Jonathan,Zeisberger,0,30,68.1,2003100,True,
-2,Bayreuth,1,383,0x14260,Moritz,Plescher,Moritz,Plescher,1,6,65.7,6604,True,
-2,Bayreuth,2,384,0x142f4,Lenny,Liedtke,Lenny,Liedtke,2,55,63.5,6723,True,
-2,Bayreuth,3,386,0x1441c,Willem,Brandwijk,Willem,Brandwijk,3,39,63.6,2002997,True,
-2,Bayreuth,4,387,0x144b0,Artem,Kovalov,Artem,Kovalov,4,35,63.6,2002227,True,
-2,Bayreuth,5,388,0x14544,Rayshawn,Mart,Rayshawn Rene,Mart,0,3,67.5,2002184,False,first-trunc
-2,Bayreuth,6,389,0x145d8,Kyle,Sturdivant,Kyle,Sturdivant,0,0,66.1,2003109,False,
-2,Bayreuth,7,390,0x1466c,Noah,Wabersich,Noah,Wabersich,0,9,65.6,2001622,False,
-2,Bayreuth,8,391,0x14700,Tehree,Horn,Tehree Johnathan,Horn,1,2,65.5,2000327,False,first-trunc
-2,Bayreuth,9,392,0x14794,KeVaughn,Allen,KeVaughn,Allen,1,23,64.9,2001620,False,
-2,Bayreuth,10,393,0x14828,Nat,Diallo,Nat,Diallo,4,8,63.4,2000325,False,
-2,Bayreuth,11,394,0x148bc,Cantia Jevon,Rahming,Cantia Jevon,Rahming,3,12,63.2,2001621,False,
-2,Bayreuth,12,317,0x11c38,Chris,Wurmseher,Chris,Würmseher,2,44,62.8,2001627,False,
-2,Bayreuth,13,306,0x115dc,Leroy Ikenna,Ikejiaku,Leroy Ikenna,Ikejiaku,4,22,62.6,2001629,False,
-2,Bayreuth,14,293,0x10e58,Liam Nees,Hollander,Liam Nees,Holländer,2,17,62.4,2001288,False,
-3,Gottingen,0,15,0x6da0,Daniel,Kirchner,Daniel,Kirchner,0,4,67.2,2001540,True,
-3,Gottingen,1,16,0x6e34,Julius,Bohmer,Julius,Böhmer,1,44,64.9,2001543,True,
-3,Gottingen,2,17,0x6ec8,Zach,Jackson,Zach,Jackson,2,21,63.9,2001580,True,
-3,Gottingen,3,18,0x6f5c,Hendrik,Drescher,Hendrik Helge,Drescher,3,10,64.9,2001542,True,first-trunc
-3,Gottingen,4,19,0x6ff0,Adam,Ramstedt,Adam,Ramstedt,4,1,63.3,2001578,True,
-3,Gottingen,5,20,0x7084,Jordan,Sears,Jordan,Sears,0,3,65.6,2001586,False,
-3,Gottingen,6,21,0x7118,Gaston,Nguyen,Gaston,Nguyen,0,13,65.1,2000803,False,
-3,Gottingen,7,22,0x71ac,Nils Owen,Schmitz,Nils Owen,Schmitz,0,0,65.0,2001992,False,
-3,Gottingen,8,23,0x7240,Joshua,Haase,Joshua,Haase,0,7,65.0,2000800,False,
-3,Gottingen,9,24,0x72d4,Kevin,Buckingham,Kevin,Buckingham,3,9,63.9,2001579,False,
-3,Gottingen,10,25,0x7368,Mathis,Monninghoff,Mathis,Mönninghoff,2,17,63.6,56406,False,
-3,Gottingen,11,26,0x73fc,Janis,Junemann,Janis,Jünemann,4,20,63.0,2000805,False,
-3,Gottingen,12,279,0x10640,Emil,Bode,Emil,Bode,1,5,62.9,2000797,False,
-3,Gottingen,13,266,0xfebc,Robin,Lodders,Robin,Lodders,3,11,62.4,2001541,False,
-3,Gottingen,14,254,0xf7cc,Wesley,Dreamer,Wesley  Nelson,Dreamer,3,35,62.0,2003060,False,first-trunc
-4,Knights Kirchheim,0,43,0x7dd0,Phillip,Russelll,Phillip Montreal,Russelll,0,1,67.8,2001730,True,first-trunc
-4,Knights Kirchheim,1,44,0x7e64,Charles,Harris Jr.,Charles Tyrone,Harris Jr.,1,3,65.6,2002270,True,first-trunc
-4,Knights Kirchheim,2,45,0x7ef8,Clarence,Fansi,Clarence Felix,Fansi,2,12,62.3,2002090,True,first-trunc
-4,Knights Kirchheim,3,47,0x8020,Aeneas,Jung,Aeneas,Jung,3,19,63.0,2001726,True,
-4,Knights Kirchheim,4,48,0x80b4,Nicolas,Bretzel,Nicolas,Bretzel,4,21,62.9,2002089,True,
-4,Knights Kirchheim,5,49,0x8148,Gian,Aydinoglu,Gian Bahattin,Aydinoglu,0,4,65.0,2001441,False,first-trunc
-4,Knights Kirchheim,6,50,0x81dc,Lucas,Mayer,Lucas,Mayer,1,8,63.9,2000689,False,
-4,Knights Kirchheim,7,51,0x8270,Tyrel,Morgan,Tyrel Maurice,Morgan,1,11,63.2,2001727,False,first-trunc
-4,Knights Kirchheim,8,52,0x8304,Neil,Schwanenberg,Neil,Schwanenberg,1,2,63.1,2000760,False,
-4,Knights Kirchheim,9,53,0x8398,Tylan James,Pope,Tylan James,Pope,3,9,62.8,2001729,False,
-4,Knights Kirchheim,10,54,0x842c,Alexander,Stief,Alexander,Stief,3,14,62.4,2001065,False,
-4,Knights Kirchheim,11,55,0x84c0,Nil,Clavera,Nil,Failenschmid Clavera,2,15,62.1,6164,False,last-shortened
-4,Knights Kirchheim,12,241,0xf048,Nicholas,Spinoso,Nicholas Gerard,Spinoso,4,13,61.7,2001834,False,first-trunc
-4,Knights Kirchheim,13,38,0x7aec,Lukas Werner,Zerner,Lukas Werner,Zerner,4,10,61.4,2001722,False,
-5,Bremerhaven,0,56,0x8554,Raphael,Falkenthal,Raphael,Falkenthal,0,2,66.5,2001581,True,
-5,Bremerhaven,1,59,0x8710,Jacob David,Biss,Jacob David,Biss,1,3,65.4,2000933,True,
-5,Bremerhaven,2,60,0x87a4,Jannis,Seckendorff,Jannis,von Seckendorff,3,90,63.8,2002026,True,last-shortened
-5,Bremerhaven,3,61,0x8838,Hendrik,Warner,Hendrik,Warner,4,31,63.4,2000309,True,
-5,Bremerhaven,4,62,0x88cc,Elijah Jahi,Miller,Elijah Jahi,Miller,0,0,66.1,2000941,True,
-5,Bremerhaven,5,63,0x8960,Daniel,Almarante,Daniel Isaiah,Almarante,0,13,65.4,2001437,False,first-trunc
-5,Bremerhaven,6,64,0x89f4,Adrian,Breitlauch,Adrian,Breitlauch,1,7,64.3,6179,False,
-5,Bremerhaven,7,65,0x8a88,Carlos,Carter,Carlos Deshawn,Carter,3,6,63.8,2000514,False,first-trunc
-5,Bremerhaven,8,66,0x8b1c,Jemarl,Baker Jr.,Jemarl Lemuel,Baker Jr.,1,8,63.8,2001582,False,first-trunc
-5,Bremerhaven,9,67,0x8bb0,Dominique,Johnson,Dominique Kevin,Johnson,1,25,63.6,2002072,False,first-trunc
-5,Bremerhaven,10,380,0x140a4,Evan,Walshe,Evan,Walshe,1,77,63.6,2002974,False,
-5,Bremerhaven,11,354,0x1319c,Alejandro,Garayoa,Alejandro,Ruano Garayoa,1,33,63.4,2003001,False,last-shortened
-5,Bremerhaven,12,341,0x12a18,Anton,Meyer,Anton,Meyer,1,9,63.1,2002027,False,
-5,Bremerhaven,13,328,0x12294,Lorenz,Brenneke,Lorenz,Brenneke,3,11,63.0,2003079,False,
-5,Bremerhaven,14,316,0x11ba4,Jordan,Samare,Jordan,Samare,3,4,62.5,2000305,False,
-6,Koblenz,0,70,0x8d6c,Calvin,Wishart,Calvin,Wishart,0,3,68.4,2001757,True,
-6,Koblenz,1,71,0x8e00,Garrett,Hicks,Garrett,Hicks,1,10,64.5,2001778,True,
-6,Koblenz,2,72,0x8e94,Jonas,Niedermanner,Jonas,Niedermanner,2,9,63.5,2001760,True,
-6,Koblenz,3,73,0x8f28,Jannis,Sonnefeld,Jannis,Sonnefeld,3,14,63.9,2001764,True,
-6,Koblenz,4,74,0x8fbc,Alexander,Moller,Alexander,Möller,4,22,63.3,2001759,True,
-6,Koblenz,5,75,0x9050,Jakob,Hanzalek,Jakob,Hanzalek,0,77,67.1,2001045,False,
-6,Koblenz,6,77,0x9178,Aleksa,Kovacevic,Aleksa,Kovacevic,0,4,66.7,2001753,False,
-6,Koblenz,7,78,0x920c,Julian,Larry,Julian Lamont,Larry,0,1,65.0,2003085,False,first-trunc
-6,Koblenz,8,79,0x92a0,Decorian,Jeffries,Decorian,Jeffries,3,0,63.8,2002091,False,
-6,Koblenz,9,80,0x9334,Devonte,McCall,Devonte Jasai,McCall,2,11,63.5,2002991,False,first-trunc
-6,Koblenz,10,81,0x93c8,David Lars,Gaspers,David Lars,Gaspers,1,17,63.3,2001840,False,
-6,Koblenz,11,82,0x945c,Badu,Buck,Badu,Buck,1,2,62.9,2001758,False,
-6,Koblenz,12,305,0x11548,Marko,Bacak,Marko,Bacak,4,13,62.6,2001774,False,
-6,Koblenz,13,292,0x10dc4,Timothy,Smith,Timothy,Smith,2,5,62.5,2001776,False,
-6,Koblenz,14,277,0x10518,Omer,Girgin,Ömer,Girgin,2,6,62.1,2002957,False,
-7,46ers,0,83,0x94f0,Simon,Krajcovic,Simon,Krajcovic,0,55,67.3,57681,True,
-7,46ers,1,84,0x9584,Kyle Anthony,Castlin,Kyle Anthony,Castlin,1,7,66.7,2001082,True,
-7,46ers,2,85,0x9618,Robin,Benzing,Robin,Benzing,2,12,63.6,57676,True,
-7,46ers,3,86,0x96ac,Domagoj,Vukovic,Domagoj,Vukovic,3,17,62.8,2001576,True,
-7,46ers,4,88,0x97d4,Till,Gloger,Till,Gloger,4,18,63.3,2001574,True,
-7,46ers,5,89,0x9868,Martin,Junakovic,Martin,Junakovic,0,22,67.1,2002145,False,
-7,46ers,6,90,0x98fc,Adnan,Arslanagic,Adnan,Arslanagic,0,4,67.0,2003101,False,
-7,46ers,7,91,0x9990,Daniel,Norl,Daniel Alexander,Norl,0,1,65.6,2001575,False,first-trunc
-7,46ers,8,92,0x9a24,Devon,Goodman,Devon,Goodman,0,5,65.4,2002949,False,
-7,46ers,9,93,0x9ab8,Aiden,Warnholtz,Aiden,Warnholtz,0,3,65.1,2000832,False,
-7,46ers,10,96,0x9c74,Nejc,Tevzic,Nejc,Tevzic,0,6,65.0,2003102,False,
-7,46ers,11,265,0xfe28,Roland,Nyama,Roland L'Amour,Nyama,1,24,64.3,6251,False,first-trunc
-7,46ers,12,253,0xf738,Luis Elias,Konig Figge,Luis Elias,König Figge,1,14,63.2,6247,False,
-7,46ers,13,240,0xefb4,Jonathan,Maier,Jonathan,Maier,4,13,62.8,57678,False,
-7,46ers,14,37,0x7a58,Viktor,Kovacevic,Viktor,Kovacevic,3,25,62.1,2003029,False,
-8,Crailsheim Merlins,0,97,0x9d08,Gianni,Otto,Gianni,Otto,0,10,67.1,2001472,True,
-8,Crailsheim Merlins,1,98,0x9d9c,Charles,Harris Jr.,Charles Tyrone,Harris Jr.,1,11,65.6,2001941,True,first-trunc
-8,Crailsheim Merlins,2,99,0x9e30,Nico,Mojica,Nico,Santana Mojica,2,7,65.1,2000345,True,last-shortened
-8,Crailsheim Merlins,3,100,0x9ec4,Brock Boone,Gardner,Brock Boone,Gardner,3,4,65.2,2001604,True,
-8,Crailsheim Merlins,4,101,0x9f58,Marvin,Ogunsipe,Marvin,Ogunsipe,4,26,64.1,2002182,True,
-8,Crailsheim Merlins,5,102,0x9fec,Keyshaun,Langley,Keyshaun Darrius,Langley,0,2,66.6,2002183,False,first-trunc
-8,Crailsheim Merlins,6,103,0xa080,Antonio,Madlock JR,Antonio Dewane,Madlock JR,0,22,66.2,2002235,False,first-trunc
-8,Crailsheim Merlins,7,104,0xa114,Vincent,Shahid,Vincent Malik,Shahid,0,99,66.1,2002257,False,first-trunc
-8,Crailsheim Merlins,8,105,0xa1a8,Xavier Trent,Johnson,Xavier Trent,Johnson,0,12,65.4,2003026,False,
-8,Crailsheim Merlins,9,106,0xa23c,Maurice,Stuckey,Maurice,Stuckey,1,3,63.9,56591,False,
-8,Crailsheim Merlins,10,107,0xa2d0,Tyreese,Blunt,Tyreese,Blunt,1,0,63.6,2000338,False,
-8,Crailsheim Merlins,11,108,0xa364,Anthony,Gaines,Anthony Malik,Gaines,2,9,63.1,2000343,False,first-trunc
-8,Crailsheim Merlins,12,109,0xa3f8,Jaden,Brown,Jaden,Brown,1,19,63.0,2000509,False,
-8,Crailsheim Merlins,13,110,0xa48c,Nicholas,Welp,Nicholas Christian,Welp,3,20,62.6,2001609,False,first-trunc
-8,Crailsheim Merlins,14,111,0xa520,Jose Gabriel,Neto,Jose Gabriel,de Oliveira Neto,3,1,62.4,2000341,False,last-shortened
-9,Falcons,0,112,0xa5b4,Cameron,Parker,Cameron Robert,Parker,0,1,67.2,2001960,True,first-trunc
-9,Falcons,1,113,0xa648,Vincent,Friederici,Vincent,Friederici,1,30,64.6,2001355,True,
-9,Falcons,2,114,0xa6dc,Trevor James,Baskin,Trevor James,Baskin,2,22,64.8,2001826,True,
-9,Falcons,3,115,0xa770,Georgios,Gkiouzelis,Georgios,Gkiouzelis,3,12,62.9,2003106,True,
-9,Falcons,4,116,0xa804,Brandton,Chatfield,Brandton Dean,Chatfield,4,33,64.4,2001710,True,first-trunc
-9,Falcons,5,117,0xa898,Evan Derek,Taylor,Evan Derek,Taylor,0,10,66.3,2000468,False,
-9,Falcons,6,120,0xaa54,Joscha,Eckert,Joscha,Eckert,0,4,66.0,2000034,False,
-9,Falcons,7,123,0xac10,Tim,Kopple,Tim,Köpple,0,5,65.9,5469,False,
-9,Falcons,8,379,0x14010,Carter Dean,Whitt,Carter Dean,Whitt,0,2,65.5,2002280,False,
-9,Falcons,9,353,0x13108,Christian,Feneberg,Christian,Feneberg,1,7,63.4,5034,False,
-9,Falcons,10,340,0x12984,Raul,Dumnici,Raul,Dumnici,1,8,63.0,2001251,False,
-9,Falcons,11,327,0x12200,Julius,Wolf,Julius,Wolf,3,16,62.8,57438,False,
-9,Falcons,12,314,0x11a7c,Lars,Lagerpusch,Lars,Lagerpusch,4,44,62.6,2002186,False,
-9,Falcons,13,304,0x114b4,Lars,Lenke,Lars,Lenke,2,11,62.3,2001468,False,
-9,Falcons,14,291,0x10d30,Tom,Stoiber,Tom,Stoiber,3,28,62.0,58183,False,
-10,Baskets,0,125,0xad38,Eyassu,Worku,Eyassu,Worku,0,24,67.4,2002972,True,
-10,Baskets,1,126,0xadcc,Jonathan,Klussmann,Jonathan,Klussmann,1,71,66.1,2002135,True,
-10,Baskets,2,129,0xaf88,Efosa,Osawe,Efosa K Irobun,Osawe,2,0,66.0,2002261,True,first-trunc
-10,Baskets,3,130,0xb01c,Lars,Lagerpusch,Lars,Lagerpusch,3,28,63.3,5698,True,
-10,Baskets,4,131,0xb0b0,Jalen Lee,Johnson,Jalen Lee,Johnson,4,13,62.2,2002134,True,
-10,Baskets,5,132,0xb144,Branden,Maughmer,Branden Michael,Maughmer,0,2,66.4,2002132,False,first-trunc
-10,Baskets,6,133,0xb1d8,Balsa,Veljic,Balsa,Veljic,0,18,65.5,2003018,False,
-10,Baskets,7,134,0xb26c,Matej,Silic,Matej,Silic,1,5,65.1,2002140,False,
-10,Baskets,8,135,0xb300,Tom,Bruggemann,Tom,Brüggemann,0,7,65.1,57860,False,
-10,Baskets,9,136,0xb394,Grant,Teichmann,Grant,Teichmann,1,6,64.1,2002136,False,
-10,Baskets,10,137,0xb428,Nicolas,Marty-Decker,Nicolas Ignacio,Marty-Decker,1,10,63.5,6272,False,first-trunc
-10,Baskets,11,276,0x10484,Nathan Lewis,Scott,Nathan Lewis,Scott,3,25,62.1,2002133,False,
-10,Baskets,12,264,0xfd94,Aaron,Kayser,Aaron,Kayser,4,22,61.9,2002138,False,
-10,Baskets,13,252,0xf6a4,Karl,Buhner,Karl,Bühner,3,11,61.9,2002139,False,
-10,Baskets,14,239,0xef20,Leonard,Kroger,Leonard,Kröger,4,26,61.1,2001051,False,
-11,Hagen,0,138,0xb4bc,Marcus Henri,Graves,Marcus Henri,Graves,0,0,67.3,2001556,True,
-11,Hagen,1,139,0xb550,Devin,Schmidt,Devin Lawrence,Schmidt,1,8,67.4,2001636,True,first-trunc
-11,Hagen,2,140,0xb5e4,Jeffrey,Carroll,Jeffrey,Carroll,2,30,63.3,2001635,True,
-11,Hagen,3,141,0xb678,Fabian,Bleck,Fabian,Bleck,3,10,63.7,2001559,True,
-11,Hagen,4,142,0xb70c,Anzac,Rissetto,Anzac Joseph Dennis,Rissetto,4,77,63.6,2001558,True,first-trunc
-11,Hagen,5,143,0xb7a0,Bjarne,Kraushaar,Bjarne,Kraushaar,0,4,66.0,6083,False,
-11,Hagen,6,144,0xb834,Finn,Pook,Finn,Pook,0,6,65.5,2000528,False,
-11,Hagen,7,145,0xb8c8,Jan,Razdevsek,Jan,Razdevsek,0,44,65.1,2001859,False,
-11,Hagen,8,146,0xb95c,Dominick,von Waaden,Dominick Jordan,von Waaden,1,13,64.9,2001557,False,first-trunc
-11,Hagen,9,147,0xb9f0,Dennis,Nawrocki,Dennis,Nawrocki,1,2,64.4,6609,False,
-11,Hagen,10,148,0xba84,Ryan,Schwieger,Ryan,Schwieger,1,3,63.8,2003076,False,
-11,Hagen,11,149,0xbb18,Marinus,N'Guessan,Marinus Lucas,N'Guessan,4,19,63.2,2002265,False,first-trunc
-11,Hagen,12,36,0x79c4,Marvin,Omuvwie,Marvin Omonigho,Omuvwie,3,11,62.6,6084,False,first-trunc
-11,Hagen,13,377,0x13ee8,Nicola,Schultze,Nicola,Schultze,2,33,62.6,2001637,False,
-11,Hagen,14,352,0x13074,Tim,Uhlemann,Tim,Uhlemann,3,21,62.2,6082,False,
-12,LIONS,0,150,0xbbac,David Allan,Cohn,David Allan,Cohn,0,34,68.4,2002231,True,
-12,LIONS,1,151,0xbc40,Mikal,Dawson,Mikal,Dawson,1,22,65.5,2002075,True,
-12,LIONS,2,152,0xbcd4,Kilian,Binapfl,Kilian,Binapfl,2,12,66.1,2001526,True,
-12,LIONS,3,153,0xbd68,David Opowu,Ejah,David Opowu,Ejah,3,25,63.1,2001527,True,
-12,LIONS,4,154,0xbdfc,Maurice,Pluskota,Maurice Marko,Pluskota,4,23,63.0,2001322,True,first-trunc
-12,LIONS,5,155,0xbe90,Isaiah,Hart,Isaiah Rayshaud,Hart,0,4,67.9,2002947,False,first-trunc
-12,LIONS,6,156,0xbf24,Lynval,Ellis,Lynval William Alexander,Ellis,0,1,65.8,2001814,False,first-trunc
-12,LIONS,7,157,0xbfb8,Pavle,Pisic,Pavle,Pisic,0,8,64.5,2000522,False,
-12,LIONS,8,158,0xc04c,Julian,Albus,Julian,Albus,1,20,63.6,6049,False,
-12,LIONS,9,159,0xc0e0,Gabriel,Kuku,Gabriel,Kuku,1,6,63.3,2001571,False,
-12,LIONS,10,160,0xc174,Tyrese,Williams,Tyrese,Williams,1,5,63.3,2001570,False,
-12,LIONS,11,339,0x128f0,Brandon,Porter,Brandon Angelo,Porter,2,14,62.8,2002963,False,first-trunc
-12,LIONS,12,326,0x1216c,Linus,Ihle,Linus,Ihle,2,11,62.8,2001815,False,
-12,LIONS,13,313,0x119e8,Wesley Chima,Oba,Wesley Chima,Oba,4,7,62.7,2001572,False,
-12,LIONS,14,303,0x11420,Jason,George,Jason,George,3,24,62.0,2003099,False,
-13,Koln,0,163,0xc330,Maximilian,Begue,Maximilian,Begue,0,9,67.6,2001447,True,
-13,Koln,1,165,0xc458,Haris,Hujic,Haris,Hujic,1,10,66.1,2001838,True,
-13,Koln,2,166,0xc4ec,Justin,Onyejiaka,Justin,Onyejiaka,2,22,63.7,2001839,True,
-13,Koln,3,167,0xc580,Adam John,Paige,Adam John,Paige,3,13,65.7,2001829,True,
-13,Koln,4,168,0xc614,Bjorn,Rohwer,Björn,Rohwer,4,15,62.7,57948,True,
-13,Koln,5,169,0xc6a8,Cedric,Russell Jr,Cedric Cezell,Russell Jr,0,0,67.4,2002277,False,first-trunc
-13,Koln,6,170,0xc73c,Jasper,Gunther,Jasper,Günther,0,6,67.2,2002188,False,
-13,Koln,7,173,0xc8f8,Rupert,Hennen,Rupert,Hennen,0,5,66.2,6238,False,
-13,Koln,8,290,0x10c9c,Timothy,Davis,Timothy Nehemiah,Davis,1,11,64.1,2001822,False,first-trunc
-13,Koln,9,275,0x103f0,Kenny,Baptiste,Kenny André Calliste Kéannou,Baptiste,3,39,63.4,2003036,False,first-trunc
-13,Koln,10,263,0xfd00,Zachary,Watson,Zachary Richard,Watson,3,4,63.0,2001828,False,first-trunc
-13,Koln,11,251,0xf610,Michael,Miller,Michael Jordan,Miller,1,23,62.9,2002192,False,first-trunc
-13,Koln,12,238,0xee8c,Konstantin,Lehmann,Konstantin Matthias,Lehmann,1,7,62.9,58073,False,first-trunc
-13,Koln,13,34,0x789c,Laurent,Zoccoletti,Laurent Raphael,Zoccoletti,3,12,62.1,2002253,False,first-trunc
-13,Koln,14,376,0x13e54,Friedrich,Beyer,Friedrich,Beyer,4,17,61.4,2001881,False,
-14,Wolmirstedt,0,174,0xc98c,Jalen,Benjamin,Jalen,Benjamin,0,5,67.5,2001704,True,
-14,Wolmirstedt,1,175,0xca20,Trey,Stewart,Trey Thompson,Stewart,1,1,63.3,2001937,True,first-trunc
-14,Wolmirstedt,2,176,0xcab4,Travis,Henson,Travis,Henson,2,2,65.5,2001701,True,
-14,Wolmirstedt,3,177,0xcb48,De'Vondre,Perry,De'Vondre Malik,Perry,3,4,63.9,2002981,True,first-trunc
-14,Wolmirstedt,4,178,0xcbdc,Michael,Hughes II,Michael,Hughes II,4,91,63.4,2002276,True,
-14,Wolmirstedt,5,179,0xcc70,Daivien,Williamson,Daivien Latrell,Williamson,0,7,66.1,2002279,False,first-trunc
-14,Wolmirstedt,6,180,0xcd04,Martin,Bogdanov,Martin,Bogdanov,0,6,65.4,5575,False,
-14,Wolmirstedt,7,182,0xce2c,Alieu,Ceesay,Alieu,Ceesay,2,28,63.9,2001705,False,
-14,Wolmirstedt,8,183,0xcec0,Modestas,Paulauskas,Modestas,Paulauskas,3,10,63.5,6681,False,
-14,Wolmirstedt,9,184,0xcf54,Nigel,Pruitt,Nigel,Pruitt,2,24,63.2,2001939,False,
-14,Wolmirstedt,10,185,0xcfe8,Joshua,Bonga,Joshua,Bonga,1,0,63.2,2001936,False,
-14,Wolmirstedt,11,186,0xd07c,Matthias,Fichtner,Matthias,Fichtner,3,35,62.8,6055,False,
-14,Wolmirstedt,12,187,0xd110,Matthew,Lane,Matthew Thomas,Lane,4,18,62.6,2002204,False,first-trunc
-14,Wolmirstedt,13,351,0x12fe0,Fabien,Kondo,Fabien,Kondo,4,34,61.4,6056,False,
-14,Wolmirstedt,14,338,0x1285c,Benjamin,Koppke,Benjamin,Koppke,4,21,61.1,2001698,False,
-15,Tubingen,0,188,0xd1a4,Jordan,Johnson,Jordan Nathaniel,Johnson,0,11,70.1,2003091,True,first-trunc
-15,Tubingen,1,190,0xd2cc,Till-Joscha,Jonke,Till-Joscha,Jönke,1,26,64.9,56773,True,
-15,Tubingen,2,191,0xd360,Silas,Oriane,Silas Kaan Osezua,Oriane,2,7,62.8,2000319,True,first-trunc
-15,Tubingen,3,192,0xd3f4,Melkisedek,Moreaux,Melkisedek Kwaku,Moreaux,3,23,63.1,2000371,True,first-trunc
-15,Tubingen,4,193,0xd488,Lukas Max,Milner,Lukas Max,Milner,4,17,62.1,2001548,True,
-15,Tubingen,5,194,0xd51c,JaCobi Allen,Wood,JaCobi Allen,Wood,0,24,66.6,2001583,False,
-15,Tubingen,6,195,0xd5b0,Kaya,Bayram,Kaya Kaan Hakan,Bayram,0,5,65.5,2001545,False,first-trunc
-15,Tubingen,7,196,0xd644,Larry,Thomas,Larry Matthew,Thomas,0,0,65.4,2003021,False,first-trunc
-15,Tubingen,8,197,0xd6d8,Miles Lamar,Tention,Miles Lamar,Tention,1,3,64.5,2000576,False,
-15,Tubingen,9,198,0xd76c,Isaiah Jevon,Sanders,Isaiah Jevon,Sanders,1,10,64.2,2001547,False,
-15,Tubingen,10,199,0xd800,Connor,Nelson,Connor McDonald,Nelson,2,21,62.6,2001549,False,first-trunc
-15,Tubingen,11,200,0xd894,Felix Per,Edwardsson,Felix Per,Edwardsson,3,8,62.5,2001546,False,
-15,Tubingen,12,201,0xd928,Aaron,Ogunjobi,Aaron Ayooluwa,Ogunjobi,2,25,62.3,2001643,False,first-trunc
-15,Tubingen,13,325,0x120d8,Bernard Joel,Pelote III,Bernard Joel,Pelote III,3,1,62.1,2001587,False,
-15,Tubingen,14,302,0x1138c,Patrick,Emilien,Patrick Etienne Fardy,Emilien,3,15,62.1,2002966,False,first-trunc
-16,Munster,0,202,0xd9bc,Deshon,Taylor,Deshon Davion,Taylor,0,21,65.6,2003063,True,first-trunc
-16,Munster,1,203,0xda50,Jesse,Ani,Jesse Chidera,Ani,1,24,63.8,2001831,True,first-trunc
-16,Munster,2,204,0xdae4,Andrew,O'Brien,Andrew,O'Brien,2,0,62.5,2001832,True,
-16,Munster,3,205,0xdb78,Neil,Masnic,Neil,Masnic,3,8,64.5,2001842,True,
-16,Munster,4,206,0xdc0c,Adam,Touray,Adam,Touray,4,19,62.0,5317,True,
-16,Munster,5,209,0xddc8,,Lee Zurliene,,#23 Caleb Lee Zurliene,0,10,65.3,2002256,False,last-shortened
-16,Munster,6,210,0xde5c,Thore,Dilschmann,Thore,Dilschmann,0,6,65.2,2000432,False,
-16,Munster,7,211,0xdef0,Julian,Larry,Julian Lamont,Larry,0,10,65.0,2001844,False,first-trunc
-16,Munster,8,212,0xdf84,Thorben,Doding,Thorben,Döding,0,11,65.0,2002147,False,
-16,Munster,9,213,0xe018,Nicholas,Mc Mullen,Nicholas Khalil,Mc Mullen,3,4,63.9,2001843,False,first-trunc
-16,Munster,10,214,0xe0ac,Curtis,Jones Jr,Curtis Tarell,Jones Jr,1,27,63.4,2003092,False,first-trunc
-16,Munster,11,215,0xe140,Philip,Alston,Philip Anthony,Alston,3,55,63.4,2003047,False,first-trunc
-16,Munster,12,288,0x10b74,Timetric,Hodges,Timetric Jerome,Hodges,1,1,63.3,2000428,False,first-trunc
-16,Munster,13,274,0x1035c,Paul,Viefhues,Paul,Viefhues,1,3,62.9,5792,False,
-16,Munster,14,262,0xfc6c,Lukas,Ehrich,Lukas,Ehrich,4,14,61.4,57540,False,
-17,Stars Bochum,0,216,0xe1d4,Antonio,Williams,Antonio Deshon,Williams,0,1,68.0,2001925,True,first-trunc
-17,Stars Bochum,1,217,0xe268,Lars,Kamp,Lars,Kamp,1,7,64.2,4566,True,
-17,Stars Bochum,2,218,0xe2fc,Marios,Giotis,Marios,Giotis,2,3,63.9,2001923,True,
-17,Stars Bochum,3,220,0xe424,Dravon,Mangum,Dravon,Mangum,3,11,64.7,2002190,True,
-17,Stars Bochum,4,224,0xe674,Max,Brackmann,Max,Brackmann,4,64,63.2,2001927,True,
-17,Stars Bochum,5,225,0xe708,Niklas,Geske,Niklas,Geske,0,4,67.2,5119,False,
-17,Stars Bochum,6,227,0xe830,Jonas,Grof,Jonas,Grof,0,9,65.9,2000294,False,
-17,Stars Bochum,7,228,0xe8c4,Matthew,Strange,Matthew Douglas,Strange,0,12,65.4,57698,False,first-trunc
-17,Stars Bochum,8,229,0xe958,Aurel,Bucur,Aurel,Bucur,0,6,64.7,2002207,False,
-17,Stars Bochum,9,230,0xe9ec,Myreon Lamar,Jones JR,Myreon Lamar,Jones JR,1,0,63.9,2001924,False,
-17,Stars Bochum,10,250,0xf57c,Aitor Julen,Pickett Lazo,Aitor Julen,Pickett Lazo,3,99,63.4,2003097,False,
-17,Stars Bochum,11,237,0xedf8,Mats,Neumann,Mats,Neumann,1,13,63.1,2001926,False,
-17,Stars Bochum,12,32,0x7774,Luka,Zajic,Luka,Zajic,2,2,62.8,2001080,False,
-17,Stars Bochum,13,375,0x13dc0,Kilian,Dietz,Kilian,Dietz,4,8,62.7,5117,False,
-17,Stars Bochum,14,350,0x12f4c,Malek,Green,Malek,Green,3,22,62.0,2002225,False,
+team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos,jersey,ovr,proa_id,starter,note
+12,0,Dragons,0,150,0xbbac,Connor Van,Anthony,Connor Van,Anthony,0,9,66.9,2000116,True,
+12,0,Dragons,1,151,0xbc40,Dominik,Dolic,Dominik,Dolic,1,8,65.3,2001879,True,
+12,0,Dragons,2,152,0xbcd4,Amir Jabbar,Hinton,Amir Jabbar,Hinton,2,3,65.0,2001689,True,
+12,0,Dragons,3,153,0xbd68,Dejan,Bruce,Dejan,Bruce,3,13,62.4,2001690,True,
+12,0,Dragons,4,154,0xbdfc,Robert,Oehle,Robert,Oehle,4,11,63.4,2000616,True,
+12,0,Dragons,5,155,0xbe90,Epke,Kruthaup,Epke,Kruthaup,0,2,66.1,2003111,False,
+12,0,Dragons,6,156,0xbf24,Nathan,Petrone,Nathan Joseph,Petrone,1,1,64.3,2001634,False,first-trunc
+12,0,Dragons,7,157,0xbfb8,Timo,Lanmuller,Timo,Lanmüller,1,7,63.7,2002185,False,
+12,0,Dragons,8,158,0xc04c,Djairo,Bernardina,Djairo,Bernardina,1,5,63.6,2002110,False,
+12,0,Dragons,9,159,0xc0e0,Elijah,Ndi,Elijah,Ndi,2,12,63.1,2001880,False,
+12,0,Dragons,10,160,0xc174,Linus,Ruf,Linus,Ruf,4,20,62.3,2001876,False,
+12,0,Dragons,11,149,0xbb18,Benjamin,Burnham,Benjamin Forrest,Burnham,3,25,62.1,2001847,False,first-trunc
+12,0,Dragons,12,137,0xb428,Linus,Trettin,Linus,Trettin,2,15,62.1,2002205,False,
+12,0,Dragons,13,123,0xac10,Ivan,Volf,Ivan,Volf,2,44,62.1,2002191,False,
+12,0,Dragons,14,111,0xa520,Fynn,Lastring,Fynn,Lastring,4,16,61.3,2001878,False,
+13,1,Leverkusen,0,163,0xc330,Kobe,Langley,Kobe,Langley,0,8,68.6,2002258,True,
+13,1,Leverkusen,1,165,0xc458,David,Koch,David,Koch,1,26,63.2,2002123,True,
+13,1,Leverkusen,2,166,0xc4ec,Donte,Nicholas,Donte,Nicholas,2,15,66.9,2000498,True,
+13,1,Leverkusen,3,167,0xc580,Lok Lol,Wur,Lok Lol,Wur,3,4,63.5,2003056,True,
+13,1,Leverkusen,4,168,0xc614,Dennis,Heinzmann,Dennis,Heinzmann,4,22,64.7,4035,True,
+13,1,Leverkusen,5,169,0xc6a8,Luca Finn,Kahl,Luca Finn,Kahl,0,3,65.9,2000500,False,
+13,1,Leverkusen,6,170,0xc73c,John,Williams Jr,John,Williams Jr,0,21,65.3,2001721,False,
+13,1,Leverkusen,7,173,0xc8f8,Sebastian,Brach,Sebastian,Brach,0,10,65.2,6647,False,
+13,1,Leverkusen,8,96,0x9c74,Viktor,Ziring,Viktor,Ziring,0,2,65.0,2001421,False,
+13,1,Leverkusen,9,82,0x945c,Calin,Nita,Calin,Nita,0,24,64.7,2000016,False,
+13,1,Leverkusen,10,67,0x8bb0,Lars,Kremer,Lars,Kremer,0,0,64.6,2000584,False,
+13,1,Leverkusen,11,55,0x84c0,Jug,Bogdan,Jug,Bogdan,1,5,62.9,2000585,False,
+13,1,Leverkusen,12,26,0x73fc,Ricardo,Lynch,Ricardo,Lynch,3,11,62.5,2002193,False,
+13,1,Leverkusen,13,394,0x148bc,Soren,Urbansky,Sören,Urbansky,4,51,62.3,6653,False,
+13,1,Leverkusen,14,369,0x13a48,Calvin,Oldham JR,Calvin Eugene,Oldham JR,3,1,62.2,6648,False,first-trunc
+14,2,Bayreuth,0,174,0xc98c,Jonathan,Zeisberger,Jonathan,Zeisberger,0,30,68.1,2003100,True,
+14,2,Bayreuth,1,175,0xca20,Moritz,Plescher,Moritz,Plescher,1,6,65.7,6604,True,
+14,2,Bayreuth,2,176,0xcab4,Lenny,Liedtke,Lenny,Liedtke,2,55,63.5,6723,True,
+14,2,Bayreuth,3,177,0xcb48,Willem,Brandwijk,Willem,Brandwijk,3,39,63.6,2002997,True,
+14,2,Bayreuth,4,178,0xcbdc,Artem,Kovalov,Artem,Kovalov,4,35,63.6,2002227,True,
+14,2,Bayreuth,5,179,0xcc70,Rayshawn,Mart,Rayshawn Rene,Mart,0,3,67.5,2002184,False,first-trunc
+14,2,Bayreuth,6,180,0xcd04,Kyle,Sturdivant,Kyle,Sturdivant,0,0,66.1,2003109,False,
+14,2,Bayreuth,7,182,0xce2c,Noah,Wabersich,Noah,Wabersich,0,9,65.6,2001622,False,
+14,2,Bayreuth,8,183,0xcec0,Tehree,Horn,Tehree Johnathan,Horn,1,2,65.5,2000327,False,first-trunc
+14,2,Bayreuth,9,184,0xcf54,KeVaughn,Allen,KeVaughn,Allen,1,23,64.9,2001620,False,
+14,2,Bayreuth,10,185,0xcfe8,Nat,Diallo,Nat,Diallo,4,8,63.4,2000325,False,
+14,2,Bayreuth,11,186,0xd07c,Cantia Jevon,Rahming,Cantia Jevon,Rahming,3,12,63.2,2001621,False,
+14,2,Bayreuth,12,187,0xd110,Chris,Wurmseher,Chris,Würmseher,2,44,62.8,2001627,False,
+14,2,Bayreuth,13,13,0x6c78,Leroy Ikenna,Ikejiaku,Leroy Ikenna,Ikejiaku,4,22,62.6,2001629,False,
+14,2,Bayreuth,14,148,0xba84,Liam Nees,Hollander,Liam Nees,Holländer,2,17,62.4,2001288,False,
+15,3,Gottingen,0,188,0xd1a4,Daniel,Kirchner,Daniel,Kirchner,0,4,67.2,2001540,True,
+15,3,Gottingen,1,190,0xd2cc,Julius,Bohmer,Julius,Böhmer,1,44,64.9,2001543,True,
+15,3,Gottingen,2,191,0xd360,Zach,Jackson,Zach,Jackson,2,21,63.9,2001580,True,
+15,3,Gottingen,3,192,0xd3f4,Hendrik,Drescher,Hendrik Helge,Drescher,3,10,64.9,2001542,True,first-trunc
+15,3,Gottingen,4,193,0xd488,Adam,Ramstedt,Adam,Ramstedt,4,1,63.3,2001578,True,
+15,3,Gottingen,5,194,0xd51c,Jordan,Sears,Jordan,Sears,0,3,65.6,2001586,False,
+15,3,Gottingen,6,195,0xd5b0,Gaston,Nguyen,Gaston,Nguyen,0,13,65.1,2000803,False,
+15,3,Gottingen,7,196,0xd644,Nils Owen,Schmitz,Nils Owen,Schmitz,0,0,65.0,2001992,False,
+15,3,Gottingen,8,197,0xd6d8,Joshua,Haase,Joshua,Haase,0,7,65.0,2000800,False,
+15,3,Gottingen,9,198,0xd76c,Kevin,Buckingham,Kevin,Buckingham,3,9,63.9,2001579,False,
+15,3,Gottingen,10,199,0xd800,Mathis,Monninghoff,Mathis,Mönninghoff,2,17,63.6,56406,False,
+15,3,Gottingen,11,200,0xd894,Janis,Junemann,Janis,Jünemann,4,20,63.0,2000805,False,
+15,3,Gottingen,12,201,0xd928,Emil,Bode,Emil,Bode,1,5,62.9,2000797,False,
+15,3,Gottingen,13,136,0xb394,Robin,Lodders,Robin,Lodders,3,11,62.4,2001541,False,
+15,3,Gottingen,14,120,0xaa54,Wesley,Dreamer,Wesley  Nelson,Dreamer,3,35,62.0,2003060,False,first-trunc
+16,4,Knights Kirchheim,0,202,0xd9bc,Phillip,Russelll,Phillip Montreal,Russelll,0,1,67.8,2001730,True,first-trunc
+16,4,Knights Kirchheim,1,203,0xda50,Charles,Harris Jr.,Charles Tyrone,Harris Jr.,1,3,65.6,2002270,True,first-trunc
+16,4,Knights Kirchheim,2,204,0xdae4,Clarence,Fansi,Clarence Felix,Fansi,2,12,62.3,2002090,True,first-trunc
+16,4,Knights Kirchheim,3,205,0xdb78,Aeneas,Jung,Aeneas,Jung,3,19,63.0,2001726,True,
+16,4,Knights Kirchheim,4,206,0xdc0c,Nicolas,Bretzel,Nicolas,Bretzel,4,21,62.9,2002089,True,
+16,4,Knights Kirchheim,5,209,0xddc8,Gian,Aydinoglu,Gian Bahattin,Aydinoglu,0,4,65.0,2001441,False,first-trunc
+16,4,Knights Kirchheim,6,210,0xde5c,Lucas,Mayer,Lucas,Mayer,1,8,63.9,2000689,False,
+16,4,Knights Kirchheim,7,211,0xdef0,Tyrel,Morgan,Tyrel Maurice,Morgan,1,11,63.2,2001727,False,first-trunc
+16,4,Knights Kirchheim,8,212,0xdf84,Neil,Schwanenberg,Neil,Schwanenberg,1,2,63.1,2000760,False,
+16,4,Knights Kirchheim,9,213,0xe018,Tylan James,Pope,Tylan James,Pope,3,9,62.8,2001729,False,
+16,4,Knights Kirchheim,10,214,0xe0ac,Alexander,Stief,Alexander,Stief,3,14,62.4,2001065,False,
+16,4,Knights Kirchheim,11,215,0xe140,Nil,Clavera,Nil,Failenschmid Clavera,2,15,62.1,6164,False,last-shortened
+16,4,Knights Kirchheim,12,110,0xa48c,Nicholas,Spinoso,Nicholas Gerard,Spinoso,4,13,61.7,2001834,False,first-trunc
+16,4,Knights Kirchheim,13,93,0x9ab8,Lukas Werner,Zerner,Lukas Werner,Zerner,4,10,61.4,2001722,False,
+17,5,Bremerhaven,0,216,0xe1d4,Raphael,Falkenthal,Raphael,Falkenthal,0,2,66.5,2001581,True,
+17,5,Bremerhaven,1,217,0xe268,Jacob David,Biss,Jacob David,Biss,1,3,65.4,2000933,True,
+17,5,Bremerhaven,2,218,0xe2fc,Jannis,Seckendorff,Jannis,von Seckendorff,3,90,63.8,2002026,True,last-shortened
+17,5,Bremerhaven,3,220,0xe424,Hendrik,Warner,Hendrik,Warner,4,31,63.4,2000309,True,
+17,5,Bremerhaven,4,224,0xe674,Elijah Jahi,Miller,Elijah Jahi,Miller,0,0,66.1,2000941,True,
+17,5,Bremerhaven,5,225,0xe708,Daniel,Almarante,Daniel Isaiah,Almarante,0,13,65.4,2001437,False,first-trunc
+17,5,Bremerhaven,6,227,0xe830,Adrian,Breitlauch,Adrian,Breitlauch,1,7,64.3,6179,False,
+17,5,Bremerhaven,7,228,0xe8c4,Carlos,Carter,Carlos Deshawn,Carter,3,6,63.8,2000514,False,first-trunc
+17,5,Bremerhaven,8,229,0xe958,Jemarl,Baker Jr.,Jemarl Lemuel,Baker Jr.,1,8,63.8,2001582,False,first-trunc
+17,5,Bremerhaven,9,230,0xe9ec,Dominique,Johnson,Dominique Kevin,Johnson,1,25,63.6,2002072,False,first-trunc
+17,5,Bremerhaven,10,81,0x93c8,Evan,Walshe,Evan,Walshe,1,77,63.6,2002974,False,
+17,5,Bremerhaven,11,66,0x8b1c,Alejandro,Garayoa,Alejandro,Ruano Garayoa,1,33,63.4,2003001,False,last-shortened
+17,5,Bremerhaven,12,54,0x842c,Anton,Meyer,Anton,Meyer,1,9,63.1,2002027,False,
+17,5,Bremerhaven,13,25,0x7368,Lorenz,Brenneke,Lorenz,Brenneke,3,11,63.0,2003079,False,
+17,5,Bremerhaven,14,393,0x14828,Jordan,Samare,Jordan,Samare,3,4,62.5,2000305,False,
+18,6,Koblenz,0,231,0xea80,Calvin,Wishart,Calvin,Wishart,0,3,68.4,2001757,True,
+18,6,Koblenz,1,232,0xeb14,Garrett,Hicks,Garrett,Hicks,1,10,64.5,2001778,True,
+18,6,Koblenz,2,233,0xeba8,Jonas,Niedermanner,Jonas,Niedermanner,2,9,63.5,2001760,True,
+18,6,Koblenz,3,234,0xec3c,Jannis,Sonnefeld,Jannis,Sonnefeld,3,14,63.9,2001764,True,
+18,6,Koblenz,4,235,0xecd0,Alexander,Moller,Alexander,Möller,4,22,63.3,2001759,True,
+18,6,Koblenz,5,236,0xed64,Jakob,Hanzalek,Jakob,Hanzalek,0,77,67.1,2001045,False,
+18,6,Koblenz,6,237,0xedf8,Aleksa,Kovacevic,Aleksa,Kovacevic,0,4,66.7,2001753,False,
+18,6,Koblenz,7,238,0xee8c,Julian,Larry,Julian Lamont,Larry,0,1,65.0,2003085,False,first-trunc
+18,6,Koblenz,8,239,0xef20,Decorian,Jeffries,Decorian,Jeffries,3,0,63.8,2002091,False,
+18,6,Koblenz,9,240,0xefb4,Devonte,McCall,Devonte Jasai,McCall,2,11,63.5,2002991,False,first-trunc
+18,6,Koblenz,10,241,0xf048,David Lars,Gaspers,David Lars,Gaspers,1,17,63.3,2001840,False,
+18,6,Koblenz,11,368,0x139b4,Badu,Buck,Badu,Buck,1,2,62.9,2001758,False,
+18,6,Koblenz,12,12,0x6be4,Marko,Bacak,Marko,Bacak,4,13,62.6,2001774,False,
+18,6,Koblenz,13,147,0xb9f0,Timothy,Smith,Timothy,Smith,2,5,62.5,2001776,False,
+18,6,Koblenz,14,135,0xb300,Omer,Girgin,Ömer,Girgin,2,6,62.1,2002957,False,
+19,7,46ers,0,243,0xf170,Simon,Krajcovic,Simon,Krajcovic,0,55,67.3,57681,True,
+19,7,46ers,1,244,0xf204,Kyle Anthony,Castlin,Kyle Anthony,Castlin,1,7,66.7,2001082,True,
+19,7,46ers,2,246,0xf32c,Robin,Benzing,Robin,Benzing,2,12,63.6,57676,True,
+19,7,46ers,3,247,0xf3c0,Domagoj,Vukovic,Domagoj,Vukovic,3,17,62.8,2001576,True,
+19,7,46ers,4,248,0xf454,Till,Gloger,Till,Gloger,4,18,63.3,2001574,True,
+19,7,46ers,5,249,0xf4e8,Martin,Junakovic,Martin,Junakovic,0,22,67.1,2002145,False,
+19,7,46ers,6,250,0xf57c,Adnan,Arslanagic,Adnan,Arslanagic,0,4,67.0,2003101,False,
+19,7,46ers,7,251,0xf610,Daniel,Norl,Daniel Alexander,Norl,0,1,65.6,2001575,False,first-trunc
+19,7,46ers,8,252,0xf6a4,Devon,Goodman,Devon,Goodman,0,5,65.4,2002949,False,
+19,7,46ers,9,253,0xf738,Aiden,Warnholtz,Aiden,Warnholtz,0,3,65.1,2000832,False,
+19,7,46ers,10,254,0xf7cc,Nejc,Tevzic,Nejc,Tevzic,0,6,65.0,2003102,False,
+19,7,46ers,11,117,0xa898,Roland,Nyama,Roland L'Amour,Nyama,1,24,64.3,6251,False,first-trunc
+19,7,46ers,12,109,0xa3f8,Luis Elias,Konig Figge,Luis Elias,König Figge,1,14,63.2,6247,False,
+19,7,46ers,13,92,0x9a24,Jonathan,Maier,Jonathan,Maier,4,13,62.8,57678,False,
+19,7,46ers,14,80,0x9334,Viktor,Kovacevic,Viktor,Kovacevic,3,25,62.1,2003029,False,
+20,8,Crailsheim Merlins,0,255,0xf860,Gianni,Otto,Gianni,Otto,0,10,67.1,2001472,True,
+20,8,Crailsheim Merlins,1,256,0xf8f4,Charles,Harris Jr.,Charles Tyrone,Harris Jr.,1,11,65.6,2001941,True,first-trunc
+20,8,Crailsheim Merlins,2,259,0xfab0,Nico,Mojica,Nico,Santana Mojica,2,7,65.1,2000345,True,last-shortened
+20,8,Crailsheim Merlins,3,261,0xfbd8,Brock Boone,Gardner,Brock Boone,Gardner,3,4,65.2,2001604,True,
+20,8,Crailsheim Merlins,4,262,0xfc6c,Marvin,Ogunsipe,Marvin,Ogunsipe,4,26,64.1,2002182,True,
+20,8,Crailsheim Merlins,5,263,0xfd00,Keyshaun,Langley,Keyshaun Darrius,Langley,0,2,66.6,2002183,False,first-trunc
+20,8,Crailsheim Merlins,6,264,0xfd94,Antonio,Madlock JR,Antonio Dewane,Madlock JR,0,22,66.2,2002235,False,first-trunc
+20,8,Crailsheim Merlins,7,265,0xfe28,Vincent,Shahid,Vincent Malik,Shahid,0,99,66.1,2002257,False,first-trunc
+20,8,Crailsheim Merlins,8,266,0xfebc,Xavier Trent,Johnson,Xavier Trent,Johnson,0,12,65.4,2003026,False,
+20,8,Crailsheim Merlins,9,65,0x8a88,Maurice,Stuckey,Maurice,Stuckey,1,3,63.9,56591,False,
+20,8,Crailsheim Merlins,10,53,0x8398,Tyreese,Blunt,Tyreese,Blunt,1,0,63.6,2000338,False,
+20,8,Crailsheim Merlins,11,24,0x72d4,Anthony,Gaines,Anthony Malik,Gaines,2,9,63.1,2000343,False,first-trunc
+20,8,Crailsheim Merlins,12,392,0x14794,Jaden,Brown,Jaden,Brown,1,19,63.0,2000509,False,
+20,8,Crailsheim Merlins,13,367,0x13920,Nicholas,Welp,Nicholas Christian,Welp,3,20,62.6,2001609,False,first-trunc
+20,8,Crailsheim Merlins,14,10,0x6abc,Jose Gabriel,Neto,Jose Gabriel,de Oliveira Neto,3,1,62.4,2000341,False,last-shortened
+21,9,Falcons,0,267,0xff50,Cameron,Parker,Cameron Robert,Parker,0,1,67.2,2001960,True,first-trunc
+21,9,Falcons,1,268,0xffe4,Vincent,Friederici,Vincent,Friederici,1,30,64.6,2001355,True,
+21,9,Falcons,2,269,0x10078,Trevor James,Baskin,Trevor James,Baskin,2,22,64.8,2001826,True,
+21,9,Falcons,3,270,0x1010c,Georgios,Gkiouzelis,Georgios,Gkiouzelis,3,12,62.9,2003106,True,
+21,9,Falcons,4,272,0x10234,Brandton,Chatfield,Brandton Dean,Chatfield,4,33,64.4,2001710,True,first-trunc
+21,9,Falcons,5,273,0x102c8,Evan Derek,Taylor,Evan Derek,Taylor,0,10,66.3,2000468,False,
+21,9,Falcons,6,274,0x1035c,Joscha,Eckert,Joscha,Eckert,0,4,66.0,2000034,False,
+21,9,Falcons,7,275,0x103f0,Tim,Kopple,Tim,Köpple,0,5,65.9,5469,False,
+21,9,Falcons,8,276,0x10484,Carter Dean,Whitt,Carter Dean,Whitt,0,2,65.5,2002280,False,
+21,9,Falcons,9,277,0x10518,Christian,Feneberg,Christian,Feneberg,1,7,63.4,5034,False,
+21,9,Falcons,10,279,0x10640,Raul,Dumnici,Raul,Dumnici,1,8,63.0,2001251,False,
+21,9,Falcons,11,146,0xb95c,Julius,Wolf,Julius,Wolf,3,16,62.8,57438,False,
+21,9,Falcons,12,134,0xb26c,Lars,Lagerpusch,Lars,Lagerpusch,4,44,62.6,2002186,False,
+21,9,Falcons,13,108,0xa364,Lars,Lenke,Lars,Lenke,2,11,62.3,2001468,False,
+21,9,Falcons,14,91,0x9990,Tom,Stoiber,Tom,Stoiber,3,28,62.0,58183,False,
+22,10,Baskets,0,280,0x106d4,Eyassu,Worku,Eyassu,Worku,0,24,67.4,2002972,True,
+22,10,Baskets,1,281,0x10768,Jonathan,Klussmann,Jonathan,Klussmann,1,71,66.1,2002135,True,
+22,10,Baskets,2,282,0x107fc,Efosa,Osawe,Efosa K Irobun,Osawe,2,0,66.0,2002261,True,first-trunc
+22,10,Baskets,3,285,0x109b8,Lars,Lagerpusch,Lars,Lagerpusch,3,28,63.3,5698,True,
+22,10,Baskets,4,286,0x10a4c,Jalen Lee,Johnson,Jalen Lee,Johnson,4,13,62.2,2002134,True,
+22,10,Baskets,5,287,0x10ae0,Branden,Maughmer,Branden Michael,Maughmer,0,2,66.4,2002132,False,first-trunc
+22,10,Baskets,6,288,0x10b74,Balsa,Veljic,Balsa,Veljic,0,18,65.5,2003018,False,
+22,10,Baskets,7,290,0x10c9c,Matej,Silic,Matej,Silic,1,5,65.1,2002140,False,
+22,10,Baskets,8,291,0x10d30,Tom,Bruggemann,Tom,Brüggemann,0,7,65.1,57860,False,
+22,10,Baskets,9,292,0x10dc4,Grant,Teichmann,Grant,Teichmann,1,6,64.1,2002136,False,
+22,10,Baskets,10,293,0x10e58,Nicolas,Marty-Decker,Nicolas Ignacio,Marty-Decker,1,10,63.5,6272,False,first-trunc
+22,10,Baskets,11,79,0x92a0,Nathan Lewis,Scott,Nathan Lewis,Scott,3,25,62.1,2002133,False,
+22,10,Baskets,12,64,0x89f4,Aaron,Kayser,Aaron,Kayser,4,22,61.9,2002138,False,
+22,10,Baskets,13,52,0x8304,Karl,Buhner,Karl,Bühner,3,11,61.9,2002139,False,
+22,10,Baskets,14,23,0x7240,Leonard,Kroger,Leonard,Kröger,4,26,61.1,2001051,False,
+23,11,Hagen,0,294,0x10eec,Marcus Henri,Graves,Marcus Henri,Graves,0,0,67.3,2001556,True,
+23,11,Hagen,1,296,0x11014,Devin,Schmidt,Devin Lawrence,Schmidt,1,8,67.4,2001636,True,first-trunc
+23,11,Hagen,2,297,0x110a8,Jeffrey,Carroll,Jeffrey,Carroll,2,30,63.3,2001635,True,
+23,11,Hagen,3,298,0x1113c,Fabian,Bleck,Fabian,Bleck,3,10,63.7,2001559,True,
+23,11,Hagen,4,299,0x111d0,Anzac,Rissetto,Anzac Joseph Dennis,Rissetto,4,77,63.6,2001558,True,first-trunc
+23,11,Hagen,5,300,0x11264,Bjarne,Kraushaar,Bjarne,Kraushaar,0,4,66.0,6083,False,
+23,11,Hagen,6,302,0x1138c,Finn,Pook,Finn,Pook,0,6,65.5,2000528,False,
+23,11,Hagen,7,303,0x11420,Jan,Razdevsek,Jan,Razdevsek,0,44,65.1,2001859,False,
+23,11,Hagen,8,304,0x114b4,Dominick,von Waaden,Dominick Jordan,von Waaden,1,13,64.9,2001557,False,first-trunc
+23,11,Hagen,9,305,0x11548,Dennis,Nawrocki,Dennis,Nawrocki,1,2,64.4,6609,False,
+23,11,Hagen,10,306,0x115dc,Ryan,Schwieger,Ryan,Schwieger,1,3,63.8,2003076,False,
+23,11,Hagen,11,391,0x14700,Marinus,N'Guessan,Marinus Lucas,N'Guessan,4,19,63.2,2002265,False,first-trunc
+23,11,Hagen,12,366,0x1388c,Marvin,Omuvwie,Marvin Omonigho,Omuvwie,3,11,62.6,6084,False,first-trunc
+23,11,Hagen,13,9,0x6a28,Nicola,Schultze,Nicola,Schultze,2,33,62.6,2001637,False,
+23,11,Hagen,14,145,0xb8c8,Tim,Uhlemann,Tim,Uhlemann,3,21,62.2,6082,False,
+24,12,LIONS,0,307,0x11670,David Allan,Cohn,David Allan,Cohn,0,34,68.4,2002231,True,
+24,12,LIONS,1,308,0x11704,Mikal,Dawson,Mikal,Dawson,1,22,65.5,2002075,True,
+24,12,LIONS,2,309,0x11798,Kilian,Binapfl,Kilian,Binapfl,2,12,66.1,2001526,True,
+24,12,LIONS,3,310,0x1182c,David Opowu,Ejah,David Opowu,Ejah,3,25,63.1,2001527,True,
+24,12,LIONS,4,311,0x118c0,Maurice,Pluskota,Maurice Marko,Pluskota,4,23,63.0,2001322,True,first-trunc
+24,12,LIONS,5,313,0x119e8,Isaiah,Hart,Isaiah Rayshaud,Hart,0,4,67.9,2002947,False,first-trunc
+24,12,LIONS,6,314,0x11a7c,Lynval,Ellis,Lynval William Alexander,Ellis,0,1,65.8,2001814,False,first-trunc
+24,12,LIONS,7,316,0x11ba4,Pavle,Pisic,Pavle,Pisic,0,8,64.5,2000522,False,
+24,12,LIONS,8,317,0x11c38,Julian,Albus,Julian,Albus,1,20,63.6,6049,False,
+24,12,LIONS,9,133,0xb1d8,Gabriel,Kuku,Gabriel,Kuku,1,6,63.3,2001571,False,
+24,12,LIONS,10,107,0xa2d0,Tyrese,Williams,Tyrese,Williams,1,5,63.3,2001570,False,
+24,12,LIONS,11,90,0x98fc,Brandon,Porter,Brandon Angelo,Porter,2,14,62.8,2002963,False,first-trunc
+24,12,LIONS,12,78,0x920c,Linus,Ihle,Linus,Ihle,2,11,62.8,2001815,False,
+24,12,LIONS,13,63,0x8960,Wesley Chima,Oba,Wesley Chima,Oba,4,7,62.7,2001572,False,
+24,12,LIONS,14,51,0x8270,Jason,George,Jason,George,3,24,62.0,2003099,False,
+25,13,Koln,0,319,0x11d60,Maximilian,Begue,Maximilian,Begue,0,9,67.6,2001447,True,
+25,13,Koln,1,320,0x11df4,Haris,Hujic,Haris,Hujic,1,10,66.1,2001838,True,
+25,13,Koln,2,321,0x11e88,Justin,Onyejiaka,Justin,Onyejiaka,2,22,63.7,2001839,True,
+25,13,Koln,3,323,0x11fb0,Adam John,Paige,Adam John,Paige,3,13,65.7,2001829,True,
+25,13,Koln,4,324,0x12044,Bjorn,Rohwer,Björn,Rohwer,4,15,62.7,57948,True,
+25,13,Koln,5,325,0x120d8,Cedric,Russell Jr,Cedric Cezell,Russell Jr,0,0,67.4,2002277,False,first-trunc
+25,13,Koln,6,326,0x1216c,Jasper,Gunther,Jasper,Günther,0,6,67.2,2002188,False,
+25,13,Koln,7,327,0x12200,Rupert,Hennen,Rupert,Hennen,0,5,66.2,6238,False,
+25,13,Koln,8,328,0x12294,Timothy,Davis,Timothy Nehemiah,Davis,1,11,64.1,2001822,False,first-trunc
+25,13,Koln,9,330,0x123bc,Kenny,Baptiste,Kenny André Calliste Kéannou,Baptiste,3,39,63.4,2003036,False,first-trunc
+25,13,Koln,10,22,0x71ac,Zachary,Watson,Zachary Richard,Watson,3,4,63.0,2001828,False,first-trunc
+25,13,Koln,11,390,0x1466c,Michael,Miller,Michael Jordan,Miller,1,23,62.9,2002192,False,first-trunc
+25,13,Koln,12,365,0x137f8,Konstantin,Lehmann,Konstantin Matthias,Lehmann,1,7,62.9,58073,False,first-trunc
+25,13,Koln,13,8,0x6994,Laurent,Zoccoletti,Laurent Raphael,Zoccoletti,3,12,62.1,2002253,False,first-trunc
+25,13,Koln,14,144,0xb834,Friedrich,Beyer,Friedrich,Beyer,4,17,61.4,2001881,False,
+26,14,Wolmirstedt,0,331,0x12450,Jalen,Benjamin,Jalen,Benjamin,0,5,67.5,2001704,True,
+26,14,Wolmirstedt,1,332,0x124e4,Trey,Stewart,Trey Thompson,Stewart,1,1,63.3,2001937,True,first-trunc
+26,14,Wolmirstedt,2,333,0x12578,Travis,Henson,Travis,Henson,2,2,65.5,2001701,True,
+26,14,Wolmirstedt,3,334,0x1260c,De'Vondre,Perry,De'Vondre Malik,Perry,3,4,63.9,2002981,True,first-trunc
+26,14,Wolmirstedt,4,336,0x12734,Michael,Hughes II,Michael,Hughes II,4,91,63.4,2002276,True,
+26,14,Wolmirstedt,5,337,0x127c8,Daivien,Williamson,Daivien Latrell,Williamson,0,7,66.1,2002279,False,first-trunc
+26,14,Wolmirstedt,6,338,0x1285c,Martin,Bogdanov,Martin,Bogdanov,0,6,65.4,5575,False,
+26,14,Wolmirstedt,7,339,0x128f0,Alieu,Ceesay,Alieu,Ceesay,2,28,63.9,2001705,False,
+26,14,Wolmirstedt,8,340,0x12984,Modestas,Paulauskas,Modestas,Paulauskas,3,10,63.5,6681,False,
+26,14,Wolmirstedt,9,341,0x12a18,Nigel,Pruitt,Nigel,Pruitt,2,24,63.2,2001939,False,
+26,14,Wolmirstedt,10,343,0x12b40,Joshua,Bonga,Joshua,Bonga,1,0,63.2,2001936,False,
+26,14,Wolmirstedt,11,132,0xb144,Matthias,Fichtner,Matthias,Fichtner,3,35,62.8,6055,False,
+26,14,Wolmirstedt,12,106,0xa23c,Matthew,Lane,Matthew Thomas,Lane,4,18,62.6,2002204,False,first-trunc
+26,14,Wolmirstedt,13,89,0x9868,Fabien,Kondo,Fabien,Kondo,4,34,61.4,6056,False,
+26,14,Wolmirstedt,14,77,0x9178,Benjamin,Koppke,Benjamin,Koppke,4,21,61.1,2001698,False,
+27,15,Tubingen,0,344,0x12bd4,Jordan,Johnson,Jordan Nathaniel,Johnson,0,11,70.1,2003091,True,first-trunc
+27,15,Tubingen,1,345,0x12c68,Till-Joscha,Jonke,Till-Joscha,Jönke,1,26,64.9,56773,True,
+27,15,Tubingen,2,346,0x12cfc,Silas,Oriane,Silas Kaan Osezua,Oriane,2,7,62.8,2000319,True,first-trunc
+27,15,Tubingen,3,348,0x12e24,Melkisedek,Moreaux,Melkisedek Kwaku,Moreaux,3,23,63.1,2000371,True,first-trunc
+27,15,Tubingen,4,349,0x12eb8,Lukas Max,Milner,Lukas Max,Milner,4,17,62.1,2001548,True,
+27,15,Tubingen,5,350,0x12f4c,JaCobi Allen,Wood,JaCobi Allen,Wood,0,24,66.6,2001583,False,
+27,15,Tubingen,6,351,0x12fe0,Kaya,Bayram,Kaya Kaan Hakan,Bayram,0,5,65.5,2001545,False,first-trunc
+27,15,Tubingen,7,352,0x13074,Larry,Thomas,Larry Matthew,Thomas,0,0,65.4,2003021,False,first-trunc
+27,15,Tubingen,8,353,0x13108,Miles Lamar,Tention,Miles Lamar,Tention,1,3,64.5,2000576,False,
+27,15,Tubingen,9,354,0x1319c,Isaiah Jevon,Sanders,Isaiah Jevon,Sanders,1,10,64.2,2001547,False,
+27,15,Tubingen,10,355,0x13230,Connor,Nelson,Connor McDonald,Nelson,2,21,62.6,2001549,False,first-trunc
+27,15,Tubingen,11,62,0x88cc,Felix Per,Edwardsson,Felix Per,Edwardsson,3,8,62.5,2001546,False,
+27,15,Tubingen,12,50,0x81dc,Aaron,Ogunjobi,Aaron Ayooluwa,Ogunjobi,2,25,62.3,2001643,False,first-trunc
+27,15,Tubingen,13,21,0x7118,Bernard Joel,Pelote III,Bernard Joel,Pelote III,3,1,62.1,2001587,False,
+27,15,Tubingen,14,389,0x145d8,Patrick,Emilien,Patrick Etienne Fardy,Emilien,3,15,62.1,2002966,False,first-trunc
+28,16,Munster,0,370,0x13adc,Deshon,Taylor,Deshon Davion,Taylor,0,21,65.6,2003063,True,first-trunc
+28,16,Munster,1,371,0x13b70,Jesse,Ani,Jesse Chidera,Ani,1,24,63.8,2001831,True,first-trunc
+28,16,Munster,2,372,0x13c04,Andrew,O'Brien,Andrew,O'Brien,2,0,62.5,2001832,True,
+28,16,Munster,3,373,0x13c98,Neil,Masnic,Neil,Masnic,3,8,64.5,2001842,True,
+28,16,Munster,4,374,0x13d2c,Adam,Touray,Adam,Touray,4,19,62.0,5317,True,
+28,16,Munster,5,375,0x13dc0,,Lee Zurliene,,#23 Caleb Lee Zurliene,0,10,65.3,2002256,False,last-shortened
+28,16,Munster,6,376,0x13e54,Thore,Dilschmann,Thore,Dilschmann,0,6,65.2,2000432,False,
+28,16,Munster,7,377,0x13ee8,Julian,Larry,Julian Lamont,Larry,0,10,65.0,2001844,False,first-trunc
+28,16,Munster,8,379,0x14010,Thorben,Doding,Thorben,Döding,0,11,65.0,2002147,False,
+28,16,Munster,9,380,0x140a4,Nicholas,Mc Mullen,Nicholas Khalil,Mc Mullen,3,4,63.9,2001843,False,first-trunc
+28,16,Munster,10,381,0x14138,Curtis,Jones Jr,Curtis Tarell,Jones Jr,1,27,63.4,2003092,False,first-trunc
+28,16,Munster,11,364,0x13764,Philip,Alston,Philip Anthony,Alston,3,55,63.4,2003047,False,first-trunc
+28,16,Munster,12,7,0x6900,Timetric,Hodges,Timetric Jerome,Hodges,1,1,63.3,2000428,False,first-trunc
+28,16,Munster,13,143,0xb7a0,Paul,Viefhues,Paul,Viefhues,1,3,62.9,5792,False,
+28,16,Munster,14,131,0xb0b0,Lukas,Ehrich,Lukas,Ehrich,4,14,61.4,57540,False,
+29,17,Stars Bochum,0,27,0x7490,Antonio,Williams,Antonio Deshon,Williams,0,1,68.0,2001925,True,first-trunc
+29,17,Stars Bochum,1,28,0x7524,Lars,Kamp,Lars,Kamp,1,7,64.2,4566,True,
+29,17,Stars Bochum,2,29,0x75b8,Marios,Giotis,Marios,Giotis,2,3,63.9,2001923,True,
+29,17,Stars Bochum,3,30,0x764c,Dravon,Mangum,Dravon,Mangum,3,11,64.7,2002190,True,
+29,17,Stars Bochum,4,31,0x76e0,Max,Brackmann,Max,Brackmann,4,64,63.2,2001927,True,
+29,17,Stars Bochum,5,32,0x7774,Niklas,Geske,Niklas,Geske,0,4,67.2,5119,False,
+29,17,Stars Bochum,6,34,0x789c,Jonas,Grof,Jonas,Grof,0,9,65.9,2000294,False,
+29,17,Stars Bochum,7,36,0x79c4,Matthew,Strange,Matthew Douglas,Strange,0,12,65.4,57698,False,first-trunc
+29,17,Stars Bochum,8,37,0x7a58,Aurel,Bucur,Aurel,Bucur,0,6,64.7,2002207,False,
+29,17,Stars Bochum,9,38,0x7aec,Myreon Lamar,Jones JR,Myreon Lamar,Jones JR,1,0,63.9,2001924,False,
+29,17,Stars Bochum,10,40,0x7c14,Aitor Julen,Pickett Lazo,Aitor Julen,Pickett Lazo,3,99,63.4,2003097,False,
+29,17,Stars Bochum,11,105,0xa1a8,Mats,Neumann,Mats,Neumann,1,13,63.1,2001926,False,
+29,17,Stars Bochum,12,88,0x97d4,Luka,Zajic,Luka,Zajic,2,2,62.8,2001080,False,
+29,17,Stars Bochum,13,75,0x9050,Kilian,Dietz,Kilian,Dietz,4,8,62.7,5117,False,
+29,17,Stars Bochum,14,61,0x8838,Malek,Green,Malek,Green,3,22,62.0,2002225,False,

@@ -1,13 +1,20 @@
-"""Generate PCSX2 texture replacements for lineup faces from data/texture_map/starter_faces.csv.
+"""Generate PCSX2 texture replacements for lineup faces and small team icons.
 
 Each key (<h1>-<h2>-00001dd3) is a 128x128 face; the game displays only the (0,3,102,125) window.
 The ProA headshot (assets/PS_out/<proa_id>.png, 512x512 RGBA) is cropped to head + shoulders and
 fitted into that window on a white canvas.
-Usage: python scripts/gen_replacements.py [--out DIR]   (faces: data/texture_map/record_faces.csv + player_map.csv)
+Usage: python scripts/gen_replacements.py [--out DIR]   (faces: data/texture_map/record_faces.csv + player_map.csv;
+icons: data/texture_map/team_icons.csv + data/team_slots.csv)
 """
 import argparse
 import csv
+import sys
 from pathlib import Path
+
+from PIL import Image
+
+sys.path.insert(0, str(Path(__file__).parent))
+from texlib import proa_slots, prune  # noqa: E402
 
 from PIL import Image
 
@@ -29,7 +36,7 @@ def make_face(src):
 
 ICON_WIN = (4, 5, 28, 27)  # visible part of the 32x32 team icon
 ICON_DISPLAY = (80, 62)    # on-screen size of that part (non-square pixels)
-LOGO_ID0 = 38              # nba2k_editor/assets/<38 + team_slot>.png
+LOGO_ID0 = 38              # nba2k_editor/assets/<38 + ProA team index>.png
 
 
 def make_icon(src):
@@ -44,22 +51,31 @@ def make_icon(src):
     return canvas.convert("RGB")
 
 
+def icon_rows():
+    """(key, ProA team index) of the team icons that belong to NBA slots occupied by ProA teams."""
+    slots = proa_slots()
+    return [(r["key"], slots[int(r["nba_slot"])]) for r in csv.DictReader(open(ROOT / "data/texture_map/team_icons.csv", encoding="utf-8"))
+            if int(r["nba_slot"]) in slots]
+
+
 def write_icons(out):
-    n = 0
-    for r in csv.DictReader(open(ROOT / "data/texture_map/team_icons.csv", encoding="utf-8")):
-        src = ROOT / "nba2k_editor/assets" / f"{LOGO_ID0 + int(r['team_slot'])}.png"
-        make_icon(src).save(out / f"{r['key']}.png")
-        n += 1
-    print(n, "team icons written")
+    rows = icon_rows()
+    for key, idx in rows:
+        make_icon(ROOT / "nba2k_editor/assets" / f"{LOGO_ID0 + idx}.png").save(out / f"{key}.png")
+    print(len(rows), "team icons written")
+    return [k for k, _ in rows]
+
+
+def face_keys():
+    """{record: texture key} for the current roster build (player_map.csv)."""
+    recs = {int(r["record"]) for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))}
+    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
+    return {r: keys[r] for r in recs if r in keys}
 
 
 def managed_keys():
     """Texture keys this generator writes (faces of ProA players, team icons); the workspace never overrides them."""
-    pm = csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))
-    recs = {int(r["record"]) for r in pm}
-    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
-    icons = {r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/team_icons.csv", encoding="utf-8"))}
-    return {keys[r] for r in recs if r in keys} | icons
+    return set(face_keys().values()) | {k for k, _ in icon_rows()}
 
 
 def main():
@@ -67,9 +83,9 @@ def main():
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    write_icons(args.out)
+    written = write_icons(args.out)
     pm = list(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")))
-    keys = {int(r["record"]): r["key"] for r in csv.DictReader(open(ROOT / "data/texture_map/record_faces.csv"))}
+    keys = face_keys()
     n = 0
     for r in pm:
         src = ROOT / "assets/PS_out" / f"{r['proa_id']}.png"
@@ -77,8 +93,10 @@ def main():
             print("no image for", r["first"], r["last"])
             continue
         make_face(src).save(args.out / f"{keys[int(r['record'])]}.png")
+        written.append(keys[int(r["record"])])
         n += 1
     print(n, "faces written to", args.out)
+    print(prune("faces_icons", args.out, written), "stale files removed")
 
 
 if __name__ == "__main__":

@@ -11,6 +11,29 @@ REPL_DIR = TEX_ROOT / "replacements"
 FACE_FAMILIES = {"00001dd3", "00001dd4"}
 
 
+def proa_slots():
+    """{nba_slot: proa_index} from data/team_slots.csv. The final ProA team -> NBA slot mapping; all texture maps are
+    keyed by NBA slot (the NBA team's textures) and the ProA logo asset is nba2k_editor/assets/<38 + proa_index>.png."""
+    import csv
+    order = {r["sheet"]: i for i, r in enumerate(csv.DictReader(open(ROOT / "data/proa_teams.csv", encoding="utf-8")))}
+    return {int(r["nba_slot"]): order[r["sheet"]] for r in csv.DictReader(open(ROOT / "data/team_slots.csv", encoding="utf-8"))}
+
+
+def prune(name, out_dir, written):
+    """Delete files an earlier run of generator `name` wrote that this run no longer writes (e.g. after a team
+    slot mapping change). Run state lives next to the texture folders, not inside replacements\\."""
+    import json
+    f = TEX_ROOT / "pipeline_managed.json"
+    state = json.loads(f.read_text()) if f.exists() else {}
+    written = set(written)
+    gone = [k for k in state.get(name, []) if k not in written]
+    for k in gone:
+        (Path(out_dir) / f"{k}.png").unlink(missing_ok=True)
+    state[name] = sorted(written)
+    f.write_text(json.dumps(state))
+    return len(gone)
+
+
 def family(key):
     return key.split("-")[-1]
 

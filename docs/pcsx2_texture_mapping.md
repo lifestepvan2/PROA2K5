@@ -18,15 +18,20 @@ replacement with that key exists, so **scans need an empty `replacements\` and a
 | `00002213` | 256x256 | large logos (not mapped yet) |
 
 ## Procedure
-1. Load the ProA roster, go to Team Select (left = slot 15, right = slot 9 after loading), save state slot 1 (F1).
-2. `python scripts/texture_scan_run.py -9 -8 ... 8` (about 1 min per team). For each k: F3, pad to the right
+1. Load the roster, go to Team Select (left = slot 15, right = slot 9 after loading), save state slot 1 (F1).
+2. `python scripts/texture_scan_run.py -9 -8 ... 20` (about 1 min per team). For each k: F3, pad to the right
    slot, R1 (k>0) or L1 (k<0) |k| times, Cross, wait for the Start Game screen, screenshot to `docs/_scans/k<k>.png`.
    Right team slot = 9 + k; the left team (slot 15) is on every screen. PCSX2 must stay in the foreground.
-3. `python scripts/build_texture_map.py` matches the 5x2 face cells (column = starter index PG..C, same order as
-   `data/roster_build/player_map.csv`) -> `data/texture_map/starter_faces.csv`.
-4. `python scripts/build_team_icons.py` -> `data/texture_map/team_icons.csv`.
+   Icons and logos are keyed by **NBA slot**, not by ProA team, so this scan is done once (slots 0-29 are covered)
+   and stays valid when the ProA team order changes (`data/team_slots.csv`). The k9-k20 scans were taken with a
+   slightly different window position (`ICON_BOX_NEW` in `build_team_icons.py`).
+3. `python scripts/build_texture_map.py` (legacy, superseded by `record_faces.csv`, see below) matched the starter
+   faces -> `data/texture_map/starter_faces.csv` (stale; keyed by the old slot order).
+4. `python scripts/build_team_icons.py` -> `data/texture_map/team_icons.csv` (30 slots, 30 unique keys, scores 0.90-0.99).
 5. `python scripts/gen_replacements.py` writes the replacement PNGs (ProA headshots from `assets/PS_out`
-   by `proa_id`, logos from `nba2k_editor/assets/<38+slot>.png`) into `replacements\`. F10 reloads textures.
+   by `proa_id`, logos from `nba2k_editor/assets/<38+ProA index>.png` placed on the icon of the NBA slot the team
+   occupies) into `replacements\`. Files that an earlier run wrote but the current one no longer needs are removed
+   (state in `pipeline_managed.json`). F10 reloads textures.
 
 Matching scores are 0.88-0.98 for the right dump and clearly lower for others; the matchers print shared keys
 and low scores. Matching must run after the scans because PCSX2 writes dump files with a delay.
@@ -51,8 +56,9 @@ second generic face (122, 172, 242, 315, 342), and some NBA players share their 
 (e.g. Iverson 0 / 529 / 554). A replacement PNG replaces the texture for every user of the key.
 
 `build_roster.py` therefore only places ProA players on records with a unique key, a match score >= 0.87 and no
-legend-team reference (335 records; 207 in ProA slots 0-17, 128 in donor slots 18-29). Missing records are borrowed
-from donor teams 18-22, which shrink to 7-9 players. Legend and conference teams stay untouched, so historic
+legend-team reference (335 records). A ProA team first uses the qualifying records of its own NBA slot (final
+mapping: ProA teams on slots 12-29, `data/team_slots.csv`); missing records are borrowed from the donor teams on
+slots 0-11, which shrink. Legend and conference teams stay untouched, so historic
 players keep their faces. `gen_replacements.py` writes one face per ProA player keyed by its record.
 
 ## Team logos
