@@ -119,5 +119,31 @@ folder without a 512x256 file are unmapped. To change a master, add `MASTER_` to
 `texture_workspace.py export` + `sync`. `populate` is idempotent (only adds new files; new unmatched ones go to `unsorted/`),
 and `visual_sort/` is ignored by the workspace scans, so editing the copies there changes nothing.
 
+## In-game player models: pid -> face / arm / neck
+
+The link was found by reading the live RAM (no ID-stamp scaling needed; `head_probe_obs.csv` holds the 17 user observations
+used to verify it: all 10 faces and 7 necks match).
+
+- Every loaded player model has a file object named `p<ID><h|a>.iff` (UTF-16; `h` = home team, `a` = away team) with a pointer to
+  the head `SCNE` at `+0xBC`. **ID = u16 at player record +4** (a second copy at +6). It identifies the *person* (629 distinct
+  values in 792 records), not the record. ProA records inherit the pid of the NBA slot they replace, so the face asset belongs to
+  the original NBA player of that slot.
+- From the head `SCNE`, walk the `prev` pointers (offset 0): `TXTR` objects `neck`, `arm`, (a second `SCNE` for the body/hair,
+  skip it), `face` and sometimes `hair`. `TXTR`: `+0xC` magic, `+0x10` name ptr (UTF-16), `+0x14` data header; header `+0x18`
+  pixel pointer, `+0x2C/+0x2E` width/height. Faces 256x256, arms 128x128, necks 128x64, hair 64x64.
+- Pixels are linear PSMT8 followed by a 1 KB CSM1-swizzled palette (index swizzle `i ^ ((((i>>3)&1)^((i>>4)&1))*0x18)`); the RGBA
+  words equal the dump PNGs exactly, so a texture is matched to its dump key by an exact pixel compare (`txtr_match.py`).
+- Faces are unique per pid. **Necks and arms are shared by skin class** (about 200 neck and 90 arm textures for 270 pids), so a
+  replacement neck/arm affects every player sharing it.
+- 24 models are loaded per game (12 per team). Rematch does not reload them; a real game start (Team Select -> Start -> Start Game
+  -> Cross) re-reads the team structs. The ISO holds the assets hashed/compressed, so the mapping cannot be read statically.
+
+Tools: `scripts/live_players.py` (read RAM now, merge into `data/texture_map/pid_textures.csv`), `scripts/face_load_scan.py`
+(automated: loads savestate slot 2 = Team Select of team slot 28 (home) vs 16 (away), writes 12 record pointers + 5 starters into both
+team structs (`TEAM_BASE + team*0x124`, roster ptrs at +0, starters at +0x90), starts the game, waits for the models, reads them
+back; ~12 batches cover all 269 ProA pids; `--retry` re-loads pids whose face/neck has no dump, as starters). Only textures that PCSX2
+has dumped can be matched; some faces never got dumped even when loaded on court (needs a close-up or more play).
+`txtr_inventory.py` lists all TXTRs in RAM, `ram_dump.py ADDR LEN` hexdumps RAM, `head_ram_probe.py` finds a PNG's palette window.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.
