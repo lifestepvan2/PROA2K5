@@ -40,6 +40,8 @@ TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
 T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
 T_STARTERS = 0x90
+ARENA_BASE, ARENA_STRIDE = 0xC8, 0x30  # venue table: name ptr, +8 venue city ptr, +0xC "sNNN" (NBA slot number) ptr
+A_NAME, A_CITY, A_ID = 0, 8, 0xC
 GAP = (0x6663C, 0x675DC)  # zero gap before the string pool
 POOL_MIN = 0x675DC
 FACE_CSV = ROOT / "data/texture_map/record_faces.csv"
@@ -297,6 +299,7 @@ def main():
     ap.add_argument("--proa", default=str(ROOT / "proa_scraped.xlsx"))
     ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"))
     ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
+    ap.add_argument("--arenas", default=str(ROOT / "data/proa_arenas.csv"), help="csv: sheet,arena (home arena names)")
     ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
                     help="csv: sheet,orig_last,first,last (manual name overrides)")
     ap.add_argument("--out", default=str(ROOT / "data/roster_build"))
@@ -374,6 +377,34 @@ def main():
             if note:
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' -> '{first} {last}' ({note})")
 
+    # home arenas: venue rows are keyed by the "sNNN" string (NBA team slot), not by row index
+    venue_row = {}
+    for r in range(70):
+        f = ARENA_BASE + ARENA_STRIDE * r + A_ID
+        if f + 4 > POOL_MIN:
+            break
+        try:
+            tag = pl.str_at(f)
+        except struct.error:
+            break
+        if re.fullmatch(r"s\d{3}", tag):
+            venue_row[int(tag[1:])] = r
+    arenas = {}
+    if Path(a.arenas).exists():
+        arenas = {r["sheet"]: r["arena"] for r in csv.DictReader(open(a.arenas, encoding="utf-8")) if r["arena"].strip()}
+    arena_out = []
+    for tr in team_rows:
+        name = arenas.get(tr["sheet"])
+        if not name:
+            notes.append(f"{tr['sheet']}: no arena in {a.arenas}, keeping original")
+            continue
+        row = venue_row[tr["nba_slot"]]
+        base = ARENA_BASE + ARENA_STRIDE * row
+        old = pl.str_at(base + A_NAME)
+        assignments.append((base + A_NAME, name))
+        assignments.append((base + A_CITY, tr["city"]))
+        arena_out.append({"slot": tr["nba_slot"], "row": row, "sheet": tr["sheet"], "old_arena": old, "arena": name})
+
     # pass 1: unlink every field we are about to rewrite, free strings that lost all referrers
     free_before = pl.free_bytes()
     olds = {}
@@ -409,7 +440,9 @@ def main():
     crc = struct.pack("<I", zlib.crc32(data) & 0xFFFFFFFF)
     (out / "payload_proa.bin").write_bytes(data)
     (out / "extra_proa.bin").write_bytes(crc)
-    for name, rows in (("player_map.csv", player_rows), ("team_map.csv", team_out)):
+    for name, rows in (("player_map.csv", player_rows), ("team_map.csv", team_out), ("arena_map.csv", arena_out)):
+        if not rows:
+            continue
         with open(out / name, "w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, fieldnames=list(rows[0]))
             w.writeheader()

@@ -51,6 +51,27 @@ Team-name strings are also referenced by a nickname/`pbNN.iff` playbook pointer 
 
 Record 0 = Iverson, 3 = K. Thomas, 100 = Gasol.
 
+### Venue (arena) table
+
+70 records of `0x30` bytes starting with the first name pointer at `0xC8` (`row k` = `0xC8 + 0x30*k`). All fields are
+string pointers in the usual tagged form:
+
+| Off | Meaning |
+|---|---|
+| +0x00 | arena name, e.g. `Palace of Auburn Hills` (this is what the pre-game banner shows) |
+| +0x08 | venue city, e.g. `Auburn Hills` |
+| +0x0C | `"sNNN"` string: NNN = **NBA team slot** the venue belongs to (`s021` = Pistons) |
+| +0x10 | abbreviation |
+
+Row order is **not** slot order (row 28 = `s029`, row 1 = `s028`, rows 30+ are All-Star, legend and street venues),
+so always resolve the row by its `sNNN` string. Different teams may share one arena string (Staples Center: Clippers
+`s006` and Lakers `s015`); rewrite single fields, not all referrers.
+The game uses the heap copy of the payload (RAM `0xA95B80 + file offset`); a second copy of the name in RAM
+(e.g. `0x1CE8638`) is irrelevant. Names may be longer than the original (string is relocated).
+`build_roster.py` reads `data/proa_arenas.csv` (`sheet,arena,verified`) and writes `data/roster_build/arena_map.csv`.
+Live tools: `scripts/arena_table.py` (list rows from RAM), `scripts/ram_write_str.py` (in-place patch, max original length),
+`scripts/find_ps2_ram.py` (re-find RAM base after every PCSX2 restart).
+
 ## String pool handling (build_roster.py)
 
 Best-fit allocator over the pool plus free gap. Strings are ref-counted through a map of referrers;

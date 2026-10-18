@@ -11,6 +11,8 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [x] Rosters and starters for 18 ProA teams in NBA slots 12-29 (final mapping `data/team_slots.csv`; Falcons = Pistons slot 21, Gottingen = Lakers slot 15, so the default Quick Match is a full ProA game)
 - [x] Jersey, position, height, weight, years pro, birthday, 19 ratings written and verified in-game (ratings confirmed correct)
 
+- [x] Home arena names: venue table in the payload (rows keyed by `sNNN` = team slot), `data/proa_arenas.csv`, built by `build_roster.py` (see `docs/roster_payload_format.md`); live RAM patch verified, card write pending a roster rebuild
+
 ## Todo
 ### Attributes / ratings
 - [ ] **Lift the low end of the rating scale.** 2K5 shows values below 50 clipped at 50 (observed in game); the
@@ -73,7 +75,8 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 ### release
 - [ ] re-scrape online data for 2026/27 season, update textures of new teams. 
 - [ ] manual refinement pass over player attributes
-- [ ] manual editing of Falcons home court
+- [ ] manual editing of Falcons home court (texture, via the workspace)
+- [ ] verify the arena names in `data/proa_arenas.csv` (only the Falcons entry is confirmed; rest are best guesses, flag `verified`)
 - [ ] re-do player face mapping
 - [ ] rollout and test
 
