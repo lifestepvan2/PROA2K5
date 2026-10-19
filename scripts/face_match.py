@@ -178,6 +178,8 @@ if __name__ == "__main__":
     for i, r in enumerate(players):
         teams.setdefault((int(r["team_slot"]), r["sheet"]), []).append(i)
     SHEETS.mkdir(parents=True, exist_ok=True)
+    for old in SHEETS.glob("*.png"):  # sheets of teams from earlier rosters
+        old.unlink()
     for (ts, tname), idx in sorted(teams.items()):
         rows = []
         for i in idx:
