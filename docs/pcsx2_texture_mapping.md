@@ -153,8 +153,11 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
 
 1. `face_load_scan.py --faces` saves every NBA pid's face/neck/arm texture from RAM to `data/face_match/faces/` (untracked, ~50 MB).
 2. `face_embed.py` embeds ProA headshots (`assets/PS_out`) and those face textures (ArcFace `buffalo_l`, insightface).
-3. `face_match.py` assigns each ProA player the most similar model (cosine similarity + skin lightness, usage penalty so a model is
-   not reused too often; teammates always get distinct pids) and writes **`data/face_match/proa_pid_map.csv`**, the single editable
+3. `face_match.py` assigns each ProA player an NBA face model by ArcFace similarity plus skin lightness. The photo lightness is
+   calibrated onto the texture lightness scale with the fixed curve `SKIN_CAL` (a per-photo-set percentile mapping wrongly darkened
+   pale players). Teammates always get distinct pids; other teams may reuse a model (a small `--reuse` cost per earlier use keeps
+   the variety up; `--w-skin` weights the lightness, default 2.0). Matching deliberately favours complexion over facial likeness:
+   only ~137 NBA faces are light, but ~180 ProA players are. Writes **`data/face_match/proa_pid_map.csv`**, the single editable
    file: `pid` = automatic match, `override_pid` = manual pick (never written by the script, wins in `build_roster.py`).
    Players already in the file keep their pid on later runs (season updates only match new players); `--rematch` redoes all
    automatic matches and keeps overrides. Review via the contact sheets in `docs/_face_sheets/` (one per team, git-ignored); don't
@@ -162,9 +165,10 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
 4. `build_roster.py` writes the pid into both record fields (`player_map.csv` gets a `pid` column); unknown pids abort the build,
    players without a map entry keep the model of their record (reported in `report.md`).
 5. **Lineup headshots follow the pid, not the record.** `gen_replacements.py` therefore writes each ProA headshot to the portrait
-   key(s) of the NBA record that originally had the player's pid (`pid_keys()`). Consequences: a pid can only be used once
-   (`face_match.py --max-uses 1`, default; `gen_replacements.py` reports players that share a pid/portrait), and pids whose
-   portrait texture is shared with other pids (generic placeholders) are excluded from the candidates.
+   key(s) of the NBA record that originally had the player's pid (`pid_keys()`). Consequence: a pid shared by players of different
+   teams shows only the best player's headshot in the lineup portrait (`gen_replacements.py` lists these as CONFLICT); raise
+   `--reuse` in `face_match.py` to trade complexion accuracy for fewer shared models. Pids whose portrait texture is shared with
+   other pids (generic placeholders) are excluded from the candidates.
 6. **Legs follow the record, not the pid.** The in-game textures `legs00`-`legs05` (128x128, one per skin tone; dump keys
    `17f9af64509fc471-<mid>-00001dd3`, mid = `3f1c16ddd47b1c3c, 30e4d3ebd8b48e10, 2d706d2a3649c572, 39f932e44379311f,
    1c94ddc2e789addf, 99b5644de059ce43` for tone 0..5, darkest to lightest) are not part of the `p<ID>h.iff` model. The tone is
