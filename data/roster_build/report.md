@@ -1,8 +1,8 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `d847e9e5`
+- payload: 725056 bytes, CRC32 `6ac8fb45`
 - teams: 18, players: 249
-- string pool: free before 4000 B, freed 12204 B, free after 4544 B
+- string pool: free before 4000 B, freed 12204 B, free after 4524 B
 - records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: 12
 - longest last names: [(11, 'von Oertzen', 'Wolmirstedt'), (12, 'Frischemeier', 'Baskets'), (12, 'Kazakevicius', 'Dragons'), (12, 'Marty-Decker', 'Baskets'), (12, 'Niedermanner', 'Koblenz'), (12, 'Pickett Lazo', 'Stars Bochum'), (12, 'Price-Townse', 'Essen'), (12, 'Schwanenberg', 'Tubingen')]
 
