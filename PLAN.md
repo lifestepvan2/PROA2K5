@@ -91,5 +91,7 @@ records
 - [ ] create a pipeline to generate in game player face assets from our portrait database
 - [ ] figure out how to save the players display-stats for loading screens, then populate with real ProA data
 - [ ] automated colouring of jersey number textures
+- [ ] long term: after re-sorting the workspace to make sure no strays remain, re-do live memory home arena texture mapping (which textures get loaded where), then add automatic grouping of LODs and duplicates and auto LOD updates to arena textures, same as for jerseys.
+
 ## out of scope:
 - sound replacements
