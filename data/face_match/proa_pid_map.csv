@@ -1,6 +1,6 @@
 ﻿proa_id,team_slot,record,first,last,pid,nba_name,sim,skin_pen,override_pid,override_name,skin_target
 2000116,12,150,Buzz,Anthony,652,Mark Madsen,0.048,0.013,,,1.443
-2004414,12,151,Grant,Teichmann,984,Chris Andersen,0.090,0.010,,,1.455
+2004414,12,151,Grant,Teichmann,468,Jason Williams,0.135,0.030,,,1.455
 2001880,12,152,Elijah,Ndi,198,Derek Fisher,0.088,0.056,,,0.998
 2001690,12,153,Dejan,Bruce,945,Reggie Miller,0.165,0.007,,,1.263
 2004622,12,154,Eliah,Braun,350,Sam Cassell,0.135,0.000,,,1.630
@@ -16,8 +16,8 @@
 2004438,12,111,Emanuel,Ozike,413,Chauncey Billups,0.123,0.033,,,1.017
 2001946,13,163,Namori,Omog,274,Jalen Rose,0.213,0.015,,,1.147
 2004602,13,165,Lucas,Fischer,194,Corie Blount,0.260,0.000,,,1.535
-2004110,13,166,Nil,Clavera,291,Jerome Williams,0.069,0.000,,,1.625
-2005025,13,167,Lennart,Zeuch,497,Brad Miller,0.090,0.092,,,1.194
+2004110,13,166,Nil,Clavera,153,Shandon Anderson,0.079,0.000,,,1.625
+2005025,13,167,Lennart,Zeuch,46,Toni Kukoc,0.062,0.032,,,1.194
 2001368,13,168,Felix,Kiehlneker,738,Jerry Lucas,0.260,0.020,,,1.600
 2001363,13,169,Teo,Milicic,1026,Luke Ridnour,0.145,0.020,,,1.590
 2004513,13,170,CJ,Anthony Jr,589,Baron Davis,0.183,0.008,,,0.894
@@ -35,13 +35,13 @@
 2003942,14,177,Simon,Hildebrandt,226,Jason Kidd,0.115,0.040,,,1.390
 2003199,14,178,Collin,Metcalf,74,Rick Fox,0.083,0.035,,,1.213
 2004151,14,179,Glen,Abram Jr.,807,Joe Johnson,0.252,0.006,,,0.837
-2001622,14,180,Noah,Wabersich,632,Chris Mihm,0.063,0.027,,,1.397
+2001622,14,180,Noah,Wabersich,1133,Darius Songaila,0.068,0.047,,,1.397
 1400014,14,182,Nic,McClain,1033,Boris Diaw,0.243,0.000,,,1.423
 2003855,14,183,Matt,Frierson,1179,Anderson Varejao,0.164,0.000,,,1.500
 1400028,14,184,Luis,Wulff,447,Vladimir Stepania,0.200,0.113,,,1.357
 2001288,14,185,Liam,Hollander,903,Mike Dunleavy,0.233,0.065,,,1.532
 6604,14,186,Moritz,Plescher,1022,Jarvis Hayes,0.118,0.000,,,1.585
-2001626,14,187,Leo,Friedlein,78,Antoine Walker,0.130,0.000,,,1.590
+2001626,14,187,Leo,Friedlein,672,Jake Tsakalidis,0.219,0.120,,,1.590
 2001627,14,13,Chris,Wurmseher,965,Peja Drobnjak,0.260,0.013,,,1.437
 2001623,14,148,Taje,Kelly,283,Grant Hill,0.079,0.019,,,1.119
 2001540,15,188,Daniel,Kirchner,75,Jeff McInnis,0.118,0.000,,,1.555
@@ -49,12 +49,12 @@
 56406,15,191,Mathis,Monninghoff,1014,Darko Milicic,0.194,0.010,,,1.515
 2001541,15,192,Robin,Lodders,184,Walter McCarty,0.204,0.000,,,1.585
 2003185,15,193,Omar,Pajic,811,Michael Bradley,0.093,0.005,,,1.508
-2001580,15,194,Zach,Jackson,415,Tony Battie,0.239,0.040,,,1.350
-2003902,15,195,Tai,Bibbs,152,Michael Doleac,0.083,0.040,,,1.470
-2000803,15,196,Gaston,Nguyen,640,Hedo Turkoglu,0.185,0.050,,,1.455
+2001580,15,194,Zach,Jackson,643,Jamaal Magloire,0.259,0.000,,,1.350
+2003902,15,195,Tai,Bibbs,1024,Nick Collison,0.114,0.020,,,1.470
+2000803,15,196,Gaston,Nguyen,345,Radoslav Nesterovic,0.152,0.010,,,1.455
 2001992,15,197,Nils Owen,Schmitz,904,Drew Gooden,0.134,0.011,,,1.245
 2000797,15,198,Emil,Bode,837,Michael Redd,0.102,0.000,,,1.605
-2003183,15,199,Zachary,Watson,643,Jamaal Magloire,0.168,0.000,,,1.317
+2003183,15,199,Zachary,Watson,633,Joel Przybilla,0.117,0.007,,,1.317
 2004723,16,202,Corey,Hines Jr,443,Brian Skinner,0.184,0.000,,,1.222
 1400011,16,203,Desmond,Watson,211,Penny Hardaway,0.213,0.027,,,0.903
 2005083,16,204,Christoph,Philipps,785,Bill Sharman,0.162,0.010,,,1.495
@@ -66,14 +66,14 @@
 2004012,16,212,Paul,Viefhues,1142,Richie Frahm,0.130,0.020,,,1.500
 2004011,16,213,Alexander,Stief,349,Dirk Nowitzki,0.109,0.000,,,1.470
 2004045,16,214,Moritz,Lemke,571,Jonathan Bender,0.195,0.000,,,1.485
-2004013,16,215,Julius,Wolf,153,Shandon Anderson,0.141,0.000,,,1.250
-2004032,16,136,Fabian,John,1154,Devin Harris,0.040,0.007,,,1.437
+2004013,16,215,Julius,Wolf,1041,Josh Howard,0.166,0.000,,,1.250
+2004032,16,136,Fabian,John,334,Cuttino Mobley,0.117,0.000,,,1.437
 2004015,16,120,Lukas,Zerner,63,Vitaly Potapenko,0.146,0.003,,,1.437
 2003165,17,216,Garai,Zeeb,828,Raja Bell,0.223,0.081,,,1.101
 2004160,17,217,Nolan,Hodge,911,Jared Jeffries,0.125,0.007,,,1.203
 2000514,17,218,Carlos,Carter,466,Jahidi White,0.202,0.031,,,0.675
 2004162,17,220,Jeremiah,Oden,821,Gilbert Arenas,0.209,0.053,,,0.847
-2004161,17,224,Dominic,Parolin,1024,Nick Collison,0.119,0.020,,,1.470
+2004161,17,224,Dominic,Parolin,632,Chris Mihm,0.201,0.120,,,1.470
 2004159,17,225,Tyreese,Blunt,910,Caron Butler,0.060,0.027,,,1.017
 2004975,17,227,Corey,McKeithan,225,Jim Jackson,0.214,0.075,,,1.007
 2004268,17,228,Sami,Jahan,355,Robert Horry,0.076,0.019,,,0.979
@@ -88,18 +88,18 @@
 2003969,18,232,Mason,Kraus,568,Shawn Marion,0.138,0.065,,,1.073
 2003933,18,233,Dragos-Andre,Diculescu,1604,Tony Williams,0.107,0.047,,,1.297
 2001760,18,234,Jonas,Niedermanner,1091,Carlos Arroyo,0.068,0.020,,,1.520
-2003934,18,235,Ferenc,Gille,240,Kerry Kittles,0.162,0.000,,,1.377
+2003934,18,235,Ferenc,Gille,415,Tony Battie,0.203,0.093,,,1.377
 1400008,18,236,Tyren,Moore,1032,Dahntay Jones,0.188,0.000,,,1.257
 2003988,18,237,Camaron,Tongue,68,Darvin Ham,0.081,0.000,,,1.270
-2001840,18,238,David Lars,Gaspers,1133,Darius Songaila,0.059,0.007,,,1.417
+2001840,18,238,David Lars,Gaspers,640,Hedo Turkoglu,0.088,0.027,,,1.417
 2001758,18,239,Badu,Buck,301,Damon Stoudamire,0.146,0.021,,,1.119
 2003970,18,240,Jayden,Williams,655,Eddie House,0.044,0.085,,,1.073
 2001774,18,241,Marko,Bacak,102,George Lynch,0.130,0.000,,,1.505
 2001764,18,25,Jannis,Sonnefeld,161,Greg Ostertag,0.143,0.080,,,1.560
 2002957,18,393,Omer,Girgin,117,Christian Laettner,0.115,0.000,,,1.310
-2001759,18,368,Alexander,Moller,774,Jack Sikma,0.031,0.000,,,1.490
+2001759,18,368,Alexander,Moller,731,Nate Thurmond,0.166,0.000,,,1.490
 2004462,19,243,Zachery,Cooks,1168,Dorell Wright,0.184,0.000,,,1.370
-6247,19,244,Luis Elias,Konig Figge,633,Joel Przybilla,0.099,0.007,,,1.317
+6247,19,244,Luis Elias,Konig Figge,497,Brad Miller,0.204,0.153,,,1.317
 57676,19,246,Robin,Benzing,1175,Kevin Martin,0.095,0.000,,,1.310
 2003029,19,247,Viktor,Kovacevic,450,Peja Stojakovic,0.121,0.020,,,1.250
 2001574,19,248,Till,Gloger,367,Tom Gugliotta,0.111,0.040,,,1.330
@@ -107,7 +107,7 @@
 2001575,19,250,Daniel,Norl,927,Chris Jefferies,0.085,0.005,,,1.147
 2004463,19,251,Nigel,Scantlebury,1148,Willie Green,0.238,0.000,,,1.350
 2004605,19,252,Milan Elias,Genius,905,Nikoloz Tskitishvili,0.127,0.000,,,1.430
-2004603,19,253,Luca-Noel,Nickel,358,Steve Nash,0.133,0.060,,,1.480
+2004603,19,253,Luca-Noel,Nickel,741,Dave Cowens,0.091,0.020,,,1.480
 2004464,19,254,Alexander,Williams,2,Derrick Coleman,0.181,0.016,,,1.138
 2000861,19,12,Kai,Musse,629,Mike Miller,0.164,0.013,,,1.357
 2001472,20,255,Gianni,Otto,918,Curtis Borchardt,0.181,0.060,,,1.270
@@ -141,7 +141,7 @@
 58183,21,24,Tom,Stoiber,316,Sean Marks,0.220,0.060,,,1.580
 2004481,22,280,Eyassu,Worku,734,Bob Cousy,0.115,0.000,,,1.350
 2005106,22,281,Nik Philip,Schlipf,619,Rafer Alston,0.213,0.000,,,1.363
-2004482,22,282,Christopher,Schultz,468,Jason Williams,0.191,0.130,,,1.505
+2004482,22,282,Christopher,Schultz,751,Dave Bing,0.108,0.000,,,1.505
 2004480,22,285,Emmanuel,Ugbo,739,Harold Greer,0.086,0.012,,,0.894
 2004484,22,286,Nicholas,Spinoso,1159,Luke Jackson,0.147,0.013,,,1.447
 2004483,22,287,Jon'll,Fugett,732,Elgin Baylor,0.174,0.028,,,1.026
@@ -149,12 +149,12 @@
 2005108,22,290,Levy Kaan,Koyuturk,735,John Havlicek,0.097,0.010,,,1.475
 2002140,22,291,Matej,Silic,736,Bob Petit,0.130,0.030,,,1.455
 6272,22,292,Nicolas,Marty-Decker,615,Chucky Atkins,0.157,0.000,,,1.535
-2001051,22,293,Leonard,Kroger,345,Radoslav Nesterovic,0.142,0.090,,,1.505
+2001051,22,293,Leonard,Kroger,358,Steve Nash,0.187,0.110,,,1.505
 2005107,22,392,Hannes,Frischemeier,901,Ming Yao,0.173,0.070,,,1.465
 2001905,23,294,Quashawn,Lane,748,Bob Lanier,0.203,0.211,,,1.035
 2004675,23,296,Isaiah Jevon,Sanders,155,Howard Eisley,0.175,0.000,,,1.490
 2004674,23,297,Darius,Dawson,369,Stephon Marbury,0.182,0.038,,,0.951
-2004677,23,298,Craig,Moller,967,Cezary Trybanski,0.105,0.040,,,1.470
+2004677,23,298,Craig,Moller,882,Stanislav Medvedenko,0.111,0.000,,,1.470
 2001911,23,299,Jonathan,Almstedt,412,Keith Van Horn,0.164,0.040,,,1.330
 2004987,23,300,Tre,Beard,801,Tyson Chandler,0.215,0.067,,,1.317
 2001908,23,302,Marc William,Friederici,1160,Andris Biedrins,0.138,0.020,,,1.620
@@ -164,12 +164,12 @@
 2000439,23,306,Benjamin,Uzoma,847,Andrei Kirilenko,0.100,0.047,,,1.397
 2004673,23,367,JJ,Mann,625,Kenyon Martin,0.137,0.028,,,1.194
 2004014,24,307,Zac,Owens,817,Loren Woods,0.335,0.099,,,1.175
-2004016,24,308,Martel,Williams,181,Allan Houston,0.124,0.060,,,1.250
+2004016,24,308,Martel,Williams,312,Othella Harrington,0.219,0.000,,,1.250
 2001526,24,309,Kilian,Binapfl,620,Moochie Norris,0.154,0.000,,,1.475
 2001572,24,310,Wesley Chima,Oba,1130,Bobby Simmons,0.118,0.057,,,1.091
-2001322,24,311,Maurice,Pluskota,1028,Troy Bell,0.137,0.000,,,1.565
+2001322,24,311,Maurice,Pluskota,1162,Sebastian Telfair,0.199,0.000,,,1.565
 2002947,24,313,Isaiah,Hart,805,Jason Richardson,0.211,0.037,,,0.618
-2004187,24,314,David,Scheu,46,Toni Kukoc,0.116,0.013,,,1.203
+2004187,24,314,David,Scheu,917,Juan Dixon,0.161,0.000,,,1.203
 2005310,24,316,Bazoumana,Kone,746,Pete Maravich,0.000,0.027,,,1.377
 1400015,24,317,Noah,Koch,1189,Josh Moore,0.175,0.010,,,0.685
 2004017,24,10,Theo,Seng,1157,Rafael Araujo,0.309,0.250,,,1.585
@@ -195,21 +195,21 @@
 2004202,26,333,Dennis,Nawrocki,556,Scott Padgett,0.149,0.050,,,1.485
 2005027,26,334,Brock Boone,Gardner,970,Emanuel Ginobili,0.094,0.010,,,1.525
 2004200,26,336,Akim-Jamal,Jonah,1161,Robert Swift,0.093,0.080,,,1.370
-2004206,26,337,Marcus,Evans,917,Juan Dixon,0.268,0.000,,,1.270
+2004206,26,337,Marcus,Evans,291,Jerome Williams,0.222,0.000,,,1.270
 2004203,26,338,Sebastian,Brach,96,Brent Barry,0.185,0.040,,,1.560
 2004267,26,339,Carl Thure,Peters,1018,Chris Kaman,0.000,0.007,,,1.377
 2001705,26,340,Alieu,Ceesay,1155,Josh Childress,0.271,0.000,,,1.263
 6055,26,341,Matthias,Fichtner,1163,Kris Humphries,0.178,0.080,,,1.480
 2004707,26,343,Paul Manuel,Raabe,1045,Jerome Beasley,0.160,0.000,,,1.555
-2004199,26,23,Aeneas,Jung,1184,Tim Duncan,0.068,0.010,,,1.545
-2004266,26,391,Julius,von Oertzen,741,Dave Cowens,0.128,0.070,,,1.525
+2004199,26,23,Aeneas,Jung,745,Walt Frazier,0.175,0.000,,,1.545
+2004266,26,391,Julius,von Oertzen,841,Zeljko Rebraca,0.140,0.030,,,1.525
 2004426,26,366,Kyndahl,Hill,422,Austin Croshere,0.165,0.013,,,1.423
 2003146,27,344,Aiden,Warnholtz,392,Paul Pierce,0.162,0.000,,,1.650
-2003150,27,345,Isaac,Haney,1043,Jason Kapono,0.103,0.040,,,1.660
+2003150,27,345,Isaac,Haney,1028,Troy Bell,0.166,0.000,,,1.660
 2003819,27,346,Timothy,Smith,1178,David Harrison,0.149,0.000,,,1.500
 2004210,27,348,Kristian,Sjolund,1044,Luke Walton,0.086,0.010,,,1.555
-1400004,27,349,Creighton,Morisch,1041,Josh Howard,0.130,0.000,,,1.540
-2004239,27,350,Kosta,Bojanic,312,Othella Harrington,0.124,0.000,,,1.630
+1400004,27,349,Creighton,Morisch,1118,Udonis Haslem,0.104,0.000,,,1.540
+2004239,27,350,Kosta,Bojanic,78,Antoine Walker,0.097,0.000,,,1.630
 2004234,27,351,Julian,Hilt,1126,Kyle Korver,0.091,0.060,,,1.690
 1400000,27,352,Simon,Feneberg,540,Evan Eschmeyer,0.147,0.050,,,1.595
 2004990,27,353,Jesse,Ani,22,Glenn Robinson,0.151,0.096,,,0.998
@@ -223,11 +223,11 @@
 2003953,28,371,Charles,Harris Jr.,818,Brendan Haywood,0.157,0.043,,,0.752
 56479,28,372,Niklas,Wurzner,816,Richard Jefferson,0.072,0.020,,,1.250
 56380,28,373,Paul,Zipser,934,Carlos Boozer,0.046,0.000,,,1.110
-2003954,28,374,Nicholas,Muszynski,928,Dan Dickau,0.047,0.033,,,1.273
+2003954,28,374,Nicholas,Muszynski,993,Jannero Pargo,0.109,0.047,,,1.273
 1400013,28,375,Lukas,Roth,573,Ron Artest,0.147,0.077,,,0.989
 2005080,28,376,Franklin,Champion,420,Danny Fortson,0.212,0.024,,,0.628
 2004391,28,377,Felix,Diez,933,Dan Gadzuric,0.098,0.025,,,1.147
-2003788,28,379,Cantia Jevon,Rahming,334,Cuttino Mobley,0.146,0.000,,,1.270
+2003788,28,379,Cantia Jevon,Rahming,240,Kerry Kittles,0.190,0.000,,,1.270
 1000853,28,380,Erol,Ersek,616,Mikki Moore,0.129,0.040,,,1.250
 2003786,28,381,Joschka,Ferner,416,Ron Mercer,0.095,0.003,,,1.129
 2004390,28,90,Julius,Hoffmann,143,Vlade Divac,0.113,0.020,,,1.270
@@ -238,13 +238,13 @@
 2004916,29,28,JaMonta,Black,1127,Amal McCaskill,0.134,0.036,,,1.138
 2004907,29,29,Gabriel,Kuku,802,Shane Battier,0.100,0.029,,,1.175
 2003097,29,30,Aitor Julen,Pickett Lazo,829,Milt Palacio,0.064,0.015,,,0.637
-5117,29,31,Kilian,Dietz,993,Jannero Pargo,0.105,0.000,,,1.250
+5117,29,31,Kilian,Dietz,98,Shareef Abdur-Rahim,0.160,0.000,,,1.250
 2004915,29,32,Conrad,Klotz,116,Alan Henderson,0.143,0.000,,,1.525
-2004927,29,34,Dyami,Janeck,882,Stanislav Medvedenko,0.089,0.060,,,1.500
+2004927,29,34,Dyami,Janeck,774,Jack Sikma,0.024,0.020,,,1.500
 2004918,29,36,Jaylen,Wesley,388,Gary Trent,0.174,0.024,,,1.194
-2001926,29,37,Mats,Neumann,672,Jake Tsakalidis,0.181,0.070,,,1.495
+2001926,29,37,Mats,Neumann,937,Rasual Butler,0.117,0.000,,,1.495
 2004914,29,38,David,Pisic,1031,Aleksandar Pavlovic,0.196,0.020,,,1.500
 2004917,29,40,Thomas,Kamarad,915,Bostjan Nachbar,0.137,0.000,,,1.540
 2004913,29,22,Neil,Masnic,1034,Zoran Planinic,0.141,0.030,,,1.545
 2004928,29,390,Pablo,Estelle,737,Dolph Schayes,0.112,0.040,,,1.470
-2005196,29,365,Neo,Scholz,841,Zeljko Rebraca,0.173,0.010,,,1.545
+2005196,29,365,Neo,Scholz,1184,Tim Duncan,0.130,0.010,,,1.545
