@@ -25,6 +25,7 @@ from PIL import Image
 
 import gen_logo_replacements as logos
 import gen_replacements as faces
+import gen_skin_replacements as skins
 import texcluster
 import uniform_lods
 from texlib import REPL_DIR, ROOT, dump_files, family, load_rgba
@@ -61,6 +62,7 @@ def sha1(path):
 def managed_keys():
     out = {k: "faces/icons" for k in faces.managed_keys()}
     out.update({k: "team logo" for k in logos.managed_keys()})
+    out.update({k: "light-reserve skin" for k in skins.managed_keys()})
     return out
 
 

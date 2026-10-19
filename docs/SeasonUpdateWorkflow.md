@@ -15,6 +15,9 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 | 6 | Build payload, pass 2 (pids applied), optionally write the card | `build_roster.py [--card]` | payload, `report.md` |
 | 7 | Lineup headshots (pid-keyed) and team icons | `gen_replacements.py` | PCSX2 `replacements\` |
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
+| 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
+
+`skin_brighten.py scan` / `embed` are one-off setup steps (rerun only after new face dumps).
 
 Afterwards: review `docs/_face_sheets/` (edit `override_pid` in `proa_pid_map.csv` and re-run steps 6-7 for corrections), then
 press F10 in PCSX2 (textures) and start a new game from the card (roster).

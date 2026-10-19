@@ -155,9 +155,9 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
 2. `face_embed.py` embeds ProA headshots (`assets/PS_out`) and those face textures (ArcFace `buffalo_l`, insightface).
 3. `face_match.py` assigns each ProA player an NBA face model by ArcFace similarity plus skin lightness. The photo lightness is
    calibrated onto the texture lightness scale with the fixed curve `SKIN_CAL` (a per-photo-set percentile mapping wrongly darkened
-   pale players). Teammates always get distinct pids; other teams may reuse a model (a small `--reuse` cost per earlier use keeps
-   the variety up; `--w-skin` weights the lightness, default 2.0). Matching deliberately favours complexion over facial likeness:
-   only ~137 NBA faces are light, but ~180 ProA players are. Writes **`data/face_match/proa_pid_map.csv`**, the single editable
+   pale players). Every player gets a distinct pid league-wide (single Hungarian solve; `--w-skin` weights the lightness, default
+   2.0), because the lineup headshot is keyed by pid. Only ~137 NBA faces are light but ~180 ProA players are, so the shortfall is
+   covered by the **light reserve** (item 7): extra pids whose face is recoloured light. Writes **`data/face_match/proa_pid_map.csv`**, the single editable
    file: `pid` = automatic match, `override_pid` = manual pick (never written by the script, wins in `build_roster.py`).
    Players already in the file keep their pid on later runs (season updates only match new players); `--rematch` redoes all
    automatic matches and keeps overrides. Review via the contact sheets in `docs/_face_sheets/` (one per team, git-ignored); don't
@@ -166,9 +166,9 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
    players without a map entry keep the model of their record (reported in `report.md`).
 5. **Lineup headshots follow the pid, not the record.** `gen_replacements.py` therefore writes each ProA headshot to the portrait
    key(s) of the NBA record that originally had the player's pid (`pid_keys()`). Consequence: a pid shared by players of different
-   teams shows only the best player's headshot in the lineup portrait (`gen_replacements.py` lists these as CONFLICT); raise
-   `--reuse` in `face_match.py` to trade complexion accuracy for fewer shared models. Pids whose portrait texture is shared with
-   other pids (generic placeholders) are excluded from the candidates.
+   teams shows only the best player's headshot in the lineup portrait (`gen_replacements.py` lists these as CONFLICT), which is
+   why face_match never reuses a pid. Pids whose portrait texture is shared with other pids (generic placeholders) are excluded
+   from the candidates.
 6. **Legs follow the record, not the pid.** The in-game textures `legs00`-`legs05` (128x128, one per skin tone; dump keys
    `17f9af64509fc471-<mid>-00001dd3`, mid = `3f1c16ddd47b1c3c, 30e4d3ebd8b48e10, 2d706d2a3649c572, 39f932e44379311f,
    1c94ddc2e789addf, 99b5644de059ce43` for tone 0..5, darkest to lightest) are not part of the `p<ID>h.iff` model. The tone is
@@ -177,8 +177,25 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
    `build_roster.py` now copies +0x69 from the NBA record that owns the pid (`load_skin_tones()`). Found by scanning RAM for
    TXTR names (the six `legsNN` objects all alias one pixel buffer that the engine fills per draw) and matching the structure of
    the dumped 128x128 textures against it.
+7. **Light reserve (recoloured faces).** Arms are baked into the `p<ID>h.iff` model, so a pid's arm class cannot be chosen
+   freely; the arm texture is shared by all pids of a skin class, and the class equals the record tone +0x69 exactly
+   (tone 5: 95 pids, 3: 63+9, 2: 55, 1: 34, 0: 8). `skin_brighten.py` therefore *reserves* the largest tone-3 arm class
+   (82 pids, key `bf7f58d465c440ee-1619018f767b405a-00001dd3`): its arm texture is replaced by the pixels of the tone-5 arm, its
+   legs use tone 5 (`load_skin_tones()`), and each reserved pid's face and neck can be recoloured light per player.
+   - `skin_brighten.py scan` writes `data/texture_map/pid_skin_keys.csv` (pid -> face/neck/arm dump key by RGB md5 of the RAM
+     saves; the reserve is usable only with a unique face key and a neck not shared with another face: 53 of 82 pids, 23
+     were never dumped, so `face_load_scan --retry` can grow the pool). `embed` writes `data/face_match/bright.npz`
+     (ArcFace + lightness of every usable reserved face recoloured to a reference light tone).
+   - Recolour: Lab shift of the skin pixels (median cheek tone -> light target, `skin_ab()` gives matching a/b), weighted by a
+     smoothed skin mask, so hair, brows, eyes and stubble stay dark and the structure is unchanged; highlights are compressed.
+   - `face_match.py` treats these as extra light candidates (`skin_target` column in `proa_pid_map.csv` holds the lightness the
+     recolour aims at); `gen_skin_replacements.py` writes the recoloured face/neck PNGs (dump alpha kept) and the light arm into
+     `replacements\` (pipeline-managed keys, pruned when no longer needed).
+   - Side effect: classic/historic teams that still use reserved NBA models show dark faces with light arms.
+   - The 9 pids of the second tone-3 arm class (`303a37...`) are left unchanged.
 
-New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again.
+New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again,
+then `gen_skin_replacements.py`. After new face dumps: `skin_brighten.py scan` and `embed`, then `face_match.py --rematch`.
 
 ## Labelling textures by home team (arena_props, uniform_parts, loading tiles, courts)
 

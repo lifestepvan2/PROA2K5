@@ -45,6 +45,7 @@ def main():
     run("face_match.py", *(["--rematch"] if a.rematch_faces else []))
     run("build_roster.py", *(["--card", a.card] if a.card else []))
     run("gen_replacements.py")
+    run("gen_skin_replacements.py")
     run("gen_logo_replacements.py")
     print("\nDone. Review data/roster_build/report.md and docs/_face_sheets/, press F10 in PCSX2 to reload textures.")
     if not a.card:

@@ -27,6 +27,7 @@ import openpyxl
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, convert, dunk_flag  # noqa: E402
+import skin_brighten  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
@@ -312,10 +313,12 @@ def allocate_records(pl, team_players, slots):
 
 def load_skin_tones():
     """{pid: skin tone byte (record +0x69)} of the original NBA records; legs follow this byte, so a cast player needs the tone of
-    the model he borrows."""
-    return {int.from_bytes(b[4:6], "little"): b[P_SKIN]
-            for b in (bytes.fromhex(r["hex"]) for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8"))
-                      if r["team_slot"] and int(r["team_slot"]) < 39)}
+    the model he borrows. Pids of the light-arm reserve (skin_brighten.py) are recoloured light, so they get the light tone."""
+    tones = {int.from_bytes(b[4:6], "little"): b[P_SKIN]
+             for b in (bytes.fromhex(r["hex"]) for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8"))
+                       if r["team_slot"] and int(r["team_slot"]) < 39)}
+    tones.update({p: skin_brighten.LIGHT_TONE for p in skin_brighten.reserved_pids()})
+    return tones
 
 
 def load_accessories(path):
