@@ -76,6 +76,8 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 
 ### release
 - [x] re-scrape online data for 2026/27 season (`scripts/update_season.py`, `docs/SeasonUpdateWorkflow.md`)
+- [x] arena_props / uniform_parts / loading_video_tiles / courts_and_floors labelled with their NBA home team (live scan + visual labels, `data/texture_labels/`, `docs/pcsx2_texture_mapping.md`); cloth templates sorted into `uniforms/cloth_256x256`. Open: unseen leftovers, 6 unknown-team cloth textures
+- [ ] accessories (headband, goggles, sleeves): candidate record bytes 0x61-0x67 in `docs/player_record_layout.md`; live patching has no effect, needs a memory-card test via `build_roster.py`
 - [ ] update textures (jerseys, courts) and arena names of the new teams Essen, Heidelberg, Ulm. 
 - [ ] manual refinement pass over player attributes
 - [ ] manual editing of Falcons home court (texture, via the workspace)

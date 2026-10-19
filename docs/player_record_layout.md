@@ -47,6 +47,21 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x5F, 0x60 | u8 | unknown (75/99, 75/85/95) | W (75) |
 | 0x69 | u8 | **skin tone 0-5**: selects the `legs00`-`legs05` texture (arm colour correlates r=0.985). Face/neck/arm follow the pid, so cast players get the tone of the borrowed model | W |
 
+### Accessory candidates (NOT confirmed)
+
+In the NBA data bytes 0x61-0x67 default to 255 ("none") and look like item indices; most other bytes up to 0x94 are 0 for all 792 records.
+
+| offset | NBA values | observation |
+|---|---|---|
+| 0x61 | 255, 2/6/7/8/10/14 | 6 on Bird/McHale (80's East) |
+| 0x62 | 0, 2/4/5 | 2 on Iverson, Person, Thomas, Odom, Livingston; 5 on Maggette, Malone; 4 on Traylor (sleeve-like wearers?) |
+| 0x64, 0x65 | 255, 9 (Iverson A-T: 5, 12) | 9/9 on the 80's Celtics |
+| 0x66 | 255, 0-6 | only players known for goggles/glasses (Kareem, Worthy, Mikan, Horace Grant, Outlaw): goggles index (`goggles00`-`07` TXTRs exist in RAM) |
+| 0x67 | 255, 0 | 0 on Iverson, Maggette |
+| 0x75-0x7A, 0x7E, 0x7F | see `players_unknown.csv` | pairs of equal values (left/right?) |
+
+Live test (PCSX2, savestate -> `set_roster` -> patch record bytes -> start game, 3 runs, ~24 players each): setting 0x75-0x7A=6, 0x64/0x65=9 + 0x66=3, and 0x61=6 + 0x62=2 + 0x69=5 on every record changed **nothing** on screen (not even the known-good skin byte 0x69), so patching records after `set_roster` is ignored by the game (records are probably copied earlier). Headbands, wristbands and knee sleeves seen in game on cast ProA players (all records identical in these bytes) come from the cast NBA model/textures, not from these bytes. The candidates above therefore need to be tested through the memory card (`build_roster.py`) before being exposed in the roster sheet. Model sub-object names that the indices probably select: `wholeheaditem02-33`, `neckitem01-18`, `faceitem02-26`, `headitem02-33`, `armitem01-03`, `wristitem01-17`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`.
+
 "Overall" is not a stored byte that matches (0x60 is close but not equal); it is probably computed.
 Ratings are 0-99 bytes (NBA data is quantised to steps of 5, any value should be valid).
 

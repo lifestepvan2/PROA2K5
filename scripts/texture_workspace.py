@@ -64,6 +64,12 @@ def managed_keys():
     return out
 
 
+def load_labels():
+    """data/texture_labels/labels.csv (key,label,group,sub,...): team label prefix and optional group/sub override per dump key."""
+    p = ROOT / "data/texture_labels/labels.csv"
+    return {r["key"]: r for r in csv.DictReader(open(p, encoding="utf-8"))} if p.exists() else {}
+
+
 def catalog(files=None):
     """One dict per dump: key, family, w, h, group, sub, label. Known maps first, then family rules, then clusters."""
     files = files or dump_files()
@@ -82,6 +88,7 @@ def catalog(files=None):
             sign_of[r["key"]] = r["team"]
     model = json.loads(texcluster.MODEL.read_text())
     cnames = json.loads(texcluster.NAMES.read_text())
+    labels = load_labels()
     out = []
     for key, path in sorted(files.items()):
         fam = family(key)
@@ -102,10 +109,15 @@ def catalog(files=None):
             group = cnames[fam][texcluster.classify(texcluster.feature(path), fam, model)]
         else:
             group = "ui_fragments"
-        if group in SIZE_SUBFOLDER:
+        lab = labels.get(key, {})
+        if lab.get("group"):
+            group, sub = lab["group"], lab.get("sub", "")
+        if group in SIZE_SUBFOLDER and not (lab.get("group") and lab.get("sub")):
             sub = f"{w}x{h}"
         label = label or f"{group}_{w}x{h}"
-        if key in sign_of:
+        if lab.get("label"):
+            label = f"{lab['label']}_{label}"
+        if key in sign_of and not lab.get("label"):
             label += f"_has-{sign_of[key]}-logo"
         out.append(dict(key=key, family=fam, w=w, h=h, group=group, sub=sub, label=safe(label)))
     return mark_uniform_roles(out)

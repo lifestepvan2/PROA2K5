@@ -1,0 +1,97 @@
+token,team,kind,group,sub,evidence
+05f17027,Sonics,cloth-top,uniforms,cloth_256x256,visual: Sonics logo on cloth
+22e00c29,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
+2acb441a,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
+3fdd8e43,,cloth-top,uniforms,cloth_256x256,
+4835b8ca,Suns,cloth-shorts,uniforms,cloth_256x256,visual: PHX logo
+7b2d335c,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
+8280dc3a,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
+908ead7a,76ers,cloth-shorts,uniforms,cloth_256x256,visual: 76ers logo
+aaffff62,,cloth-top,uniforms,cloth_256x256,visual: red/yellow trim top; Hawks or Rockets
+abc0e771,Pistons,cloth-top,uniforms,cloth_256x256,visual: same design as seen Pistons top
+b039240f,,cloth-shorts,uniforms,cloth_256x256,visual: black with gold stripes; no logo
+b727f0e5,Warriors,cloth-shorts,uniforms,cloth_256x256,visual: Warriors logo
+b881010f,Knicks,cloth-shorts,uniforms,cloth_256x256,visual: Knicks logo
+b90a154a,Wizards,cloth-shorts,uniforms,cloth_256x256,visual: Wizards logo
+f3335b53,Jazz,cloth-shorts,uniforms,cloth_256x256,visual: UJ logo
+054ecead,,cloth-shorts,uniforms,cloth_256x256,
+12e6f15e,,cloth-shorts,uniforms,cloth_256x256,
+16b2ebca,,cloth-shorts,uniforms,cloth_256x256,
+17d35aa7,,cloth-shorts,uniforms,cloth_256x256,
+21c66183,,cloth-shorts,uniforms,cloth_256x256,
+38fabb36,,cloth-shorts,uniforms,cloth_256x256,
+4003fab4,,cloth-shorts,uniforms,cloth_256x256,
+468f852b,,cloth-shorts,uniforms,cloth_256x256,
+53b92eb7,,cloth-shorts,uniforms,cloth_256x256,
+561e0d45,,cloth-shorts,uniforms,cloth_256x256,
+617c61af,,cloth-top,uniforms,cloth_256x256,
+6429cc5f,,cloth-top,uniforms,cloth_256x256,
+69f435f4,,cloth-top,uniforms,cloth_256x256,
+706e9fe5,,cloth-top,uniforms,cloth_256x256,
+798c31f8,,cloth-top,uniforms,cloth_256x256,
+819335ff,,cloth-shorts,uniforms,cloth_256x256,
+8571633d,,cloth-shorts,uniforms,cloth_256x256,
+8c87bea9,,cloth-top,uniforms,cloth_256x256,
+8e146ec6,,cloth-top,uniforms,cloth_256x256,
+90b84281,,cloth-top,uniforms,cloth_256x256,
+9a1c5f8d,,cloth-top,uniforms,cloth_256x256,
+a185aa5b,,cloth-shorts,uniforms,cloth_256x256,
+a2d903c2,,cloth-top,uniforms,cloth_256x256,
+a8c682dd,,cloth-shorts,uniforms,cloth_256x256,
+aac4a332,,cloth-shorts,uniforms,cloth_256x256,
+c8567c27,,cloth-top,uniforms,cloth_256x256,
+cda7f005,,cloth-top,uniforms,cloth_256x256,
+eacd0db4,,cloth-shorts,uniforms,cloth_256x256,
+f92fc8b7,,cloth-top,uniforms,cloth_256x256,
+fa5a62de,,cloth-top,uniforms,cloth_256x256,
+010760e2,Clippers,,,,visual: clippers.com atlas
+04065c17,Rockets,,,,visual: rockets.com atlas
+0728402c,Lakers,,,,visual: lakers.com atlas
+07742c9f,Rockets,,,,visual: Rockets jersey + mascot
+07748d84,Warriors,,,,visual: warriors.com atlas
+1225b423,Kings,,,,visual: kings.com atlas
+15b2a80c,Bulls,,,,visual: Bulls banners
+2120d87c,Grizzlies,,,,visual: grizzlies.com atlas
+249e7cfe,Nuggets,,,,visual: nuggets.com atlas
+33034190,Sonics,,,,visual: Sonics scoreboard/logo
+35e1596d,Pistons,,,,visual: pistons.com atlas
+388a3d87,Pacers,,,,visual: pacers.com atlas
+5bf759bd,Nuggets,,,,visual: nuggets.com atlas
+7755e29e,Magic,,,,visual: orlandomagic.com atlas
+7f5184ea,Sonics,,,,visual: supersonics.com atlas
+a2ac840e,Suns,,,,visual: Suns jerseys + mascot
+a388116c,Warriors,,,,visual: Warriors mascot
+c2ffa984,Bulls,,,,visual: Bulls jersey + mascot
+d3488857,Nets,,,,visual: njnets.com atlas
+f4374223,Spurs,,,,visual: spurs.com atlas
+04cc3831,Sonics,,,,visual: SuperSonics KeyArena board
+066feb38,Bulls,,,,visual: Bulls jersey + mascot
+638d5c79,Warriors,,,,visual: Warriors sponsor board
+79b7d948,Warriors,,,,visual: Warriors mascot
+a6ba1f2a,Spurs,,,,visual: Spurs HEB wall
+dfa66073,Warriors,,,,visual: Warriors sponsor board
+f47d39c4,Hawks,,,,visual: Hawks mascot
+8d77edfd,Mavericks,,,,visual: Mavericks American Airlines Center wordmark
+3b000d7b,Lakers,,,,visual: Lakers logo on grey tee
+4a85d58f,76ers,,,,visual: 76ers logo on purple shirt
+687562f6,Knicks,,,,visual: Knicks logo on jersey
+e13ebf72,Grizzlies,,,,visual: Grizzlies varsity jacket
+0b39e4f3,Warriors,,,,visual: Warriors intro video tile
+0d0af394,Warriors,,,,visual: Warriors intro video tile
+28973fdc,Warriors,,,,visual: Warriors intro video tile
+2c015f9e,Warriors,,,,visual: Warriors intro video tile
+33ee852c,Warriors,,,,visual: Warriors intro video tile
+4224f546,Warriors,,,,visual: Warriors intro video tile
+46e879cc,Warriors,,,,visual: Warriors intro video tile
+4dc4b75a,Warriors,,,,visual: Warriors intro video tile
+5e6f242b,Warriors,,,,visual: Warriors intro video tile
+7c90b56b,Warriors,,,,visual: Warriors intro video tile
+86dc5d5a,Warriors,,,,visual: Warriors intro video tile
+b4f08578,Warriors,,,,visual: Warriors intro video tile
+cc6af409,Warriors,,,,visual: Warriors intro video tile
+d942733b,Warriors,,,,visual: Warriors intro video tile
+da6d61c6,Warriors,,,,visual: Warriors intro video tile
+dc684aa5,Warriors,,,,visual: Warriors intro video tile
+f1443e6e,Warriors,,,,visual: Warriors intro video tile
+f2eecbee,Warriors,,,,visual: Warriors intro video tile
+fa42d62f,Warriors,,,,visual: Warriors intro video tile

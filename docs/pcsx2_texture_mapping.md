@@ -176,5 +176,14 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
 
 New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again.
 
+## Labelling textures by home team (arena_props, uniform_parts, loading tiles, courts)
+
+Method: **per-home-team live scan**. `scripts/arena_scan.py scan <slots>` loads a game with each NBA team as HOME (the right-hand team on Team Select; slot at PS2 `0x801908`), with an empty dump folder and a fresh PCSX2 process (a texture is dumped only once per process), and records which dump keys appear. Evidence is in `data/texture_labels/home_scan/slot*.txt` and `home_scan_summary.csv` (`arena_scan.py report`). `restore` repairs the dump folder if a scan is interrupted.
+Attribution: 1 team -> that team; 2-4 -> `A+B`; 5 or more -> `various`. 7,632 of 8,975 keys belong to exactly one team.
+
+Pipeline: `arena_scan.py scan/report` -> `texture_workspace.py export` -> `label_textures.py build` (adds rows to `data/texture_labels/labels.csv`, never overwrites; hand labels from `visual_labels.csv`) -> `texture_workspace.py export` (renames/regroups to `<Team>_<group>_<WxH>__<token>.png`) -> `label_textures.py sort` (semi-transparent 256x256 cloth templates -> `texture_workspace/uniforms/cloth_256x256/` and `uniforms/visual_sort/<Team>/cloth/`, unknown team -> `unknown/cloth`). Edit `labels.csv` to correct a label, then re-run `export`.
+
+Caveats: the away team is fixed to Magic in the savestate, so Magic-away items appear in every run and are labelled `various`; late slots (Warriors) under-captured loading tiles (labelled visually, source `visual`); items never seen in any scan keep their old names.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.

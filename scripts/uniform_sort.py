@@ -110,6 +110,8 @@ def decide():
     msgs, rows, renames = [], [], []
     groups = {}
     for t, p in files.items():
+        if "cloth" in p.relative_to(SORT).parts:  # cloth templates (label_textures.py sort) are not LOD-mapped
+            continue
         if t not in man:
             msgs.append(f"ignored (not a uniform texture): {p.relative_to(SORT)}")
             continue
