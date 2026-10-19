@@ -62,6 +62,10 @@ and writes the result over each team's home and away MASTER 512x256 textures (lo
 
 - Colours: `color1` / `color2` (hex) in `data/proa_teams.csv`. Home = white body, `color1` trim and short stripes. Away = `color1` body, `color2` trim/stripes. Edit and re-run.
 - Cloth structure (folds, perforations) is kept: every template region is divided by its median brightness and that shade map is applied on the target colour (`HIGHLIGHT` in the script tames the bright side).
+- **Fabric layers for manual editing:** `python scripts/create_baseline_jersey.py --fabric` exports that shade map to `texture_workspace/uniforms/templates/fabric/` for the jersey, shorts and warm-up (`<kind>_fabric_overlay.png` and `<kind>_fabric_shadow_light.png`). Put one on top of your flat colour/logo layers in Photoshop/GIMP:
+  - `*_overlay.png`: grey, 128 = neutral. Set the layer's blend mode to Overlay (strong), Soft Light (gentle) or Linear Light.
+  - `*_shadow_light.png`: black (darkens) and white (lightens) pixels whose alpha is the strength; plain Normal blend, adjust with layer opacity.
+  Same 512x256 layout as the textures. They are independent of team colour, so one set serves all teams.
 - Logos: ProA patch (`data/proa_logo.png`) on the player's left breast and club logo (`nba2k_editor/assets/<38+index>.png`) on the right breast of the jerseys. Shorts are plain. Positions are constants at the top of the script.
 - Warm-ups: one plain jacket per team in `color1` with the club logo on the chest (`warmup_tmpl.png`), written to every MASTER filed under `visual_sort/<Team>/warmups/` (all groups). Textures there that are not warm-ups go into `NOT_WARMUPS`. Unsorted warm-up dumps are only picked up once they are sorted into that folder.
 - Output PNGs have no alpha channel, so `sync` keeps the game's original per-pixel alpha.

@@ -11,6 +11,7 @@ one plain primary-colour jacket with the club logo, copied to every warm-up mast
             which is re-applied on top of the target colour, so the cloth structure survives the recolouring.
 * logos:    jerseys: ProA league patch (data/proa_logo.png) on the player's left breast, team logo
             (nba2k_editor/assets/<38+index>.png) on the right breast. Warm-ups: team logo on the chest. Shorts: none.
+* --fabric  exports that shade map as editing layers (overlay-grey and black/white-with-alpha PNGs) to templates/fabric/.
 * output is saved RGB-only so texture_workspace.py keeps the game's original per-pixel alpha.
 * safety:   originals are copied once to texture_workspace/uniforms/backups/; a MASTER is only overwritten while it still
             equals the exported default (manifest sha1) or the file this script wrote last time - unless --overwrite.
@@ -99,12 +100,17 @@ def paste(base, logo_path, centre, box):
     base.alpha_composite(logo, (round(centre[0] - logo.width / 2), round(centre[1] - logo.height / 2)))
 
 
-def tint(lum, weight, rgb, add=26.0):
-    """Colour a region with `rgb` keeping the template's cloth structure (lum / regional median)."""
+def shade_of(lum, weight):
+    """Cloth structure of one region: relative deviation from the region's median brightness (0 = flat, <0 darker)."""
     sel = weight > 0.9
     med = max(float(np.median(lum[sel])) if sel.any() else float(lum.mean()), 1.0)
-    shade = (lum / med - 1.0)[..., None]
-    shade = np.where(shade > 0, shade * HIGHLIGHT, shade)  # compress highlights so light colours do not clip to flat white
+    shade = lum / med - 1.0
+    return np.where(shade > 0, shade * HIGHLIGHT, shade)  # compress highlights so light colours do not clip to flat white
+
+
+def tint(lum, weight, rgb, add=26.0):
+    """Colour a region with `rgb` keeping the template's cloth structure (lum / regional median)."""
+    shade = shade_of(lum, weight)[..., None]
     rgb = np.array(rgb, dtype=np.float32)
     dark = 1.0 - rgb.mean() / 255.0  # dark colours get an additive share so their folds stay visible
     return rgb * (1.0 + shade) + shade * add * dark * 2
@@ -114,22 +120,50 @@ def luma(arr):
     return arr @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
 
 
-def colourise_jersey(tmpl, body_rgb, trim_rgb):
+def body_weight(tmpl, kind):
+    """(luma, body weight 0..1) of a template: jersey/warm-up body vs trim, or shorts body vs stripes."""
     a = np.asarray(tmpl.convert("RGB"), dtype=np.float32)
-    mx, mn = a.max(2), a.min(2)
-    sat = (mx - mn) / np.maximum(mx, 1.0)
-    wb = smoothstep(0.25, 0.55, sat)  # saturated = body, grey/white = trim
     lum = luma(a)
+    if kind == "shorts":
+        return lum, smoothstep(85, 115, lum)  # dark panels = stripes
+    sat = (a.max(2) - a.min(2)) / np.maximum(a.max(2), 1.0)
+    return lum, smoothstep(0.25, 0.55, sat)  # saturated = body, grey/white = trim
+
+
+def colourise(tmpl, kind, body_rgb, trim_rgb):
+    lum, wb = body_weight(tmpl, kind)
     out = wb[..., None] * tint(lum, wb, body_rgb) + (1 - wb)[..., None] * tint(lum, 1 - wb, trim_rgb)
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
 
 
+def colourise_jersey(tmpl, body_rgb, trim_rgb):
+    return colourise(tmpl, "Jersey", body_rgb, trim_rgb)
+
+
 def colourise_shorts(tmpl, body_rgb, stripe_rgb):
-    a = np.asarray(tmpl.convert("RGB"), dtype=np.float32)
-    lum = luma(a)
-    ws = 1.0 - smoothstep(85, 115, lum)  # dark panels = stripes
-    out = (1 - ws)[..., None] * tint(lum, 1 - ws, body_rgb) + ws[..., None] * tint(lum, ws, stripe_rgb)
-    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+    return colourise(tmpl, "shorts", body_rgb, stripe_rgb)
+
+
+def fabric_layers(tmpl, kind):
+    """The colour-independent cloth structure of a template as editing layers.
+    overlay: grey, 128 = neutral (Overlay / Soft Light / Linear Light blend over a coloured layer).
+    shadow_light: black (darker) and white (lighter) pixels whose alpha is the strength (normal blend over a colour)."""
+    lum, wb = body_weight(tmpl, kind)
+    shade = wb * shade_of(lum, wb) + (1 - wb) * shade_of(lum, 1 - wb)
+    grey = np.clip(128 * (1 + shade), 0, 255).astype(np.uint8)
+    alpha = np.clip(np.abs(shade) * 1.5, 0, 1) * 255
+    rgba = np.dstack([np.where(shade < 0, 0, 255)] * 3 + [alpha]).astype(np.uint8)
+    return Image.fromarray(grey, "L"), Image.fromarray(rgba, "RGBA")
+
+
+def export_fabric():
+    out = TEMPLATES / "fabric"
+    out.mkdir(parents=True, exist_ok=True)
+    for kind, name in (("Jersey", "jersey"), ("shorts", "short"), ("warmup", "warmup")):
+        grey, rgba = fabric_layers(Image.open(TEMPLATES / f"{name}_tmpl.png"), "shorts" if kind == "shorts" else "Jersey")
+        grey.save(out / f"{name}_fabric_overlay.png")
+        rgba.save(out / f"{name}_fabric_shadow_light.png")
+    print(f"fabric layers written to {out}")
 
 
 def render(team, side, kind, tmpl):
@@ -230,7 +264,11 @@ def main():
     ap.add_argument("--overwrite", action="store_true", help="also replace MASTERs that were edited by hand")
     ap.add_argument("--restore", action="store_true", help="copy the backups back over the MASTERs and exit")
     ap.add_argument("--sheet", default=str(SHEET_OUT), help="contact sheet of the generated textures ('' = none)")
+    ap.add_argument("--fabric", action="store_true", help="export the cloth structure of the templates as layers (templates/fabric/) and exit")
     args = ap.parse_args()
+    if args.fabric:
+        export_fabric()
+        return
 
     man = manifest()
     full = read_manifest(WS)
