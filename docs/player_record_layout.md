@@ -47,20 +47,27 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x5F, 0x60 | u8 | unknown (75/99, 75/85/95) | W (75) |
 | 0x69 | u8 | **skin tone 0-5**: selects the `legs00`-`legs05` texture (arm colour correlates r=0.985). Face/neck/arm follow the pid, so cast players get the tone of the borrowed model | W |
 
-### Accessory candidates (NOT confirmed)
+### Accessories (verified in game through the memory card)
 
-In the NBA data bytes 0x61-0x67 default to 255 ("none") and look like item indices; most other bytes up to 0x94 are 0 for all 792 records.
+The accessories are record bytes (not part of the pid model): they stay when the model is swapped, and `0` = none (`0x67`: 255 = none). Live RAM patching after `set_roster` is ignored by the game, so test only via the card (`scripts/acc_card_test.py` is the test harness).
 
-| offset | NBA values | observation |
+| offset | meaning | values seen in game |
 |---|---|---|
-| 0x61 | 255, 2/6/7/8/10/14 | 6 on Bird/McHale (80's East) |
-| 0x62 | 0, 2/4/5 | 2 on Iverson, Person, Thomas, Odom, Livingston; 5 on Maggette, Malone; 4 on Traylor (sleeve-like wearers?) |
-| 0x64, 0x65 | 255, 9 (Iverson A-T: 5, 12) | 9/9 on the 80's Celtics |
-| 0x66 | 255, 0-6 | only players known for goggles/glasses (Kareem, Worthy, Mikan, Horace Grant, Outlaw): goggles index (`goggles00`-`07` TXTRs exist in RAM) |
-| 0x67 | 255, 0 | 0 on Iverson, Maggette |
-| 0x75-0x7A, 0x7E, 0x7F | see `players_unknown.csv` | pairs of equal values (left/right?) |
+| 0x67 | **headband on** (0 = on, 255 = off) | |
+| 0x62 | headband style (needs 0x67 = 0; alone it shows nothing) | 0 normal, 2 slightly larger; 4/5 untested |
+| 0x75 | left wrist (player's left) | 7 wristband, 3 long forearm tape |
+| 0x76 | right wrist | same items |
+| 0x77 | left upper arm / elbow | 11 small band above the elbow, 6 large elbow brace |
+| 0x78 | right upper arm / elbow | 11 small band (6 not tested on the right) |
+| 0x79 / 0x7A | left / right, another slot: 7 shows a band above the elbow (looks like 0x77/0x78 = 11) | not exposed |
+| 0x7E | left knee | 14 small knee tape (6 not tested on the left) |
+| 0x7F | right knee | 14 small tape, 6 best-looking knee brace, 10 small brace |
+| 0x61, 0x62 = 5 | nothing visible in the tests | |
+| 0x64-0x66 | NBA only: 0x64/0x65 = 9 on the 80's Celtics (historic teams?), 0x66 = goggles index (`goggles00`-`07`) | not used |
 
-Live test (PCSX2, savestate -> `set_roster` -> patch record bytes -> start game, 3 runs, ~24 players each): setting 0x75-0x7A=6, 0x64/0x65=9 + 0x66=3, and 0x61=6 + 0x62=2 + 0x69=5 on every record changed **nothing** on screen (not even the known-good skin byte 0x69), so patching records after `set_roster` is ignored by the game (records are probably copied earlier). Headbands, wristbands and knee sleeves seen in game on cast ProA players (all records identical in these bytes) come from the cast NBA model/textures, not from these bytes. The candidates above therefore need to be tested through the memory card (`build_roster.py`) before being exposed in the roster sheet. Model sub-object names that the indices probably select: `wholeheaditem02-33`, `neckitem01-18`, `faceitem02-26`, `headitem02-33`, `armitem01-03`, `wristitem01-17`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`.
+Items are indices into one shared pool of model parts (`wristitem01-17`, `armitem01-03`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`, `headitem02-33`), so other numbers (2-20 occur in the NBA data) give other looks; use the raw number in `data/accessories.csv` to try them.
+
+`build_roster.py` clears all of these bytes for every ProA player (NBA records have their own accessories) and then applies `data/accessories.csv` (key `proa_id`; new players are appended with empty cells, existing rows are never overwritten, so hand edits survive re-scrapes). Columns: `headband` (1 normal, 2 larger), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; blank/0 = none).
 
 "Overall" is not a stored byte that matches (0x60 is close but not equal); it is probably computed.
 Ratings are 0-99 bytes (NBA data is quantised to steps of 5, any value should be valid).

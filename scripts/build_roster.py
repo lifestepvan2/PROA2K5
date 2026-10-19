@@ -37,6 +37,21 @@ P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
 P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
 P_PID = 0x4  # u16 player-model id (p<ID>h/a.iff: face, body, ...), duplicated at +6
 P_SKIN = 0x69  # skin tone 0-5: selects the legs00-05 texture (face/neck/arm follow the pid instead)
+
+# Accessories (verified in game, see docs/player_record_layout.md): record bytes holding an item index, 0 = none.
+# column -> (offset, {preset: item index}); presets 1/2 are the looks found best, any other number >= 3 is used as a raw item index
+ACC_COLS = {
+    "wrist_l": (0x75, {1: 7, 2: 3}),   # wristband / long forearm tape
+    "wrist_r": (0x76, {1: 7, 2: 3}),
+    "arm_l": (0x77, {1: 11, 2: 6}),    # small band above the elbow / large elbow brace
+    "arm_r": (0x78, {1: 11, 2: 6}),
+    "knee_l": (0x7E, {1: 14, 2: 6}),   # small knee tape / knee brace
+    "knee_r": (0x7F, {1: 14, 2: 6}),
+}
+ACC_HEADBAND = {1: 0, 2: 2}  # headband (0x67 = 0 switches it on) -> style byte 0x62 (2 = slightly larger)
+ACC_NONE = {0x61: 255, 0x62: 0, 0x64: 255, 0x65: 255, 0x66: 255, 0x67: 255, 0x75: 0, 0x76: 0, 0x77: 0, 0x78: 0,
+            0x79: 0, 0x7A: 0, 0x7E: 0, 0x7F: 0}  # every accessory byte "off"
+ACC_FIELDS = ["proa_id", "team", "first", "last", "headband"] + list(ACC_COLS)
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
@@ -303,6 +318,53 @@ def load_skin_tones():
                       if r["team_slot"] and int(r["team_slot"]) < 39)}
 
 
+def load_accessories(path):
+    """{proa_id: csv row} from data/accessories.csv (hand-edited; blank/0 = none)."""
+    if not Path(path).exists():
+        return {}
+    return {r["proa_id"]: r for r in csv.DictReader(open(path, encoding="utf-8-sig")) if r.get("proa_id")}
+
+
+def _acc_val(row, col):
+    v = (row.get(col) or "").strip()
+    if not v:
+        return 0
+    try:
+        return int(float(v))
+    except ValueError:
+        raise SystemExit(f"accessories.csv: bad value {v!r} in column {col} (proa_id {row.get('proa_id')})")
+
+
+def apply_accessories(buf, off, row):
+    """No accessories by default; the csv row of the player switches items on."""
+    for o, v in ACC_NONE.items():
+        buf[off + o] = v
+    if not row:
+        return
+    hb = _acc_val(row, "headband")
+    if hb:
+        buf[off + 0x67] = 0
+        buf[off + 0x62] = ACC_HEADBAND.get(hb, hb)
+    for col, (o, presets) in ACC_COLS.items():
+        v = _acc_val(row, col)
+        if v:
+            buf[off + o] = presets.get(v, v)
+
+
+def write_accessories_csv(path, existing, players):
+    """Appends rows for players that are not in the csv yet; existing rows (hand edits) are never touched."""
+    new = [{"proa_id": str(pid), "team": team, "first": first, "last": last} for pid, team, first, last in players
+           if pid is not None and str(pid) not in existing]
+    if not new and Path(path).exists():
+        return 0
+    rows = list(existing.values()) + new
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, ACC_FIELDS, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
+    return len(new)
+
+
 def load_pids(path):
     """{proa_id: pid} from the face_match map: override_pid if set, else the automatic pid. Pids must be NBA player
     models that exist on the disc (the ones of NBA-team records in data/nba_defaults/players_unknown.csv)."""
@@ -334,6 +396,8 @@ def main():
     ap.add_argument("--arenas", default=str(ROOT / "data/proa_arenas.csv"), help="csv: sheet,arena (home arena names)")
     ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
                     help="csv: sheet,orig_last,first,last (manual name overrides)")
+    ap.add_argument("--accessories", default=str(ROOT / "data/accessories.csv"),
+                    help="csv: proa_id, headband, wrist_l/r, arm_l/r, knee_l/r (hand-edited; new players are appended)")
     ap.add_argument("--out", default=str(ROOT / "data/roster_build"))
     ap.add_argument("--card", help="write result into this memory card (PCSX2 closed!)")
     ap.add_argument("--keep-umlauts", action="store_true")
@@ -362,6 +426,8 @@ def main():
 
     pid_of = load_pids(a.pids)
     skin_of = load_skin_tones()
+    acc_of = load_accessories(a.accessories)
+    acc_seen = []
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
@@ -404,6 +470,8 @@ def main():
             assignments.append((rec_off(r) + P_NICK, ""))
             assignments.append((rec_off(r) + P_BDAY, birthday_text(p["rowd"])))
             write_record_fields(pl.d, rec_off(r), p)
+            apply_accessories(pl.d, rec_off(r), acc_of.get(str(p["proa_id"])))
+            acc_seen.append((p["proa_id"], tr["sheet"], p["first"], p["last"]))
             pid = pid_of.get(str(p["proa_id"]))
             if pid is None:
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' has no pid in {Path(a.pids).name}, keeps the model of record {r}")
@@ -417,6 +485,10 @@ def main():
                                 "starter": i < 5, "pid": pid, "note": note})
             if note:
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' -> '{first} {last}' ({note})")
+
+    n_new = write_accessories_csv(a.accessories, acc_of, acc_seen)
+    if n_new:
+        notes.append(f"{Path(a.accessories).name}: {n_new} new players appended (no accessories until edited)")
 
     # home arenas: venue rows are keyed by the "sNNN" string (NBA team slot), not by row index
     venue_row = {}
