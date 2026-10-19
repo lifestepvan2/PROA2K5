@@ -165,6 +165,14 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
    key(s) of the NBA record that originally had the player's pid (`pid_keys()`). Consequences: a pid can only be used once
    (`face_match.py --max-uses 1`, default; `gen_replacements.py` reports players that share a pid/portrait), and pids whose
    portrait texture is shared with other pids (generic placeholders) are excluded from the candidates.
+6. **Legs follow the record, not the pid.** The in-game textures `legs00`-`legs05` (128x128, one per skin tone; dump keys
+   `17f9af64509fc471-<mid>-00001dd3`, mid = `3f1c16ddd47b1c3c, 30e4d3ebd8b48e10, 2d706d2a3649c572, 39f932e44379311f,
+   1c94ddc2e789addf, 99b5644de059ce43` for tone 0..5, darkest to lightest) are not part of the `p<ID>h.iff` model. The tone is
+   the record byte **+0x69** (6 values over all NBA records; the mean arm colour of the pid's arm texture is a function of it,
+   r=0.985). A cast player kept the tone of the record he was written into, giving e.g. a white face with dark legs.
+   `build_roster.py` now copies +0x69 from the NBA record that owns the pid (`load_skin_tones()`). Found by scanning RAM for
+   TXTR names (the six `legsNN` objects all alias one pixel buffer that the engine fills per draw) and matching the structure of
+   the dumped 128x128 textures against it.
 
 New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again.
 

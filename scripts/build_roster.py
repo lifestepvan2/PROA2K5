@@ -36,6 +36,7 @@ PLAYER_BASE, PLAYER_STRIDE, PLAYER_COUNT = 0x64F4, 0x94, 0x318
 P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
 P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
 P_PID = 0x4  # u16 player-model id (p<ID>h/a.iff: face, body, ...), duplicated at +6
+P_SKIN = 0x69  # skin tone 0-5: selects the legs00-05 texture (face/neck/arm follow the pid instead)
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
@@ -294,6 +295,14 @@ def allocate_records(pl, team_players, slots):
     return alloc
 
 
+def load_skin_tones():
+    """{pid: skin tone byte (record +0x69)} of the original NBA records; legs follow this byte, so a cast player needs the tone of
+    the model he borrows."""
+    return {int.from_bytes(b[4:6], "little"): b[P_SKIN]
+            for b in (bytes.fromhex(r["hex"]) for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8"))
+                      if r["team_slot"] and int(r["team_slot"]) < 39)}
+
+
 def load_pids(path):
     """{proa_id: pid} from the face_match map: override_pid if set, else the automatic pid. Pids must be NBA player
     models that exist on the disc (the ones of NBA-team records in data/nba_defaults/players_unknown.csv)."""
@@ -352,6 +361,7 @@ def main():
             overrides[(r["sheet"], r["orig_last"])] = (r["first"], r["last"])
 
     pid_of = load_pids(a.pids)
+    skin_of = load_skin_tones()
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
@@ -399,6 +409,8 @@ def main():
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' has no pid in {Path(a.pids).name}, keeps the model of record {r}")
                 pid = struct.unpack_from("<H", pl.d, rec_off(r) + P_PID)[0]
             struct.pack_into("<HH", pl.d, rec_off(r) + P_PID, pid, pid)
+            if pid in skin_of:
+                pl.d[rec_off(r) + P_SKIN] = skin_of[pid]
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "orig_first": p["first"], "orig_last": p["last"],
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],

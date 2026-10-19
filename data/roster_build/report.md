@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `643d7b1d`
+- payload: 725056 bytes, CRC32 `c4e6e167`
 - teams: 18, players: 249
 - string pool: free before 4000 B, freed 12204 B, free after 4544 B
 - records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: 12

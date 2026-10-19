@@ -45,6 +45,7 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x5D | u8 | Defensive Awareness | W |
 | 0x5E | u8 | Offensive Awareness | W |
 | 0x5F, 0x60 | u8 | unknown (75/99, 75/85/95) | W (75) |
+| 0x69 | u8 | **skin tone 0-5**: selects the `legs00`-`legs05` texture (arm colour correlates r=0.985). Face/neck/arm follow the pid, so cast players get the tone of the borrowed model | W |
 
 "Overall" is not a stored byte that matches (0x60 is close but not equal); it is probably computed.
 Ratings are 0-99 bytes (NBA data is quantised to steps of 5, any value should be valid).
