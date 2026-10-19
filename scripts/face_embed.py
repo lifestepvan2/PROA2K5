@@ -60,7 +60,10 @@ def tex_face(pid):
 
 
 def proa_portrait(proa_id):
-    img = Image.open(PS_OUT / f"{proa_id}.png").convert("RGBA")
+    f = PS_OUT / f"{proa_id}.png"
+    if not f.exists():  # players without a photo (generic silhouette) have no headshot
+        return Image.new("RGB", (512, 512), (200, 200, 200))
+    img = Image.open(f).convert("RGBA")
     bg = Image.new("RGB", img.size, "white")
     bg.paste(img, mask=img.split()[3])
     return bg
@@ -82,7 +85,10 @@ if __name__ == "__main__":
             emb[name], skin[name] = res
 
     for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")):
-        add(f"proa:{r['proa_id']}", proa_portrait(r["proa_id"]))
+        if (PS_OUT / f"{r['proa_id']}.png").exists():
+            add(f"proa:{r['proa_id']}", proa_portrait(r["proa_id"]))
+        else:
+            missing.append(f"proa:{r['proa_id']} (no headshot)")
     for p in sorted(FACES.glob("*_face.png")):
         pid = p.name.split("_")[0]
         if f"tex:{pid}" not in emb:

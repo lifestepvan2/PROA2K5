@@ -75,7 +75,7 @@ BASE_URL        = "https://www.2basketballbundesliga.de"
 TEAMS_PAGE      = f"{BASE_URL}/teams/"
 KADER_URL_TPL   = f"{BASE_URL}/teams/kader/{{team_id}}/"
 PLAYER_URL_TPL  = f"{BASE_URL}/teams/kader/spieler/{{player_id}}/"
-PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/2025_2026/pc/{player_id}"
+PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/{season}/pc/{player_id}"
 
 REQUEST_DELAY   = 1.0   # seconds between live requests
 DEFAULT_RATING  = 69
@@ -117,7 +117,6 @@ RATING_COLS: frozenset[str] = frozenset({
 # ---------------------------------------------------------------------------
 TEAM_MAP: dict[int, tuple[str, str]] = {
     435: ("Artland Dragons",                 "Dragons"),
-    416: ("Bayer Giants Leverkusen",          "Leverkusen"),
     425: ("BBC Bayreuth",                     "Bayreuth"),
     477: ("BG Gottingen",                     "Gottingen"),
     527: ("Bozic Estriche Knights Kirchheim", "Knights Kirchheim"),
@@ -127,12 +126,13 @@ TEAM_MAP: dict[int, tuple[str, str]] = {
     446: ("HAKRO Merlins Crailsheim",         "Crailsheim Merlins"),
     447: ("Nurnberg Falcons BC",              "Falcons"),
     475: ("Paderborn Baskets",                "Baskets"),
-    473: ("Phoenix Hagen",                    "Hagen"),
     557: ("PS Karlsruhe LIONS",               "LIONS"),
     556: ("RheinStars Koln",                  "Koln"),
     570: ("SBB Baskets Wolmirstedt",          "Wolmirstedt"),
     432: ("Tigers Tubingen",                  "Tubingen"),
-    562: ("Uni Baskets Munster",              "Munster"),
+    444: ("ETB Miners",                      "Essen"),
+    488: ("MLP Academics Heidelberg",        "Heidelberg"),
+    537: ("OrangeAcademy",                   "Ulm"),
     436: ("VfL SparkassenStars Bochum",       "Stars Bochum"),
 }
 
@@ -457,7 +457,7 @@ def download_portraits(
             skipped += 1
             continue
 
-        url = PORTRAIT_URL_TPL.format(player_id=pid)
+        url = PORTRAIT_URL_TPL.format(season=season, player_id=pid)
         try:
             resp = requests.get(
                 url,
@@ -797,7 +797,20 @@ def main() -> None:
     cols = list(_PROA_PLAYER_COLUMNS) if _PROA_PLAYER_COLUMNS else [
         "First Name", "Last Name", "Position", "Secondary Position",
         "Jersey Number", "Birth Year", "Birth Month", "Birth Day", "Years Pro",
-        "Height", "Weight", "Headshot ID",
+        "Height", "Weight",
+        "Close Shot", "Midrange Shot", "3pt Shot", "Free Throws",
+        "Driving Layup", "Driving Dunk", "Standing Dunk",
+        "Post Hook", "Post Fade", "Post Moves",
+        "Draw Foul", "Shot IQ", "Offensive Consistency",
+        "Ball Control", "Speed with Ball",
+        "Pass Accuracy", "Passing IQ", "Passing Vision",
+        "Interior Defense", "Perimeter Defense",
+        "Steal", "Block",
+        "Offensive Rebound", "Defensive Rebound",
+        "Help Defense IQ", "Defensive Consistency",
+        "Speed", "Agility", "Strength", "Vertical", "Stamina",
+        "Hustle", "Intangibles", "Potential",
+        "Headshot ID",
     ]
 
     rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats)

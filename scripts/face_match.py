@@ -55,12 +55,14 @@ def load():
     pids = uniq
     ne = np.array([E[f"tex:{p}"] for p in pids])
     nl = np.array([S[f"tex:{p}"][0] for p in pids])
-    players = [r for r in csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8"))
-               if f"proa:{r['proa_id']}" in E.files]
-    pe = np.array([E[f"proa:{r['proa_id']}"] for r in players])
-    pl = np.array([S[f"proa:{r['proa_id']}"][0] for r in players])
+    # players without a usable headshot (silhouette / no face found) get a neutral zero embedding: they take whatever pid is left
+    players = list(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")))
+    have = np.array([f"proa:{r['proa_id']}" in E.files for r in players])
+    pe = np.array([E[f"proa:{r['proa_id']}"] if h else np.zeros(ne.shape[1], ne.dtype) for r, h in zip(players, have)])
+    pl = np.array([S[f"proa:{r['proa_id']}"][0] if h else np.nan for r, h in zip(players, have)])
+    pl[~have] = np.median(pl[have])
     # the ProA photos are lit differently from the game textures: align the 5th/95th lightness percentiles
-    (a0, a1), (b0, b1) = np.percentile(pl, [5, 95]), np.percentile(nl, [5, 95])
+    (a0, a1), (b0, b1) = np.percentile(pl[have], [5, 95]), np.percentile(nl, [5, 95])
     pl = b0 + (pl - a0) * (b1 - b0) / (a1 - a0)
     return pids, names, ne, nl / 100, players, pe, pl / 100, E
 

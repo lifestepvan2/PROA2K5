@@ -68,14 +68,15 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 ### Automation / tooling
 - [ ] Player card cannot be opened via keyboard (Select = Backspace not working); verify other bindings
 - [ ] Restore the SDL pad bindings in `PCSX2.ini` when automation is done (`docs/pad1_sdl_backup.txt`)
-- [ ] Replace the photoshop batch step (cropping portraits) with a python script (see `architecture.md`)
+- [x] Replace the photoshop batch step (cropping portraits) with a python script: `scripts/crop_headshots.py`
 - [ ] CRC/ECC experiments (E3), glyph-set test (E5)
 
 ### QOL
 - [x] Default matchup (Lakers at Pistons) is a full ProA game: Gottingen at Falcons (ProA teams moved to slots 12-29)
 
 ### release
-- [ ] re-scrape online data for 2026/27 season, update textures of new teams. 
+- [x] re-scrape online data for 2026/27 season (`scripts/update_season.py`, `docs/SeasonUpdateWorkflow.md`)
+- [ ] update textures (jerseys, courts) and arena names of the new teams Essen, Heidelberg, Ulm. 
 - [ ] manual refinement pass over player attributes
 - [ ] manual editing of Falcons home court (texture, via the workspace)
 - [ ] verify the arena names in `data/proa_arenas.csv` (only the Falcons entry is confirmed; rest are best guesses, flag `verified`)
