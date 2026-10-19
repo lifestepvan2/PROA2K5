@@ -54,6 +54,19 @@ Dump the textures in game (pregame cutscenes for warm-ups, close-ups for shorts)
 4. `python scripts/uniform_sort.py populate` - adds only the new files to the tree (new groups go to `unknown/`, unmatched files to `unsorted/`); existing files are never touched
 5. sort the new groups by hand, then continue at step 2 above.
 
+## 4. Generate baseline team jerseys (all 18 ProA teams)
+
+`python scripts/create_baseline_jersey.py` colourises `texture_workspace/uniforms/templates/{jersey,short}_tmpl.png`
+and writes the result over each team's home and away MASTER 512x256 textures (located through the sort tree), then
+`python scripts/texture_workspace.py sync` rebuilds the duplicates and LODs, then F10 in PCSX2.
+
+- Colours: `color1` / `color2` (hex) in `data/proa_teams.csv`. Home = white body, `color1` trim and short stripes. Away = `color1` body, `color2` trim/stripes. Edit and re-run.
+- Cloth structure (folds, perforations) is kept: every template region is divided by its median brightness and that shade map is applied on the target colour (`HIGHLIGHT` in the script tames the bright side).
+- Logos: ProA patch (`data/proa_logo.png`) on the player's left breast and hip, club logo (`nba2k_editor/assets/<38+index>.png`) on the right breast and the waistband. Positions are constants at the top of the script.
+- Output PNGs have no alpha channel, so `sync` keeps the game's original per-pixel alpha.
+- Safety: the original is copied once to `texture_workspace/uniforms/backups/`; a MASTER is only replaced while it is still the exported default (manifest sha1) or the previous output of this script (`backups/_generated.json`). Hand-edited masters are kept unless `--overwrite`. `--dry-run`, `--team <sheet ...>`, `--restore` (put the backups back) are available.
+- A contact sheet of the result is written to `docs/_tmp/baseline_sheet.png`.
+
 ## File reference
 
 | File | Meaning |
