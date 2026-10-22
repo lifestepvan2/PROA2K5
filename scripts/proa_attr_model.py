@@ -184,7 +184,7 @@ _POSITION_BASELINES: dict[str, Ratings] = {
         "Midrange Shot":         75,
         "3pt Shot":              70,
         "Free Throws":           80,
-        "Driving Layup":         82,
+        "Driving Layup":         78,
         "Driving Dunk":          62,
         "Standing Dunk":         50,
         "Post Hook":             50,
@@ -389,7 +389,7 @@ def apply_position_baseline(ratings: Ratings, ctx: PlayerContext) -> None:
 # scorer stands out offensively without becoming a superhuman defender.
 
 _SCORING_ATTRS: list[str] = [
-    "Close Shot", "Midrange Shot", "3pt Shot", "Driving Layup",
+    "Close Shot", "Midrange Shot", "3pt Shot", "Driving Layup","Post Moves","Post Fade",
     "Driving Dunk", "Draw Foul", "Shot IQ", "Offensive Consistency",
 ]
 
@@ -402,16 +402,16 @@ def apply_impact_scaling(ratings: Ratings, ctx: PlayerContext) -> None:
     """
     mpg_tier = min(ctx.mpg, _MPG_MAX) / _MPG_MAX  # 0.0 – 1.0
 
-    # Universal lift: up to +15 for elite 30-min starters
-    impact_bonus = round(mpg_tier * 15)
+    # Universal lift: up to +12 for elite 30-min starters
+    impact_bonus = round(mpg_tier * 12)
     _add_many(ratings, list(ALL_ATTRS), impact_bonus)
 
     # Scoring bonus layered on top of the universal lift
     pts = ctx.points_avg
     if pts > 20:
-        _add_many(ratings, _SCORING_ATTRS, 8)
+        _add_many(ratings, _SCORING_ATTRS, 6)
     elif pts > 15:
-        _add_many(ratings, _SCORING_ATTRS, 5)
+        _add_many(ratings, _SCORING_ATTRS, 4)
     elif pts > 10:
         _add_many(ratings, _SCORING_ATTRS, 2)
 
@@ -583,6 +583,7 @@ def apply_physical_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _floor(ratings, "Offensive Rebound", 70)
         _floor(ratings, "Defensive Rebound", 75)
         _floor(ratings, "Standing Dunk", 75)
+        _floor(ratings, "Driving Dunk", 75)
         _ceil(ratings, "Speed", 72)
     elif h >= 205:
         _add_many(ratings, ["Block", "Defensive Rebound"], 3)
@@ -591,9 +592,11 @@ def apply_physical_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _floor(ratings, "Offensive Rebound", 68)
         _floor(ratings, "Defensive Rebound", 73)
         _floor(ratings, "Standing Dunk", 70)
+        _floor(ratings, "Driving Dunk", 75)
         _ceil(ratings, "Speed", 77)    
     elif h >= 200:
-        pass  # neutral range — no adjustment
+        _floor(ratings, "Driving Dunk", 70)
+
     elif h >= 193:
         _add_many(ratings, ["Speed", "Agility", "Ball Control"], 2)
         _add_many(ratings, ["Speed with Ball"], 2)
@@ -613,6 +616,7 @@ def apply_physical_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _ceil(ratings, "Offensive Rebound", 70)
         _ceil(ratings, "Defensive Rebound", 75)
         _ceil(ratings, "Standing Dunk", 60)
+        _ceil(ratings, "Driving Dunk", 75)
 
     # ---- Weight ----
     if w >= 115:
@@ -665,7 +669,7 @@ def apply_age_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
     _ATHLETIC: list[str] = ["Speed", "Agility", "Vertical", "Stamina"]
 
     if age < 22:
-        _add_many(ratings, ["Vertical", "Speed", "Agility"], 4)
+        _add_many(ratings, ["Vertical", "Speed", "Agility","Driving Dunk"], 4)
         _add_many(ratings, _MENTAL, -6)
         _add(ratings, "Potential", 12)
 
@@ -722,6 +726,7 @@ _POSITIONAL_FLOORS: dict[str, dict[str, int]] = {
         "Interior Defense":  64,
         "Offensive Rebound": 65,
         "Defensive Rebound": 63,
+        "Driving Dunk":      70,
     },
     "C": {
         "Strength":          68,

@@ -766,7 +766,7 @@ def main() -> None:
                     help="Re-fetch all HTML pages, ignoring existing cache")
     ap.add_argument("--no-stats",   action="store_true",
                     help="Skip per-player stats pages (no minutes-based sorting)")
-    ap.add_argument("--season",     default="2025_2026",
+    ap.add_argument("--season",     default="2026_2027",
                     help="Season string used in URLs/cache dir (default: 2025_2026)")
     ap.add_argument("--top",        type=int, default=MAX_PLAYERS,
                     help=f"Max players per team written to Excel (default: {MAX_PLAYERS})")
