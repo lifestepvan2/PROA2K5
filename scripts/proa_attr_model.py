@@ -150,6 +150,10 @@ def _floor(ratings: Ratings, attr: str, minimum: int) -> None:
     if attr in ratings:
         ratings[attr] = max(ratings[attr], minimum)
 
+def _ceil(ratings: Ratings, attr: str, maximum: int) -> None:
+    """Raise an attribute to at most *maximum* (never increase it beyond maximum)."""
+    if attr in ratings:
+        ratings[attr] = min(ratings[attr], maximum)
 
 def _add_many(ratings: Ratings, attrs: list[str], delta: int) -> None:
     for attr in attrs:
@@ -172,185 +176,187 @@ def _blank_ratings() -> Ratings:
 # These are the "average ProA player" values for each position.
 # Adjust these dicts to shift the entire floor for a position.
 
+## note: 50 is the lower limit in NBA 2k5!
+
 _POSITION_BASELINES: dict[str, Ratings] = {
     "PG": {
-        "Close Shot":            65,
-        "Midrange Shot":         65,
-        "3pt Shot":              63,
-        "Free Throws":           70,
-        "Driving Layup":         78,
-        "Driving Dunk":          58,
-        "Standing Dunk":         33,
-        "Post Hook":             42,
-        "Post Fade":             42,
-        "Post Moves":            40,
-        "Draw Foul":             65,
+        "Close Shot":            70,
+        "Midrange Shot":         75,
+        "3pt Shot":              70,
+        "Free Throws":           80,
+        "Driving Layup":         82,
+        "Driving Dunk":          62,
+        "Standing Dunk":         50,
+        "Post Hook":             50,
+        "Post Fade":             50,
+        "Post Moves":            50,
+        "Draw Foul":             75,
         "Shot IQ":               70,
-        "Offensive Consistency": 65,
-        "Ball Control":          82,
+        "Offensive Consistency": 70,
+        "Ball Control":          85,
         "Speed with Ball":       80,
         "Pass Accuracy":         80,
-        "Passing IQ":            80,
-        "Passing Vision":        78,
-        "Interior Defense":      45,
-        "Perimeter Defense":     72,
-        "Steal":                 72,
-        "Block":                 33,
-        "Offensive Rebound":     38,
-        "Defensive Rebound":     45,
+        "Passing IQ":            85,
+        "Passing Vision":        82,
+        "Interior Defense":      50,
+        "Perimeter Defense":     78,
+        "Steal":                 82,
+        "Block":                 50,
+        "Offensive Rebound":     50,
+        "Defensive Rebound":     50,
         "Help Defense IQ":       65,
         "Defensive Consistency": 65,
         "Speed":                 80,
         "Agility":               80,
-        "Strength":              50,
-        "Vertical":              70,
-        "Stamina":               75,
-        "Hustle":                70,
-        "Intangibles":           70,
+        "Strength":              60,
+        "Vertical":              67,
+        "Stamina":               77,
+        "Hustle":                72,
+        "Intangibles":           74,
         "Potential":             65,
     },
     "SG": {
-        "Close Shot":            67,
-        "Midrange Shot":         70,
-        "3pt Shot":              68,
-        "Free Throws":           72,
-        "Driving Layup":         72,
-        "Driving Dunk":          63,
-        "Standing Dunk":         38,
-        "Post Hook":             47,
-        "Post Fade":             48,
-        "Post Moves":            45,
-        "Draw Foul":             65,
+        "Close Shot":            72,
+        "Midrange Shot":         75,
+        "3pt Shot":              77,
+        "Free Throws":           77,
+        "Driving Layup":         76,
+        "Driving Dunk":          67,
+        "Standing Dunk":         50,
+        "Post Hook":             50,
+        "Post Fade":             55,
+        "Post Moves":            50,
+        "Draw Foul":             67,
         "Shot IQ":               70,
-        "Offensive Consistency": 68,
-        "Ball Control":          72,
-        "Speed with Ball":       70,
+        "Offensive Consistency": 72,
+        "Ball Control":          73,
+        "Speed with Ball":       74,
         "Pass Accuracy":         65,
-        "Passing IQ":            65,
-        "Passing Vision":        63,
-        "Interior Defense":      50,
-        "Perimeter Defense":     68,
-        "Steal":                 68,
-        "Block":                 40,
-        "Offensive Rebound":     43,
-        "Defensive Rebound":     50,
-        "Help Defense IQ":       63,
-        "Defensive Consistency": 65,
-        "Speed":                 76,
-        "Agility":               75,
-        "Strength":              55,
-        "Vertical":              70,
-        "Stamina":               75,
-        "Hustle":                68,
-        "Intangibles":           68,
+        "Passing IQ":            68,
+        "Passing Vision":        67,
+        "Interior Defense":      55,
+        "Perimeter Defense":     72,
+        "Steal":                 72,
+        "Block":                 55,
+        "Offensive Rebound":     50,
+        "Defensive Rebound":     55,
+        "Help Defense IQ":       67,
+        "Defensive Consistency": 68,
+        "Speed":                 78,
+        "Agility":               78,
+        "Strength":              60,
+        "Vertical":              72,
+        "Stamina":               77,
+        "Hustle":                71,
+        "Intangibles":           70,
         "Potential":             65,
     },
     "SF": {
-        "Close Shot":            68,
-        "Midrange Shot":         67,
-        "3pt Shot":              60,
-        "Free Throws":           68,
-        "Driving Layup":         68,
-        "Driving Dunk":          65,
-        "Standing Dunk":         45,
-        "Post Hook":             55,
-        "Post Fade":             53,
-        "Post Moves":            53,
-        "Draw Foul":             62,
-        "Shot IQ":               67,
-        "Offensive Consistency": 65,
-        "Ball Control":          63,
-        "Speed with Ball":       62,
-        "Pass Accuracy":         60,
-        "Passing IQ":            60,
-        "Passing Vision":        58,
-        "Interior Defense":      60,
-        "Perimeter Defense":     65,
-        "Steal":                 62,
-        "Block":                 53,
-        "Offensive Rebound":     53,
-        "Defensive Rebound":     58,
-        "Help Defense IQ":       63,
-        "Defensive Consistency": 65,
-        "Speed":                 70,
-        "Agility":               68,
-        "Strength":              65,
-        "Vertical":              68,
-        "Stamina":               75,
-        "Hustle":                68,
-        "Intangibles":           65,
+        "Close Shot":            73,
+        "Midrange Shot":         73,
+        "3pt Shot":              66,
+        "Free Throws":           73,
+        "Driving Layup":         77,
+        "Driving Dunk":          76,
+        "Standing Dunk":         53,
+        "Post Hook":             50,
+        "Post Fade":             60,
+        "Post Moves":            55,
+        "Draw Foul":             67,
+        "Shot IQ":               72,
+        "Offensive Consistency": 70,
+        "Ball Control":          69,
+        "Speed with Ball":       68,
+        "Pass Accuracy":         65,
+        "Passing IQ":            65,
+        "Passing Vision":        61,
+        "Interior Defense":      65,
+        "Perimeter Defense":     69,
+        "Steal":                 67,
+        "Block":                 60,
+        "Offensive Rebound":     62,
+        "Defensive Rebound":     62,
+        "Help Defense IQ":       67,
+        "Defensive Consistency": 70,
+        "Speed":                 75,
+        "Agility":               71,
+        "Strength":              71,
+        "Vertical":              72,
+        "Stamina":               76,
+        "Hustle":                72,
+        "Intangibles":           72,
         "Potential":             65,
     },
     "PF": {
-        "Close Shot":            70,
-        "Midrange Shot":         60,
-        "3pt Shot":              50,
-        "Free Throws":           60,
-        "Driving Layup":         63,
-        "Driving Dunk":          65,
-        "Standing Dunk":         58,
-        "Post Hook":             68,
-        "Post Fade":             63,
-        "Post Moves":            67,
-        "Draw Foul":             60,
-        "Shot IQ":               63,
-        "Offensive Consistency": 62,
-        "Ball Control":          52,
-        "Speed with Ball":       50,
-        "Pass Accuracy":         55,
-        "Passing IQ":            53,
-        "Passing Vision":        50,
-        "Interior Defense":      70,
-        "Perimeter Defense":     55,
-        "Steal":                 53,
-        "Block":                 63,
-        "Offensive Rebound":     70,
-        "Defensive Rebound":     72,
-        "Help Defense IQ":       63,
-        "Defensive Consistency": 63,
-        "Speed":                 58,
-        "Agility":               57,
-        "Strength":              73,
-        "Vertical":              65,
-        "Stamina":               75,
-        "Hustle":                72,
-        "Intangibles":           65,
+        "Close Shot":            75,
+        "Midrange Shot":         67,
+        "3pt Shot":              63,
+        "Free Throws":           65,
+        "Driving Layup":         72,
+        "Driving Dunk":          77,
+        "Standing Dunk":         65,
+        "Post Hook":             73,
+        "Post Fade":             69,
+        "Post Moves":            72,
+        "Draw Foul":             67,
+        "Shot IQ":               66,
+        "Offensive Consistency": 66,
+        "Ball Control":          57,
+        "Speed with Ball":       60,
+        "Pass Accuracy":         62,
+        "Passing IQ":            59,
+        "Passing Vision":        58,
+        "Interior Defense":      74,
+        "Perimeter Defense":     62,
+        "Steal":                 60,
+        "Block":                 70,
+        "Offensive Rebound":     78,
+        "Defensive Rebound":     76,
+        "Help Defense IQ":       66,
+        "Defensive Consistency": 67,
+        "Speed":                 64,
+        "Agility":               61,
+        "Strength":              78,
+        "Vertical":              68,
+        "Stamina":               77,
+        "Hustle":                77,
+        "Intangibles":           69,
         "Potential":             65,
     },
     "C": {
-        "Close Shot":            72,
-        "Midrange Shot":         52,
-        "3pt Shot":              38,
-        "Free Throws":           55,
-        "Driving Layup":         58,
-        "Driving Dunk":          68,
-        "Standing Dunk":         72,
-        "Post Hook":             73,
-        "Post Fade":             63,
-        "Post Moves":            72,
-        "Draw Foul":             58,
-        "Shot IQ":               60,
-        "Offensive Consistency": 58,
-        "Ball Control":          43,
-        "Speed with Ball":       40,
-        "Pass Accuracy":         50,
-        "Passing IQ":            48,
-        "Passing Vision":        45,
-        "Interior Defense":      78,
-        "Perimeter Defense":     45,
-        "Steal":                 45,
-        "Block":                 75,
-        "Offensive Rebound":     78,
+        "Close Shot":            79,
+        "Midrange Shot":         62,
+        "3pt Shot":              50,
+        "Free Throws":           62,
+        "Driving Layup":         70,
+        "Driving Dunk":          74,
+        "Standing Dunk":         79,
+        "Post Hook":             77,
+        "Post Fade":             67,
+        "Post Moves":            77,
+        "Draw Foul":             70,
+        "Shot IQ":               67,
+        "Offensive Consistency": 62,
+        "Ball Control":          50,
+        "Speed with Ball":       50,
+        "Pass Accuracy":         55,
+        "Passing IQ":            52,
+        "Passing Vision":        52,
+        "Interior Defense":      79,
+        "Perimeter Defense":     50,
+        "Steal":                 55,
+        "Block":                 79,
+        "Offensive Rebound":     80,
         "Defensive Rebound":     80,
-        "Help Defense IQ":       65,
-        "Defensive Consistency": 65,
-        "Speed":                 50,
-        "Agility":               47,
-        "Strength":              80,
-        "Vertical":              62,
-        "Stamina":               75,
-        "Hustle":                72,
-        "Intangibles":           63,
+        "Help Defense IQ":       67,
+        "Defensive Consistency": 69,
+        "Speed":                 55,
+        "Agility":               50,
+        "Strength":              85,
+        "Vertical":              67,
+        "Stamina":               79,
+        "Hustle":                78,
+        "Intangibles":           69,
         "Potential":             65,
     },
 }
@@ -433,17 +439,24 @@ def apply_stat_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
     if g >= _MIN_GAMES_FOR_PCT_STATS:
         if ctx.fg3_pct > 40:
             _add(ratings, "3pt Shot", 12)
+            _floor(ratings, "3pt Shot", 80)
         elif ctx.fg3_pct > 35:
             _add(ratings, "3pt Shot", 7)
+            _floor(ratings, "3pt Shot", 70)
         elif ctx.fg3_pct > 28:
-            _add(ratings, "3pt Shot", 3)
+            _floor(ratings, "3pt Shot", 60)
+            _ceil(ratings, "3pt Shot", 67)
         elif ctx.fg3_pct < 22 and ctx.fg3_pct > 0:
             _add(ratings, "3pt Shot", -5)
+            _ceil(ratings, "3pt Shot", 60)
 
     # ---- Playmaking / assists ----
     _PLAYMAKING: list[str] = ["Pass Accuracy", "Passing IQ", "Passing Vision", "Ball Control"]
     if ctx.assists_avg > 7:
         _add_many(ratings, _PLAYMAKING, 12)
+        _floor(ratings, "Pass Accuracy", 70)
+        _floor(ratings, "Passing IQ", 70)
+        _floor(ratings, "Passing Vision", 70)
     elif ctx.assists_avg > 5:
         _add_many(ratings, _PLAYMAKING, 7)
     elif ctx.assists_avg > 3:
@@ -453,6 +466,7 @@ def apply_stat_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
     _OREB: list[str] = ["Offensive Rebound", "Hustle"]
     if ctx.rebounds_off_avg > 3:
         _add_many(ratings, _OREB, 10)
+        _floor(ratings, "Offensive Rebound", 70)
     elif ctx.rebounds_off_avg > 2:
         _add_many(ratings, _OREB, 6)
     elif ctx.rebounds_off_avg > 1:
@@ -462,28 +476,37 @@ def apply_stat_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
     _DREB: list[str] = ["Defensive Rebound", "Help Defense IQ"]
     if ctx.rebounds_def_avg > 7:
         _add_many(ratings, _DREB, 10)
+        _floor(ratings, "Defensive Rebound", 75)
     elif ctx.rebounds_def_avg > 4:
         _add_many(ratings, _DREB, 5)
+        _floor(ratings, "Defensive Rebound", 70)
     elif ctx.rebounds_def_avg > 2:
         _add_many(ratings, _DREB, 2)
+        _ceil(ratings, "Defensive Rebound", 69)
 
     # ---- Steals ----
     _STEALS: list[str] = ["Steal", "Perimeter Defense"]
     if ctx.steals_avg > 2:
         _add_many(ratings, _STEALS, 12)
+        _floor(ratings, "Steal", 80)
     elif ctx.steals_avg > 1.5:
         _add_many(ratings, _STEALS, 7)
+        _floor(ratings, "Steal", 76)
     elif ctx.steals_avg > 1:
         _add_many(ratings, _STEALS, 3)
+        _floor(ratings, "Steal", 71)
 
     # ---- Blocks ----
     _BLOCKS: list[str] = ["Block", "Interior Defense"]
     if ctx.blocks_avg > 2:
         _add_many(ratings, _BLOCKS, 12)
+        _floor(ratings, "Block", 80)
     elif ctx.blocks_avg > 1.5:
-        _add_many(ratings, _BLOCKS, 7)
+        _add_many(ratings, _BLOCKS, 7)  
+        _floor(ratings, "Block", 76)
     elif ctx.blocks_avg > 1:
         _add_many(ratings, _BLOCKS, 4)
+        _floor(ratings, "Block", 71)
 
     # ---- Field goal percentage (general interior/finishing ability) ----
     if g >= _MIN_GAMES_FOR_PCT_STATS:
@@ -500,10 +523,16 @@ def apply_stat_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _FT: list[str] = ["Free Throws", "Draw Foul"]
         if ctx.ft_pct > 85:
             _add_many(ratings, _FT, 8)
+            _floor(ratings, "Free Throws", 85)
         elif ctx.ft_pct > 75:
             _add_many(ratings, _FT, 5)
+            _floor(ratings, "Free Throws", 75)
         elif ctx.ft_pct > 65:
             _add_many(ratings, _FT, 2)
+            _floor(ratings, "Free Throws", 65)
+            _ceil(ratings, "Free Throws", 69)
+        if ctx.ft_pct < 65:
+            _ceil(ratings, "Free Throws", 60)
 
     # ---- Assist-to-turnover ratio (ball security + decision-making) ----
     _DECISIONS: list[str] = ["Ball Control", "Speed with Ball", "Passing IQ"]
@@ -540,14 +569,29 @@ def apply_physical_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _add_many(ratings, ["Standing Dunk", "Interior Defense"], 6)
         _add_many(ratings, ["Strength"], 5)
         _add_many(ratings, ["Speed", "Agility", "Speed with Ball"], -6)
+        _floor(ratings, "Block", 85)
+        _floor(ratings, "Offensive Rebound", 75)
+        _floor(ratings, "Defensive Rebound", 80)
+        _floor(ratings, "Standing Dunk", 80)
+        _ceil(ratings, "Speed", 67)
     elif h >= 210:
         _add_many(ratings, ["Block", "Offensive Rebound", "Defensive Rebound"], 5)
         _add_many(ratings, ["Standing Dunk", "Interior Defense"], 4)
         _add_many(ratings, ["Strength"], 3)
         _add_many(ratings, ["Speed", "Agility"], -4)
+        _floor(ratings, "Block", 80)
+        _floor(ratings, "Offensive Rebound", 70)
+        _floor(ratings, "Defensive Rebound", 75)
+        _floor(ratings, "Standing Dunk", 75)
+        _ceil(ratings, "Speed", 72)
     elif h >= 205:
         _add_many(ratings, ["Block", "Defensive Rebound"], 3)
         _add_many(ratings, ["Strength", "Interior Defense"], 2)
+        _floor(ratings, "Block", 77)
+        _floor(ratings, "Offensive Rebound", 68)
+        _floor(ratings, "Defensive Rebound", 73)
+        _floor(ratings, "Standing Dunk", 70)
+        _ceil(ratings, "Speed", 77)    
     elif h >= 200:
         pass  # neutral range — no adjustment
     elif h >= 193:
@@ -558,19 +602,34 @@ def apply_physical_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _add_many(ratings, ["Ball Control", "Driving Layup"], 3)
         _add_many(ratings, ["Standing Dunk", "Block", "Interior Defense"], -4)
         _add_many(ratings, ["Strength"], -2)
+        _ceil(ratings, "Offensive Rebound", 73)
+        _ceil(ratings, "Defensive Rebound", 78)
+        _ceil(ratings, "Standing Dunk", 70)
     else:  # < 185 – true small
         _add_many(ratings, ["Speed", "Agility", "Speed with Ball"], 6)
         _add_many(ratings, ["Ball Control", "Driving Layup", "Steal"], 4)
         _add_many(ratings, ["Standing Dunk", "Block", "Interior Defense"], -6)
         _add_many(ratings, ["Strength"], -4)
+        _ceil(ratings, "Offensive Rebound", 70)
+        _ceil(ratings, "Defensive Rebound", 75)
+        _ceil(ratings, "Standing Dunk", 60)
 
     # ---- Weight ----
     if w >= 115:
         _add_many(ratings, ["Strength", "Interior Defense"], 8)
+        _floor(ratings, "Offensive Rebound", 70)
+        _floor(ratings, "Defensive Rebound", 80)
+        _floor(ratings, "Interior Defense", 80)
+        _floor(ratings, "Strength", 90)
         _add_many(ratings, ["Speed", "Agility"], -6)
+        _ceil(ratings, "Speed", 80)
+        _ceil(ratings, "Agility", 80)
     elif w >= 105:
         _add_many(ratings, ["Strength", "Interior Defense"], 5)
         _add_many(ratings, ["Speed", "Agility"], -3)
+        _floor(ratings, "Offensive Rebound", 65)
+        _floor(ratings, "Defensive Rebound", 70)
+        _floor(ratings, "Strength", 80)
     elif w >= 95:
         _add_many(ratings, ["Strength", "Interior Defense"], 2)
     elif w >= 85:
@@ -623,6 +682,7 @@ def apply_age_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
         _add(ratings, "Stamina", -4)  # extra stamina hit beyond _ATHLETIC
         _add_many(ratings, _MENTAL, 8)
         _add(ratings, "Potential", -15)
+        _ceil(ratings, "Speed", 75)
 
 
 # ---------------------------------------------------------------------------
@@ -631,7 +691,7 @@ def apply_age_modifiers(ratings: Ratings, ctx: PlayerContext) -> None:
 # Applied last so earlier steps cannot accidentally push an essential attribute
 # below a usable level.  _floor() only raises, never lowers.
 
-_UNIVERSAL_FLOOR = 45      # absolute minimum for any attribute
+_UNIVERSAL_FLOOR = 50      # absolute minimum for any attribute
 _UNIVERSAL_SPECIAL: dict[str, int] = {
     "Free Throws": 50,
     "Hustle":      55,
@@ -647,20 +707,20 @@ _POSITIONAL_FLOORS: dict[str, dict[str, int]] = {
         "Agility":        67,
     },
     "SG": {
-        "3pt Shot":       55,
+        "3pt Shot":       60,
         "Midrange Shot":  60,
         "Ball Control":   60,
         "Speed":          63,
     },
     "SF": {
-        "Perimeter Defense": 58,
+        "Perimeter Defense": 64,
         "Speed":             60,
-        "Midrange Shot":     58,
+        "Midrange Shot":     65,
     },
     "PF": {
-        "Strength":          65,
-        "Interior Defense":  60,
-        "Offensive Rebound": 60,
+        "Strength":          67,
+        "Interior Defense":  64,
+        "Offensive Rebound": 65,
         "Defensive Rebound": 63,
     },
     "C": {
@@ -668,8 +728,8 @@ _POSITIONAL_FLOORS: dict[str, dict[str, int]] = {
         "Interior Defense":  65,
         "Offensive Rebound": 65,
         "Defensive Rebound": 68,
-        "Standing Dunk":     55,
-        "Block":             58,
+        "Standing Dunk":     66,
+        "Block":             66,
     },
 }
 
