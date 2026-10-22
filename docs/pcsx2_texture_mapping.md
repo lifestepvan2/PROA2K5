@@ -91,33 +91,19 @@ Verified in-game: stretched RGB replacement of full jerseys, alpha cut-outs of n
 unpaused (Space) for a reload to take effect on screen.
 
 ### Uniform LODs and duplicates (`scripts/uniform_lods.py`, `data/uniform_lods/`)
-Uniform textures exist at five resolutions: 512x256 (families `2253`/`2254`) and the LODs 128x64 (`19d3`), 64x32 (`1593`),
-32x16 (`1153`), 16x8 (`0d13`). The LODs are mip levels of the 512x256 originals; some originals exist 2-3 times as
-visually identical duplicates (NCC > 0.995 at 128x64; 139 visual groups from 210 files). `uniform_lods.py match` finds them
-on the original dumps (never on the edited workspace): 128x64 against the hi-res (normalised cross-correlation), every
-smaller LOD against the next larger one (strong evidence, independent of the hi-res) or directly against the hi-res.
-Contact sheets for visual confirmation go to `docs/_tmp/uniform_lods/` (`dups_*`, `lods_*`, `unmatched_*`);
-`uniform_lods.py save` freezes them as `data/uniform_lods/mapping.csv` (`key, role, master, size, score`;
-`exclude.txt` removes wrong entries). Roles: `master` (the one duplicate you edit; the one you already edited wins,
-otherwise the lexicographically first), `copy` (other duplicates), `lod`.
-`texture_workspace.py sync` writes the master's replacement to every copy and box-downscales it for every LOD, so only the
-`MASTER_*` files in `uniforms/512x256` need editing; `uniforms/512x256_duplicates` and `uniforms/auto_lods_*` are generated
-(hand edits there are ignored). LODs without a dumped hi-res original (mostly shorts of teams never seen close up)
-stay unmatched and remain manually editable. Missing links can be added by hand: pick the LOD from `data/uniform_lods/unmatched.csv`
-(workspace file names + best guess), add a row `lod,master` to `data/uniform_lods/manual.csv` (file name, `__token`, 6-char id or key),
-then `uniform_lods.py save`, `texture_workspace.py export`, `texture_workspace.py sync`.
+### Uniform LODs and duplicates (`scripts/uniform_labels.py`, file names in `texture_workspace/uniforms/`)
+Uniform textures exist at five resolutions: 512x256 (families `2253`/`2254`) and the LODs 256x128 (`1e13`), 128x64 (`19d3`), 64x32 (`1593`),
+32x16 (`1153`), 16x8 (`0d13`). The LODs are mip levels of the 512x256 originals (all levels share the middle hash of the dump key);
+some originals exist 2-3 times as visually identical duplicates (NCC > 0.995 at 128x64). The 256x256 cloth textures (family `2213`) have only duplicates.
 
-(Short step-by-step version: [JerseyTextureWorkflow.md](./JerseyTextureWorkflow.md).)
-
-**Folder sorting (no typing):** `uniform_sort.py populate` fills `texture_workspace/uniforms/visual_sort/` with *copies* (names kept):
-one folder `unknown/g_<master token>` per group (the `MASTER_` hi-res file, its duplicates and LODs) and an `unsorted/` bin with
-everything unmapped (unmatched LODs, the 64x64 files). Move group folders into your own team/Home/Jersey tree, drag LODs between
-folders or out of `unsorted/`, then `uniform_sort.py apply` (`--check` = dry run). The folder is the group: 512x256 files are
-hi-res (the `MASTER_*` one is the master, the rest its duplicates), smaller 2:1 files are its LODs, files in `unsorted/` or in a
-folder without a 512x256 file are unmapped. To change a master, add `MASTER_` to another hi-res file. `apply` writes
-`data/uniform_lods/sorted.csv` (overrides the automatic matching and `manual.csv`) and regenerates `mapping.csv`; then run
-`texture_workspace.py export` + `sync`. `populate` is idempotent (only adds new files; new unmatched ones go to `unsorted/`),
-and `visual_sort/` is ignored by the workspace scans, so editing the copies there changes nothing.
+Which file inherits from which is stored in the **file name**: `ROLE__LABEL__RES__ID.png` (`MASTER`, `COPY`, `LOD`; same label = same group;
+ID = dump token). `texture_workspace.py sync` writes the master's replacement to every COPY and box-downscales it (alpha-weighted)
+for every LOD, so only the `MASTER__*` files need editing; hand edits of COPY / LOD files are ignored. Exactly one MASTER per label
+is required (otherwise a warning and the group is skipped). New dumps are named automatically by `uniform_labels.py adopt`
+(run by `export`): image matching (`uniform_lods.analyse`: 128x64 against the hi-res by normalised cross-correlation, every smaller LOD against
+the next larger one or the hi-res) decides COPY / LOD of an existing label or opens `Unsorted<n>`. The decisions are plain file names, so they are
+corrected with the file explorer or `uniform_labels.py relabel|link|promote`. `data/uniform_lods/labels_snapshot.csv` is the tracked copy of all names.
+Full step-by-step: [JerseyTextureWorkflow.md](./JerseyTextureWorkflow.md).
 
 ## In-game player models: pid -> face / arm / neck
 
@@ -202,7 +188,7 @@ then `gen_skin_replacements.py`. After new face dumps: `skin_brighten.py scan` a
 Method: **per-home-team live scan**. `scripts/arena_scan.py scan <slots>` loads a game with each NBA team as HOME (the right-hand team on Team Select; slot at PS2 `0x801908`), with an empty dump folder and a fresh PCSX2 process (a texture is dumped only once per process), and records which dump keys appear. Evidence is in `data/texture_labels/home_scan/slot*.txt` and `home_scan_summary.csv` (`arena_scan.py report`). `restore` repairs the dump folder if a scan is interrupted.
 Attribution: 1 team -> that team; 2-4 -> `A+B`; 5 or more -> `various`. 7,632 of 8,975 keys belong to exactly one team.
 
-Pipeline: `arena_scan.py scan/report` -> `texture_workspace.py export` -> `label_textures.py build` (adds rows to `data/texture_labels/labels.csv`, never overwrites; hand labels from `visual_labels.csv`) -> `texture_workspace.py export` (renames/regroups to `<Team>_<group>_<WxH>__<token>.png`) -> `label_textures.py sort` (semi-transparent 256x256 cloth templates -> `texture_workspace/uniforms/cloth_256x256/` and `uniforms/visual_sort/<Team>/cloth/g_<token>/` as MASTER + identical copies, unknown team -> `unknown/cloth`; part of the uniform LOD mapping, see `JerseyTextureWorkflow.md`). Edit `labels.csv` to correct a label, then re-run `export`.
+Pipeline: `arena_scan.py scan/report` -> `texture_workspace.py export` -> `label_textures.py build` (adds rows to `data/texture_labels/labels.csv`, never overwrites; hand labels from `visual_labels.csv`) -> `texture_workspace.py export` (renames/regroups to `<Team>_<group>_<WxH>__<token>.png`; uniform-family textures are named `ROLE__LABEL__RES__ID.png` by `uniform_labels.py adopt`, see `JerseyTextureWorkflow.md`). Edit `labels.csv` to correct a label, then re-run `export`.
 
 Caveats: the away team is fixed to Magic in the savestate, so Magic-away items appear in every run and are labelled `various`; late slots (Warriors) under-captured loading tiles (labelled visually, source `visual`); items never seen in any scan keep their old names.
 

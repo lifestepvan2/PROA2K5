@@ -6,6 +6,9 @@
 
 Workflow: export -> overwrite files in the working folder with your own images (any size, any of png/jpg/bmp/tga/webp,
 keep the "__xxxxxxxx" token in the file name; folders may be reorganised freely) -> sync -> press F10 in PCSX2.
+Uniform textures (jerseys, shorts, warm-ups, cloth) are the exception: they sit flat in uniforms/ as
+ROLE__LABEL__RES__ID.png (MASTER / COPY / LOD), `export` names new ones (uniform_labels.py adopt) and never moves them, and
+`sync` regenerates COPYs and LODs from the MASTER with the same label (see docs/JerseyTextureWorkflow.md).
 Sync resizes to the original resolution. Restoring a file to its exported content (or exporting it again) reverts it.
 Textures the pipeline replaces itself (ProA faces, team icons, team logo variants) are never exported and always win.
 Alpha: files are exported with normal 0..255 alpha (PS2 0..128 is converted back on sync). Images without an alpha
@@ -27,9 +30,9 @@ import gen_logo_replacements as logos
 import gen_replacements as faces
 import gen_skin_replacements as skins
 import texcluster
-import uniform_lods
+import uniform_labels
 from texlib import REPL_DIR, ROOT, dump_files, family, load_rgba
-from uniform_lods import sid
+from uniform_lods import sid, skipped
 
 DEFAULT_WS = ROOT / "texture_workspace"
 EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".webp"}
@@ -72,9 +75,10 @@ def load_labels():
     return {r["key"]: r for r in csv.DictReader(open(p, encoding="utf-8"))} if p.exists() else {}
 
 
-def catalog(files=None):
+def catalog(files=None, ws=None):
     """One dict per dump: key, family, w, h, group, sub, label. Known maps first, then family rules, then clusters."""
     files = files or dump_files()
+    ws = ws or DEFAULT_WS
     names = {}
     for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8")):
         names[int(r["record"])] = (r["team"], f"{r['first']}_{r['last']}")
@@ -122,29 +126,17 @@ def catalog(files=None):
         if key in sign_of and not lab.get("label"):
             label += f"_has-{sign_of[key]}-logo"
         out.append(dict(key=key, family=fam, w=w, h=h, group=group, sub=sub, label=safe(label)))
-    return mark_uniform_roles(out)
+    return mark_uniform_roles(out, ws)
 
 
-def mark_uniform_roles(rows):
-    """Uniform LOD mapping (scripts/uniform_lods.py): label the MASTER, its duplicates and the auto-generated LODs."""
-    mp = uniform_lods.load_mapping()
-    if not mp:
-        return rows
-    by_key = {r["key"]: r for r in rows}
-    base = {r["key"]: r["label"] for r in rows}
+def mark_uniform_roles(rows, ws):
+    """Uniform role files (scripts/uniform_labels.py): flat in uniforms/, named ROLE__LABEL__RES__ID."""
+    mp = uniform_labels.load_mapping(ws)
     for r in rows:
         m = mp.get(r["key"])
-        if not m:
-            continue
-        tag = sid(m["master"])
-        r["group"] = "uniforms"
-        if m["role"] == "master":
-            r["sub"], r["label"] = ("cloth_256x256" if m["size"] == "256x256" else "512x256"), safe(f"MASTER_{base[r['key']]}")
-        elif m["role"] == "copy":
-            r["sub"] = "cloth_256x256_duplicates" if m["size"] == "256x256" else "512x256_duplicates"
-            r["label"] = safe(f"copy-of-MASTER-{tag}_{base.get(m['master'], '')}")
-        else:
-            r["sub"], r["label"] = f"auto_lods_{m['size']}", safe(f"AUTO-LOD-of-MASTER-{tag}_{r['w']}x{r['h']}")
+        if m:
+            r["group"], r["sub"] = "uniforms", ""
+            r["label"] = f"{m['role'].upper()}__{m['label']}__{m['size']}"
     return rows
 
 
@@ -157,7 +149,7 @@ def scan(ws):
     """token -> newest file in the working folder."""
     found = {}
     for p in ws.rglob("*"):
-        if p.is_file() and p.suffix.lower() in EXTS and "visual_sort" not in p.parts:  # visual_sort holds sorting copies only
+        if p.is_file() and p.suffix.lower() in EXTS and not skipped(p.relative_to(ws).parts[:-1]):
             m = TOKEN.search(p.stem + " ")
             if m and (m.group(1) not in found or p.stat().st_mtime > found[m.group(1)].stat().st_mtime):
                 found[m.group(1)] = p
@@ -173,11 +165,11 @@ def export(ws):
     ws.mkdir(parents=True, exist_ok=True)
     files = dump_files()
     managed = managed_keys()
-    rows = [r for r in catalog(files)]
+    rows = catalog(files, ws)
     toks = [token(r["key"]) for r in rows]
     assert len(set(toks)) == len(toks), "token collision"
     old, found = read_manifest(ws), scan(ws)
-    uniform_map = uniform_lods.load_mapping()  # these are renamed/regrouped even when edited (MASTER / duplicate / auto LOD)
+    role_tokens = uniform_labels.role_files(ws)  # ROLE__LABEL__RES__ID files are never renamed or moved by the export
     new, added, moved, dropped, kept = {}, 0, 0, 0, 0
     for r in rows:
         t = token(r["key"])
@@ -191,7 +183,7 @@ def export(ws):
         p = found.get(t)
         if p is not None and t in old:
             osha = old[t]["sha1"]
-            if p == ws / old[t]["relpath"] and p != ws / want and (sha1(p) == osha or r["key"] in uniform_map):
+            if t not in role_tokens and p == ws / old[t]["relpath"] and p != ws / want and sha1(p) == osha:
                 (ws / want).parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(p, ws / want)
                 p, moved = ws / want, moved + 1
@@ -212,6 +204,16 @@ def export(ws):
     print(f"export: {added} new, {kept} existing, {moved} regrouped, {dropped} removed (now pipeline-managed) -> {ws}")
     for g in sorted({v["group"] for v in new.values()}):
         print(f"  {g}: {sum(v['group'] == g for v in new.values())}")
+    fresh = [v["key"] for t, v in new.items() if t not in old and uniform_candidate(v["key"])]
+    if fresh:
+        print(f"{len(fresh)} new uniform textures - matching them against the existing groups ...")
+        if uniform_labels.adopt(ws):
+            export(ws)  # refresh groups / paths of the renamed files
+    uniform_labels.report(ws)
+
+
+def uniform_candidate(key):
+    return family(key) in uniform_labels.UNIFORM_FAMILIES
 
 
 def fit_resize(path, size, mode):
@@ -310,7 +312,9 @@ def sync(ws, mode, dry):
     if not manifest:
         raise SystemExit("no manifest - run export first")
     files, managed = dump_files(), managed_keys()
-    mp = uniform_lods.load_mapping()
+    mp, problems = uniform_labels.analyse_groups(ws)
+    for pr in problems:
+        print("warning:", pr)
     state_f = ws / "_state.json"
     state = json.loads(state_f.read_text()) if state_f.exists() else {}
     written = reverted = skipped = ignored = 0

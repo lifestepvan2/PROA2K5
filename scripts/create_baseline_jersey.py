@@ -1,8 +1,9 @@
 """Baseline jersey/shorts/warm-up generator: colourises the blank templates in texture_workspace/uniforms/templates for
-every ProA team and writes the result over that team's home + away MASTER 512x256 textures (shorts plain, warm-up =
-one plain primary-colour jacket with the club logo, copied to every warm-up master filed under the team). The 256x256
-warm-up cloth textures (top with sleeves, trouser legs) filed under <Team>/cloth are generated from the logo-less
-templates cloth_top_tmpl / cloth_shorts_tmpl in the primary colour.
+every ProA team and writes the result over that team's MASTER textures. The MASTERs are found by their label
+(scripts/uniform_labels.py): MASTER__<NBA team><Item><Variant>__RES__ID with Item = Jersey | Shorts | WUtorso |
+WUsleeves | WUlegs. Home and numbered variants get the home style, Away the away style, Alt is skipped; every MASTER of
+a Team+Item is written (the warm-up jacket = one plain primary-colour jacket with the club logo; the 256x256 sleeves /
+trouser legs come from the logo-less templates cloth_top_tmpl / cloth_shorts_tmpl in the primary colour).
 
     python scripts/create_baseline_jersey.py [--team Falcons ...] [--dry-run] [--overwrite] [--restore]
     then:  python scripts/texture_workspace.py sync        (rebuilds the duplicates + LODs from the new MASTERs)
@@ -16,15 +17,15 @@ templates cloth_top_tmpl / cloth_shorts_tmpl in the primary colour.
 * --fabric  exports that shade map as editing layers (overlay-grey and black/white-with-alpha PNGs) to templates/fabric/,
             also for the warm-up sleeves / trouser legs (from cloth_top_tmpl / cloth_shorts_tmpl). Existing files are kept unless --overwrite.
 * output is saved RGB-only so texture_workspace.py keeps the game's original per-pixel alpha.
-* safety:   originals are copied once to texture_workspace/uniforms/backups/; a MASTER is only overwritten while it still
+* safety:   originals are copied once to texture_workspace/uniforms/backups/<ID>.png; a MASTER is only overwritten while it still
             equals the exported default (manifest sha1) or the file this script wrote last time - unless --overwrite.
 """
 import argparse
+import collections
 import csv
 import functools
 import hashlib
 import json
-import re
 import shutil
 import time
 from pathlib import Path
@@ -32,10 +33,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+import uniform_labels
 from texlib import ROOT
 from texture_workspace import read_manifest
-from uniform_lods import TOKEN, WS, tok
-from uniform_sort import SORT, manifest, token_of, workspace_files
+from uniform_lods import WS
 
 UNI = WS / "uniforms"
 TEMPLATES = UNI / "templates"
@@ -51,9 +52,6 @@ CLOTH_TEMPLATES = {"cloth-top": "cloth_top_tmpl.png", "cloth-shorts": "cloth_sho
 JERSEY_PROA = ((136, 72), (26, 26))   # player's left breast (viewer's right of the neck V), where the NBA logo sits
 JERSEY_TEAM = ((33, 71), (28, 28))    # player's right breast, mirrored around the front centre line x=82
 WARMUP_TEAM = ((128, 76), (38, 36))   # player's left chest (viewer's right of the zipper)
-
-# textures filed under <Team>/warmups that are not warm-up jackets (Hawks jersey inside Jazz/warmups)
-NOT_WARMUPS = {"dd07e198"}
 
 WHITE = (240, 240, 240)
 HIGHLIGHT = 0.4  # share of the template's above-median brightness that is kept
@@ -169,10 +167,6 @@ def cloth_template(kind):
     return Image.open(TEMPLATES / CLOTH_TEMPLATES[kind]).convert("RGB")
 
 
-def cloth_kind(relpath):
-    return "cloth-top" if "cloth-top" in relpath else "cloth-shorts"
-
-
 def export_fabric(overwrite=False):
     out = TEMPLATES / "fabric"
     out.mkdir(parents=True, exist_ok=True)
@@ -212,31 +206,6 @@ def render(team, side, kind, tmpl):
     return img.convert("RGB")
 
 
-def masters_in(team_dir, man, by_key, size=SIZE):
-    """{group folder: [MASTER tokens of that texture size]} inside one visual_sort/<Team>/... folder."""
-    groups = {}
-    for p in sorted(team_dir.rglob("*.png")):
-        if not p.name.upper().startswith("MASTER"):
-            continue
-        t = token_of(p) or by_key.get(re.sub(r"^MASTER[_-]", "", p.stem.split("__")[0]))
-        if t in man and (man[t]["w"], man[t]["h"]) == size:
-            groups.setdefault(p.parent, []).append(t)
-    return groups
-
-
-def find_masters(team_dir, man, by_key, every_group=False, size=SIZE):
-    """MASTER tokens of a folder: the largest group's master (jersey/shorts), or every group's (warm-ups, cloth)."""
-    groups = masters_in(team_dir, man, by_key, size)
-    if not groups:
-        return []
-    if every_group:
-        return [t for ts in groups.values() for t in ts if t not in NOT_WARMUPS]
-    d, ts = max(groups.items(), key=lambda kv: len(list(kv[0].glob("*.png"))))
-    if len(groups) > 1:
-        print(f"  note: {team_dir.relative_to(SORT)} has {len(groups)} MASTER groups - using the largest ({d.name})")
-    return ts[:1]
-
-
 def save_retry(img, path, tries=6):
     """Windows scanners occasionally lock a file right after it was read/copied -> retry the write briefly."""
     for i in range(tries):
@@ -249,31 +218,42 @@ def save_retry(img, path, tries=6):
             time.sleep(0.5 * (i + 1))
 
 
-def process(teams, man, full, real, gen, tm, by_key, args, stats, backup_path, tiles):
-    jobs = [("Home", "Jersey", "Jersey"), ("Home", "shorts", "shorts"), ("Away", "Jersey", "Jersey"),
-            ("Away", "shorts", "shorts"), ("warmups", "", "warmup"), ("cloth", "", "cloth")]
+JOBS = [("Home", "Jersey", "Jersey", 0), ("Home", "Shorts", "shorts", 1), ("Away", "Jersey", "Jersey", 2),
+        ("Away", "Shorts", "shorts", 3), ("", "WUtorso", "warmup", 4), ("", "WUsleeves", "cloth-top", 5),
+        ("", "WUlegs", "cloth-shorts", 5)]  # (side, label item, template kind, contact sheet column)
+
+
+def team_masters(mp):
+    """{(team, item): [(side, token, label)]} for every working MASTER whose label reads <Team><Item><Variant>."""
+    rows = uniform_labels.token_rows()
+    out = collections.defaultdict(list)
+    for t, e in uniform_labels.role_files().items():
+        pl = uniform_labels.parse_label(e["label"])
+        key = rows.get(t, {}).get("key")
+        if e["role"] == "MASTER" and pl and mp.get(key, {}).get("role") == "master":
+            out[(pl["team"], pl["item"])].append((pl["side"], t, e["label"]))
+    return out
+
+
+def process(teams, masters, full, real, gen, tm, args, stats, backup_path, tiles):
     for team in teams:
         print(f"{team['sheet']} -> {team['nba']}")
-        row = [None] * len(jobs)
+        row = [None] * 6
         tiles.append(row)
-        for col, (side, sub, kind) in enumerate(jobs):
-            folder = SORT / team["nba"] / side / sub if sub else SORT / team["nba"] / side
-            label = f"{side}/{sub}" if sub else side
-            toks = (find_masters(folder, man, by_key, every_group=kind in ("warmup", "cloth"),
-                                 size=CLOTH_SIZE if kind == "cloth" else SIZE) if folder.exists() else [])
-            toks = [t for t in toks if t in real]
+        for side, item, kind, col in JOBS:
+            label = f"{item} {side}".strip()
+            size = CLOTH_SIZE if kind.startswith("cloth") else SIZE
+            toks = [(lab, t) for s, t, lab in sorted(masters.get((team["nba"], item), []), key=lambda m: m[2])
+                    if (not side or s == side) and t in real and (int(full[t]["w"]), int(full[t]["h"])) == size]
             if not toks:
                 print(f"  {label}: no MASTER found - skipped")
                 stats["missing"] += 1
                 continue
-            img = None if kind == "cloth" else render(team, side, kind, tm[kind])
-            if img is not None:
-                row[col] = img
-            for t in toks:
-                if kind == "cloth":
-                    img = render_cloth(team, cloth_kind(full[t]["relpath"]))
-                    row[col] = row[col] or img
+            img = render_cloth(team, kind) if kind.startswith("cloth") else render(team, side or "Home", kind, tm[kind])
+            row[col] = row[col] or img
+            for lab, t in toks:
                 p = real[t]
+                label = lab
                 cur = sha1(p)
                 is_default = cur == full[t]["sha1"]
                 is_ours = gen.get(t) == cur
@@ -285,7 +265,7 @@ def process(teams, man, full, real, gen, tm, by_key, args, stats, backup_path, t
                       f"{'' if is_default or is_ours else '  [OVERWRITE of hand edit]'}")
                 if args.dry_run:
                     continue
-                b = backup_path(p)
+                b = backup_path(p, t)
                 if not b.exists():
                     shutil.copy2(p, b)
                 save_retry(img, p)
@@ -306,19 +286,19 @@ def main():
         export_fabric(args.overwrite)
         return
 
-    man = manifest()
     full = read_manifest(WS)
-    real = workspace_files(man)
+    mp = uniform_labels.load_mapping()
+    real = {t: e["path"] for t, e in uniform_labels.role_files().items()}
     gen = json.loads(GEN_LOG.read_text()) if GEN_LOG.exists() else {}
 
-    def backup_path(p):
-        return BACKUPS / p.name.replace("__", "~~")
+    def backup_path(p, t):
+        return BACKUPS / f"{t}{p.suffix}"  # keyed by the texture ID, so renaming / relabelling a file keeps its backup
 
     if args.restore:
         n = 0
         for t, sha in list(gen.items()):
             p = real.get(t)
-            b = backup_path(p) if p else None
+            b = backup_path(p, t) if p else None
             if b and b.exists():
                 if not args.dry_run:
                     shutil.copy2(b, p)
@@ -331,16 +311,16 @@ def main():
 
     tm = {"Jersey": Image.open(TEMPLATES / "jersey_tmpl.png"), "shorts": Image.open(TEMPLATES / "short_tmpl.png"),
           "warmup": Image.open(TEMPLATES / "warmup_tmpl.png")}
-    by_key = {m["key"]: t for t, m in man.items()}
     teams = [t for t in load_teams() if not args.team or t["sheet"] in args.team]
     if not teams:
         raise SystemExit("no matching team")
+    masters = team_masters(mp)
     stats = dict(written=0, protected=0, missing=0, same=0)
     tiles = []
     if not args.dry_run:
         BACKUPS.mkdir(parents=True, exist_ok=True)
     try:
-        process(teams, man, full, real, gen, tm, by_key, args, stats, backup_path, tiles)
+        process(teams, masters, full, real, gen, tm, args, stats, backup_path, tiles)
     finally:
         if not args.dry_run:
             GEN_LOG.write_text(json.dumps(gen, indent=1))
