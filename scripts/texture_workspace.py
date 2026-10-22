@@ -139,9 +139,10 @@ def mark_uniform_roles(rows):
         tag = sid(m["master"])
         r["group"] = "uniforms"
         if m["role"] == "master":
-            r["sub"], r["label"] = "512x256", safe(f"MASTER_{base[r['key']]}")
+            r["sub"], r["label"] = ("cloth_256x256" if m["size"] == "256x256" else "512x256"), safe(f"MASTER_{base[r['key']]}")
         elif m["role"] == "copy":
-            r["sub"], r["label"] = "512x256_duplicates", safe(f"copy-of-MASTER-{tag}_{base.get(m['master'], '')}")
+            r["sub"] = "cloth_256x256_duplicates" if m["size"] == "256x256" else "512x256_duplicates"
+            r["label"] = safe(f"copy-of-MASTER-{tag}_{base.get(m['master'], '')}")
         else:
             r["sub"], r["label"] = f"auto_lods_{m['size']}", safe(f"AUTO-LOD-of-MASTER-{tag}_{r['w']}x{r['h']}")
     return rows

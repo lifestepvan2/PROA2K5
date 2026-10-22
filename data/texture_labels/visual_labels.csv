@@ -1,13 +1,13 @@
 token,team,kind,group,sub,evidence
 05f17027,Sonics,cloth-top,uniforms,cloth_256x256,visual: Sonics logo on cloth
 22e00c29,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
-2acb441a,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
+2acb441a,Spurs,cloth-top,uniforms,cloth_256x256,visual: pixel-identical to the Spurs cloth-top 9a1c5f8d
 3fdd8e43,,cloth-top,uniforms,cloth_256x256,
 4835b8ca,Suns,cloth-shorts,uniforms,cloth_256x256,visual: PHX logo
 7b2d335c,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
 8280dc3a,,cloth-top,uniforms,cloth_256x256,visual: team not recognisable
 908ead7a,76ers,cloth-shorts,uniforms,cloth_256x256,visual: 76ers logo
-aaffff62,,cloth-top,uniforms,cloth_256x256,visual: red/yellow trim top; Hawks or Rockets
+aaffff62,Hawks,cloth-top,uniforms,cloth_256x256,visual: pixel-identical to the Hawks cloth-top a2d903c2
 abc0e771,Pistons,cloth-top,uniforms,cloth_256x256,visual: same design as seen Pistons top
 b039240f,,cloth-shorts,uniforms,cloth_256x256,visual: black with gold stripes; no logo
 b727f0e5,Warriors,cloth-shorts,uniforms,cloth_256x256,visual: Warriors logo
@@ -95,3 +95,10 @@ dc684aa5,Warriors,,,,visual: Warriors intro video tile
 f1443e6e,Warriors,,,,visual: Warriors intro video tile
 f2eecbee,Warriors,,,,visual: Warriors intro video tile
 fa42d62f,Warriors,,,,visual: Warriors intro video tile
+1131c817,Wizards,cloth-shorts,uniforms,cloth_256x256,visual: WASHINGTON trouser legs (was in arena_props)
+926fc42b,Wizards,cloth-shorts,uniforms,cloth_256x256,visual: WASHINGTON trouser legs (was in arena_props)
+50451de4,Spurs,cloth-shorts,uniforms,cloth_256x256,visual: SAN ANTONIO trouser legs (was in arena_props)
+674dd435,Raptors,cloth-shorts,uniforms,cloth_256x256,visual: TORONTO trouser legs (was in arena_props)
+f0fa483d,Wizards,cloth-top,uniforms,cloth_256x256,visual: teal top with gold trim (was in arena_props)
+5417e0b3,Spurs,cloth-top,uniforms,cloth_256x256,visual: pixel-identical to the Spurs cloth-top 9a1c5f8d (was in arena_props)
+f08a5db2,,cloth-top,uniforms,cloth_256x256,visual: plain grey top; team not recognisable (was in arena_props)

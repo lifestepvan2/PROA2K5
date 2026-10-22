@@ -1,6 +1,7 @@
 """Baseline jersey/shorts/warm-up generator: colourises the blank templates in texture_workspace/uniforms/templates for
 every ProA team and writes the result over that team's home + away MASTER 512x256 textures (shorts plain, warm-up =
-one plain primary-colour jacket with the club logo, copied to every warm-up master filed under the team).
+one plain primary-colour jacket with the club logo, copied to every warm-up master filed under the team). The 256x256
+warm-up cloth textures (top with sleeves, trouser legs) filed under <Team>/cloth are recoloured in the primary colour.
 
     python scripts/create_baseline_jersey.py [--team Falcons ...] [--dry-run] [--overwrite] [--restore]
     then:  python scripts/texture_workspace.py sync        (rebuilds the duplicates + LODs from the new MASTERs)
@@ -11,13 +12,15 @@ one plain primary-colour jacket with the club logo, copied to every warm-up mast
             which is re-applied on top of the target colour, so the cloth structure survives the recolouring.
 * logos:    jerseys: ProA league patch (data/proa_logo.png) on the player's left breast, team logo
             (nba2k_editor/assets/<38+index>.png) on the right breast. Warm-ups: team logo on the chest. Shorts: none.
-* --fabric  exports that shade map as editing layers (overlay-grey and black/white-with-alpha PNGs) to templates/fabric/.
+* --fabric  exports that shade map as editing layers (overlay-grey and black/white-with-alpha PNGs) to templates/fabric/,
+            also for the warm-up sleeves / trouser legs (median of all cloth textures). Existing files are kept unless --overwrite.
 * output is saved RGB-only so texture_workspace.py keeps the game's original per-pixel alpha.
 * safety:   originals are copied once to texture_workspace/uniforms/backups/; a MASTER is only overwritten while it still
             equals the exported default (manifest sha1) or the file this script wrote last time - unless --overwrite.
 """
 import argparse
 import csv
+import functools
 import hashlib
 import json
 import re
@@ -28,7 +31,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from texlib import ROOT
+from texlib import ROOT, dump_files, load_rgba
 from texture_workspace import read_manifest
 from uniform_lods import TOKEN, WS, tok
 from uniform_sort import SORT, manifest, token_of, workspace_files
@@ -37,13 +40,14 @@ UNI = WS / "uniforms"
 TEMPLATES = UNI / "templates"
 BACKUPS = UNI / "backups"
 GEN_LOG = BACKUPS / "_generated.json"
-PROA_LOGO = ROOT / "data/proa_logo.png"
+PROA_LOGO = ROOT / "data/barmer_logo.png"
 SHEET_OUT = ROOT / "docs/_tmp/baseline_sheet.png"
 LOGO_ID0 = 38
 SIZE = (512, 256)
-
+CLOTH_SIZE = (256, 256)
+CLOTH_CAP = (-0.6, 0.18)  # shade limits for the cloth textures (they carry stripes / logos that should stay faint)
 # logo placement in 512x256 texture pixels: centre (x, y) and bounding box (w, h)
-JERSEY_PROA = ((131, 70), (24, 15))   # player's left breast (viewer's right of the neck V), where the NBA logo sits
+JERSEY_PROA = ((136, 72), (26, 26))   # player's left breast (viewer's right of the neck V), where the NBA logo sits
 JERSEY_TEAM = ((33, 71), (28, 28))    # player's right breast, mirrored around the front centre line x=82
 WARMUP_TEAM = ((128, 76), (38, 36))   # player's left chest (viewer's right of the zipper)
 
@@ -100,17 +104,19 @@ def paste(base, logo_path, centre, box):
     base.alpha_composite(logo, (round(centre[0] - logo.width / 2), round(centre[1] - logo.height / 2)))
 
 
-def shade_of(lum, weight):
-    """Cloth structure of one region: relative deviation from the region's median brightness (0 = flat, <0 darker)."""
+def shade_of(lum, weight, cap=None):
+    """Cloth structure of one region: relative deviation from the region's median brightness (0 = flat, <0 darker).
+    cap = (lowest, highest) clamps the result, so that logos / stripes in the texture stay faint."""
     sel = weight > 0.9
     med = max(float(np.median(lum[sel])) if sel.any() else float(lum.mean()), 1.0)
     shade = lum / med - 1.0
-    return np.where(shade > 0, shade * HIGHLIGHT, shade)  # compress highlights so light colours do not clip to flat white
+    shade = np.where(shade > 0, shade * HIGHLIGHT, shade)  # compress highlights so light colours do not clip to flat white
+    return np.clip(shade, *cap) if cap else shade
 
 
-def tint(lum, weight, rgb, add=26.0):
+def tint(lum, weight, rgb, add=26.0, cap=None):
     """Colour a region with `rgb` keeping the template's cloth structure (lum / regional median)."""
-    shade = shade_of(lum, weight)[..., None]
+    shade = shade_of(lum, weight, cap)[..., None]
     rgb = np.array(rgb, dtype=np.float32)
     dark = 1.0 - rgb.mean() / 255.0  # dark colours get an additive share so their folds stay visible
     return rgb * (1.0 + shade) + shade * add * dark * 2
@@ -130,9 +136,9 @@ def body_weight(tmpl, kind):
     return lum, smoothstep(0.25, 0.55, sat)  # saturated = body, grey/white = trim
 
 
-def colourise(tmpl, kind, body_rgb, trim_rgb):
+def colourise(tmpl, kind, body_rgb, trim_rgb, cap=None):
     lum, wb = body_weight(tmpl, kind)
-    out = wb[..., None] * tint(lum, wb, body_rgb) + (1 - wb)[..., None] * tint(lum, 1 - wb, trim_rgb)
+    out = wb[..., None] * tint(lum, wb, body_rgb, cap=cap) + (1 - wb)[..., None] * tint(lum, 1 - wb, trim_rgb, cap=cap)
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
 
 
@@ -144,26 +150,62 @@ def colourise_shorts(tmpl, body_rgb, stripe_rgb):
     return colourise(tmpl, "shorts", body_rgb, stripe_rgb)
 
 
-def fabric_layers(tmpl, kind):
-    """The colour-independent cloth structure of a template as editing layers.
-    overlay: grey, 128 = neutral (Overlay / Soft Light / Linear Light blend over a coloured layer).
+def layers_from_shade(shade):
+    """overlay: grey, 128 = neutral (Overlay / Soft Light / Linear Light blend over a coloured layer).
     shadow_light: black (darker) and white (lighter) pixels whose alpha is the strength (normal blend over a colour)."""
-    lum, wb = body_weight(tmpl, kind)
-    shade = wb * shade_of(lum, wb) + (1 - wb) * shade_of(lum, 1 - wb)
     grey = np.clip(128 * (1 + shade), 0, 255).astype(np.uint8)
     alpha = np.clip(np.abs(shade) * 1.5, 0, 1) * 255
     rgba = np.dstack([np.where(shade < 0, 0, 255)] * 3 + [alpha]).astype(np.uint8)
     return Image.fromarray(grey, "L"), Image.fromarray(rgba, "RGBA")
 
 
-def export_fabric():
+def fabric_layers(tmpl, kind):
+    """The colour-independent cloth structure of a template as editing layers."""
+    lum, wb = body_weight(tmpl, kind)
+    return layers_from_shade(wb * shade_of(lum, wb) + (1 - wb) * shade_of(lum, 1 - wb))
+
+
+@functools.lru_cache(maxsize=None)
+def dump_paths():
+    return dump_files()
+
+
+def cloth_source(key):
+    """RGB of a cloth texture as the game dumped it (so re-running never recolours an already generated file)."""
+    return Image.fromarray(load_rgba(dump_paths()[key])[..., :3])
+
+
+def export_fabric(overwrite=False):
     out = TEMPLATES / "fabric"
     out.mkdir(parents=True, exist_ok=True)
+
+    def write(name, layers):
+        for suffix, img in zip(("overlay", "shadow_light"), layers):
+            p = out / f"{name}_fabric_{suffix}.png"
+            if p.exists() and not overwrite:
+                print(f"  kept existing {p.name} (use --overwrite to regenerate)")
+            else:
+                save_retry(img, p)
+
     for kind, name in (("Jersey", "jersey"), ("shorts", "short"), ("warmup", "warmup")):
-        grey, rgba = fabric_layers(Image.open(TEMPLATES / f"{name}_tmpl.png"), "shorts" if kind == "shorts" else "Jersey")
-        grey.save(out / f"{name}_fabric_overlay.png")
-        rgba.save(out / f"{name}_fabric_shadow_light.png")
-    print(f"fabric layers written to {out}")
+        write(name, fabric_layers(Image.open(TEMPLATES / f"{name}_tmpl.png"), "shorts" if kind == "shorts" else "Jersey"))
+    # warm-up top (sleeves) and trouser legs: every team's cloth has the same folds, so the per-pixel median of all
+    # variants of a kind drops the team-specific stripes / logos and keeps the crease structure
+    rows = [r for r in read_manifest(WS).values() if "cloth-" in r["relpath"]]
+    for kind, name in (("cloth-top", "warmup_sleeves"), ("cloth-shorts", "warmup_legs")):
+        maps = []
+        for r in rows:
+            if kind in r["relpath"] and r["key"] in dump_paths():
+                lum = luma(np.asarray(cloth_source(r["key"]), dtype=np.float32))
+                maps.append(shade_of(lum, np.ones_like(lum), CLOTH_CAP))
+        write(name, layers_from_shade(np.median(maps, axis=0)))
+        print(f"  {name}: median of {len(maps)} cloth textures")
+    print(f"fabric layers in {out}")
+
+
+def render_cloth(team, key):
+    """Warm-up top / trouser cloth: one plain primary colour, folds kept; every variant of a team gets the same colour."""
+    return colourise(cloth_source(key), "Jersey", team["c1"], team["c1"], cap=CLOTH_CAP).convert("RGB")
 
 
 def render(team, side, kind, tmpl):
@@ -181,21 +223,21 @@ def render(team, side, kind, tmpl):
     return img.convert("RGB")
 
 
-def masters_in(team_dir, man, by_key):
-    """{group folder: [MASTER 512x256 tokens]} inside one visual_sort/<Team>/... folder."""
+def masters_in(team_dir, man, by_key, size=SIZE):
+    """{group folder: [MASTER tokens of that texture size]} inside one visual_sort/<Team>/... folder."""
     groups = {}
     for p in sorted(team_dir.rglob("*.png")):
         if not p.name.upper().startswith("MASTER"):
             continue
         t = token_of(p) or by_key.get(re.sub(r"^MASTER[_-]", "", p.stem.split("__")[0]))
-        if t in man and (man[t]["w"], man[t]["h"]) == SIZE:
+        if t in man and (man[t]["w"], man[t]["h"]) == size:
             groups.setdefault(p.parent, []).append(t)
     return groups
 
 
-def find_masters(team_dir, man, by_key, every_group=False):
-    """MASTER tokens of a folder: the largest group's master (jersey/shorts), or every group's (warm-ups)."""
-    groups = masters_in(team_dir, man, by_key)
+def find_masters(team_dir, man, by_key, every_group=False, size=SIZE):
+    """MASTER tokens of a folder: the largest group's master (jersey/shorts), or every group's (warm-ups, cloth)."""
+    groups = masters_in(team_dir, man, by_key, size)
     if not groups:
         return []
     if every_group:
@@ -220,7 +262,7 @@ def save_retry(img, path, tries=6):
 
 def process(teams, man, full, real, gen, tm, by_key, args, stats, backup_path, tiles):
     jobs = [("Home", "Jersey", "Jersey"), ("Home", "shorts", "shorts"), ("Away", "Jersey", "Jersey"),
-            ("Away", "shorts", "shorts"), ("warmups", "", "warmup")]
+            ("Away", "shorts", "shorts"), ("warmups", "", "warmup"), ("cloth", "", "cloth")]
     for team in teams:
         print(f"{team['sheet']} -> {team['nba']}")
         row = [None] * len(jobs)
@@ -228,15 +270,20 @@ def process(teams, man, full, real, gen, tm, by_key, args, stats, backup_path, t
         for col, (side, sub, kind) in enumerate(jobs):
             folder = SORT / team["nba"] / side / sub if sub else SORT / team["nba"] / side
             label = f"{side}/{sub}" if sub else side
-            toks = find_masters(folder, man, by_key, every_group=kind == "warmup") if folder.exists() else []
+            toks = (find_masters(folder, man, by_key, every_group=kind in ("warmup", "cloth"),
+                                 size=CLOTH_SIZE if kind == "cloth" else SIZE) if folder.exists() else [])
             toks = [t for t in toks if t in real]
             if not toks:
                 print(f"  {label}: no MASTER found - skipped")
                 stats["missing"] += 1
                 continue
-            img = render(team, side, kind, tm[kind])
-            row[col] = img
+            img = None if kind == "cloth" else render(team, side, kind, tm[kind])
+            if img is not None:
+                row[col] = img
             for t in toks:
+                if kind == "cloth":
+                    img = render_cloth(team, full[t]["key"])
+                    row[col] = row[col] or img
                 p = real[t]
                 cur = sha1(p)
                 is_default = cur == full[t]["sha1"]
@@ -267,7 +314,7 @@ def main():
     ap.add_argument("--fabric", action="store_true", help="export the cloth structure of the templates as layers (templates/fabric/) and exit")
     args = ap.parse_args()
     if args.fabric:
-        export_fabric()
+        export_fabric(args.overwrite)
         return
 
     man = manifest()
@@ -310,11 +357,11 @@ def main():
             GEN_LOG.write_text(json.dumps(gen, indent=1))
     if args.sheet and tiles:
         w, h = SIZE[0] // 2, SIZE[1] // 2
-        sheet = Image.new("RGB", (w * 5, h * len(tiles)), (30, 30, 30))
+        sheet = Image.new("RGB", (w * 5 + h, h * len(tiles)), (30, 30, 30))
         for r, row in enumerate(tiles):
             for c, im in enumerate(row):
                 if im is not None:
-                    sheet.paste(im.resize((w, h), Image.LANCZOS), (c * w, r * h))
+                    sheet.paste(im.resize((h, h) if im.width == im.height else (w, h), Image.LANCZOS), (c * w, r * h))
         out = Path(args.sheet)
         out.parent.mkdir(parents=True, exist_ok=True)
         save_retry(sheet, out)

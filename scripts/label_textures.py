@@ -1,7 +1,7 @@
 """Build data/texture_labels/labels.csv (applied by texture_workspace.py export) from the live home-arena scan + visual labels.
 
     python scripts/label_textures.py build   add missing rows to labels.csv (existing rows are never touched - edit them freely)
-    python scripts/label_textures.py sort    copy the cloth textures into texture_workspace/uniforms/visual_sort/<Team>/cloth/
+    python scripts/label_textures.py sort    copy the cloth textures into texture_workspace/uniforms/visual_sort/<Team>/cloth/g_<token>/
 
 Sources, in priority order:
   1. scan   data/texture_labels/home_scan_summary.csv (scripts/arena_scan.py report): which NBA home teams drew the texture.
@@ -12,7 +12,6 @@ Workflow: arena_scan.py scan/report -> texture_workspace.py export -> label_text
 """
 import csv
 import re
-import shutil
 import sys
 from pathlib import Path
 
@@ -23,7 +22,6 @@ LABELS = DIR / "labels.csv"
 FIELDS = ["key", "token", "label", "group", "sub", "source", "evidence"]
 TARGET_GROUPS = {"arena_props", "uniform_parts", "loading_video_tiles", "courts_and_floors"}
 NICK = {"T'Wolves": "Timberwolves"}
-TOKEN = re.compile(r"__([0-9a-f]{8})")
 
 
 def read(p):
@@ -72,22 +70,11 @@ def build():
 
 
 def sort_cloth():
-    """Copies (never moves) the cloth textures into visual_sort/<Team>/cloth/ - unknown / ambiguous teams go to unknown/cloth."""
-    labels = {r["token"]: r for r in read(LABELS)}
-    dest_root = WS / "uniforms" / "visual_sort"
-    n = 0
-    for p in (WS / "uniforms" / "cloth_256x256").glob("*.png"):
-        m = TOKEN.search(p.name)
-        lab = labels.get(m.group(1)) if m else None
-        team = lab["label"].split("_")[0] if lab else "unknown"
-        if team in ("various", "unknown") or "+" in team:
-            team = "unknown"
-        d = dest_root / team / "cloth"
-        d.mkdir(parents=True, exist_ok=True)
-        if not any(q.name.endswith(p.name.split("__")[1]) for q in d.glob("*.png")):
-            shutil.copy2(p, d / p.name)
-            n += 1
-    print(f"copied {n} cloth textures into {dest_root}")
+    """Copies (never moves) the cloth textures into visual_sort/<Team>/cloth/g_<token>/ (MASTER_ + pixel-identical copies);
+    unknown / ambiguous teams go to unknown/cloth. Same step as `uniform_sort.py populate` does for cloth."""
+    import uniform_sort
+    man = uniform_sort.manifest()
+    uniform_sort.populate_cloth(man, uniform_sort.workspace_files(man))
 
 
 if __name__ == "__main__":
