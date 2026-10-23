@@ -1,26 +1,19 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `0f752674`
+- payload: 725056 bytes, CRC32 `aceb012b`
 - teams: 18, players: 249
 - string pool: free before 4000 B, freed 12204 B, free after 4518 B
 - records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: 12
 - longest last names: [(11, 'von Oertzen', 'Wolmirstedt'), (12, 'Frischemeier', 'Baskets'), (12, 'Kazakevicius', 'Dragons'), (12, 'Marty-Decker', 'Baskets'), (12, 'Niedermanner', 'Koblenz'), (12, 'Pickett Lazo', 'Stars Bochum'), (12, 'Price-Townse', 'Essen'), (12, 'Schwanenberg', 'Tubingen')]
 
 ## Name adjustments
-- Dragons: 'Linus Trettin' has no pid in proa_pid_map.csv, keeps the model of record 111
 - Ulm: 'Nil Failenschmid Clavera' -> 'Nil Clavera' (last-shortened)
-- Ulm: 'Lenny Liedtke' has no pid in proa_pid_map.csv, keeps the model of record 167
-- Ulm: 'Joel Lindsay' has no pid in proa_pid_map.csv, keeps the model of record 82
-- Ulm: 'Marko Volf' has no pid in proa_pid_map.csv, keeps the model of record 67
 - Ulm: 'Tobias Rainer Holbach' -> 'Tobias Holbach' (first-trunc)
-- Bayreuth: 'Leroy Ikejiaku' has no pid in proa_pid_map.csv, keeps the model of record 183
 - Gottingen: 'Zachary Richard Watson' -> 'Zachary Watson' (first-trunc)
 - Koblenz: 'Dragos-Andrej Diculescu' -> 'Dragos-Andre Diculescu' (first-trunc)
 - 46ers: 'Daniel Alexander Norl' -> 'Daniel Norl' (first-trunc)
 - Crailsheim Merlins: 'Hendrik Helge Drescher' -> 'Hendrik Drescher' (first-trunc)
 - Crailsheim Merlins: 'Peyton Kennedy Gerald' -> 'Peyton Gerald' (first-trunc)
-- Falcons: 'Lars Lagerpusch' has no pid in proa_pid_map.csv, keeps the model of record 272
-- Falcons: 'Joscha Eckert' has no pid in proa_pid_map.csv, keeps the model of record 53
 - Baskets: 'Jon'll Larenz Fugett' -> 'Jon'll Fugett' (first-trunc)
 - Baskets: 'Nicholas Gerard Spinoso' -> 'Nicholas Spinoso' (first-trunc)
 - Baskets: 'Nicolas Ignacio Marty-Decker' -> 'Nicolas Marty-Decker' (first-trunc)
@@ -37,11 +30,9 @@
 - Wolmirstedt: 'Kenneth Andrew Cooper' -> 'Kenneth Cooper' (first-trunc)
 - Tubingen: 'Melkisedek Kwaku Moreaux' -> 'Melkisedek Moreaux' (first-trunc)
 - Tubingen: 'Creighton Bryan William Morisch' -> 'Creighton Morisch' (first-trunc)
-- Tubingen: 'Fabien Kondo' has no pid in proa_pid_map.csv, keeps the model of record 351
 - Tubingen: 'Kristian Henning Sjolund' -> 'Kristian Sjolund' (first-trunc)
 - Tubingen: 'Jesse Chidera Ani' -> 'Jesse Ani' (first-trunc)
 - Tubingen: 'Nico Santana Mojica' -> 'Nico Mojica' (last-shortened)
 - Heidelberg: 'Charles Tyrone Harris Jr.' -> 'Charles Harris Jr.' (first-trunc)
 - Heidelberg: 'Nicholas Ryan Muszynski' -> 'Nicholas Muszynski' (first-trunc)
 - Heidelberg: 'Franklin Lenard Champion' -> 'Franklin Champion' (first-trunc)
-- accessories.csv: 8 new players appended (no accessories until edited)
