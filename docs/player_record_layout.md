@@ -69,7 +69,8 @@ Items are indices into one shared pool of model parts (`wristitem01-17`, `armite
 
 `build_roster.py` clears all of these bytes for every ProA player (NBA records have their own accessories) and then applies `data/accessories.csv` (key `proa_id`; new players are appended with empty cells, existing rows are never overwritten, so hand edits survive re-scrapes). Columns: `headband` (1 normal, 2 larger), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; blank/0 = none).
 
-"Overall" is not a stored byte that matches (0x60 is close but not equal); it is probably computed.
+"Overall" is not a stored byte; the game computes it at runtime from the ratings and the player's position.
+`scripts/fit_overall.py` fits that formula from displayed values (see "Overall formula" below).
 Ratings are 0-99 bytes (NBA data is quantised to steps of 5, any value should be valid).
 
 Only the first four string pointers (0x0C, 0x10, 0x24, 0x28) are real pointers in the player table;
@@ -79,3 +80,26 @@ other words that look like pointers (e.g. 0x14..0x17) are false positives and ar
 The 19 rating columns of `proa_scraped.xlsx` are the 2K5 attributes themselves (written by `scripts/proa_attr_model.py`,
 hand-editable); `scripts/rating_map_2k5.py` only maps column name -> byte offset and clamps to 25-99.
 Units in the source: height in m, weight in kg.
+
+## Overall formula (displayed overall)
+
+The overall shown in game is computed at runtime from the 19 ratings and the primary position. It is modelled as
+`overall = intercept[pos] + sum(weight[pos][attr] * rating[attr])`, stored in `data/overall_model.json`
+(`scripts/overall_model.py: predict_overall`). `build_roster.py` uses it for the `ovr` column of `player_map.csv`,
+starter selection and the fame byte.
+
+Re-fit after adding observations (no other input needed):
+
+1. In game, read the overall of players and put it in the `Overall` column of the team sheets in `overall_ratings.xlsx`
+   (the file may keep stale columns; only `Overall` and the `ProA ID` column are read). Teams without `Overall` are skipped.
+2. The attributes are taken from the current `proa_scraped.xlsx` by ProA ID: it must match what was on the card when the
+   values were read (re-check with a dry `build_roster.py` and a card extract if in doubt).
+3. `python scripts/fit_overall.py` prints leave-one-out error, weights and the worst residuals and rewrites the model.
+
+Findings with 97 observed players (Dragons, Bremerhaven, Koblenz, Essen, LIONS, Koln, Wolmirstedt, Gottingen):
+- the formula is position specific (a single weight vector has leave-one-out error 1.1, per-position weights 0.43;
+  the rounding of the integer display alone limits it to about 0.29);
+- height and weight do not improve the fit; Durability gets no weight;
+- the weights are only reliable as a predictor inside the range of the training data. The model's ratings are strongly
+  stereotyped per position (many attributes identical for all players of a position), so individual weights are not identified.
+  Fix: observe players with varied ratings (e.g. hand-edited in `proa_scraped.xlsx`) and re-fit.

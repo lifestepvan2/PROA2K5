@@ -27,6 +27,7 @@ import openpyxl
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
+from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
@@ -187,10 +188,13 @@ def load_proa(path):
                 continue
             rowd = dict(zip(hdr, r))
             attrs = read_attrs(rowd)
+            pos = POS.get(str(r[2]), 2)
+            ovr = predict_overall(pos, attrs, _num(rowd.get("Height"), 1.96), _num(rowd.get("Weight"), 92))
             players.append({
                 "attrs": attrs, "rowd": rowd,
-                "first": str(r[0] or ""), "last": str(r[1] or ""), "pos": POS.get(str(r[2]), 2),
-                "jersey": r[4], "ovr": sum(attrs.values()) / len(attrs), "proa_id": r[hdr.index("ProA ID")] if "ProA ID" in hdr else None,
+                "first": str(r[0] or ""), "last": str(r[1] or ""), "pos": pos,
+                "jersey": r[4], "ovr": ovr if ovr is not None else sum(attrs.values()) / len(attrs),
+                "proa_id": r[hdr.index("ProA ID")] if "ProA ID" in hdr else None,
                 "row": r,
             })
         teams[name] = players
