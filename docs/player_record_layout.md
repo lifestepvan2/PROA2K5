@@ -102,4 +102,21 @@ Findings with 97 observed players (Dragons, Bremerhaven, Koblenz, Essen, LIONS, 
 - height and weight do not improve the fit; Durability gets no weight;
 - the weights are only reliable as a predictor inside the range of the training data. The model's ratings are strongly
   stereotyped per position (many attributes identical for all players of a position), so individual weights are not identified.
-  Fix: observe players with varied ratings (e.g. hand-edited in `proa_scraped.xlsx`) and re-fit.
+  Fix: a calibration round (below).
+
+### Calibration round
+
+`scripts/make_calibration.py` takes the real roster and randomises everything the formula could depend on (position, height,
+weight, all 19 ratings, and the unknown record bytes 0x4C/0x4F/0x50/0x55/0x5A/0x5C/0x5F/0x60 via the optional workbook columns
+`DunkFlag, B4F, B50, B55, B5A, B5C, B5F, B60`, which `build_roster.py` writes when present):
+
+1. `python scripts/make_calibration.py` -> `data/calibration/proa_calibration.xlsx`
+2. `python scripts/build_roster.py --proa data/calibration/proa_calibration.xlsx --out data/calibration/build --card <card>`
+   (PCSX2 closed; back up the card first; rebuild the real roster afterwards with a plain `build_roster.py --card <card>`)
+3. `python scripts/make_calibration.py --lineup` -> `data/calibration/lineup.md` and `observed.csv` (game names per team)
+4. In game, read the overall of every player; fill `overall` in `observed.csv`.
+5. `python scripts/fit_overall.py` (merges both sources; `--calibration-only` ignores the real-roster observations).
+   A different `--seed` plus an empty `observed.csv` starts a second round.
+
+The fit reports whether the extra bytes / height / weight matter. Tested on synthetic observations generated from a hidden
+per-position formula: weights recovered to within 0.01.

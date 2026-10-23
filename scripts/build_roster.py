@@ -26,7 +26,7 @@ import openpyxl
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
+from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, EXTRA_BYTE_COLS, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 
@@ -230,6 +230,9 @@ def write_record_fields(buf, off, p):
     for o, v in NEUTRAL_BYTES.items():
         buf[off + o] = v
     buf[off + DUNK_FLAG] = dunk_flag(p["attrs"]["Dunk"])
+    for col, o in EXTRA_BYTE_COLS.items():
+        if isinstance(row.get(col), (int, float)):
+            buf[off + o] = int(max(0, min(99, row[col])))
 
 
 def order_roster(players):

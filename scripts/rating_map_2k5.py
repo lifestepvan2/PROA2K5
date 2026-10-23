@@ -14,6 +14,8 @@ ATTR_OFFSETS = {
 # bytes whose meaning is unknown; neutral values (modal NBA value) so NBA star traits do not leak
 NEUTRAL_BYTES = {0x4F: 50, 0x50: 70, 0x55: 50, 0x5A: 0, 0x5C: 60, 0x5F: 75, 0x60: 75}
 DUNK_FLAG = 0x4C  # tiers 0/50/99, correlates with dunking (r=0.69)
+# optional workbook columns that override the neutral/derived bytes (used by the calibration roster, see make_calibration.py)
+EXTRA_BYTE_COLS = {"DunkFlag": DUNK_FLAG, "B4F": 0x4F, "B50": 0x50, "B55": 0x55, "B5A": 0x5A, "B5C": 0x5C, "B5F": 0x5F, "B60": 0x60}
 ATTR_MIN, ATTR_MAX = 25, 99
 BLANK_DEFAULT = 60  # used for an empty cell
 

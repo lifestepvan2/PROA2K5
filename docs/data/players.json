@@ -1,0 +1,2712 @@
+{
+  "source": "proa_scraped.xlsx",
+  "sheet": "Dragons",
+  "generated_at": "2026-10-23T12:12:38+02:00",
+  "count": 15,
+  "columns": [
+    "First Name",
+    "Last Name",
+    "Position",
+    "Secondary Position",
+    "Jersey Number",
+    "Birth Year",
+    "Birth Month",
+    "Birth Day",
+    "Years Pro",
+    "Height",
+    "Weight",
+    "Close Shot",
+    "Midrange Shot",
+    "3pt Shot",
+    "Free Throws",
+    "Layup",
+    "Dunk",
+    "Ball Handling",
+    "Passing",
+    "Post Offense",
+    "Post Defense",
+    "Block",
+    "Steal",
+    "Offensive Rebound",
+    "Defensive Rebound",
+    "Speed",
+    "Stamina",
+    "Durability",
+    "Defensive Awareness",
+    "Offensive Awareness",
+    "Headshot ID",
+    "ProA ID"
+  ],
+  "players": [
+    {
+      "id": "0",
+      "name": "Naz",
+      "team": null,
+      "position": "PF",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Naz",
+        "Last Name": "Bohannon",
+        "Position": "PF",
+        "Secondary Position": "N/A",
+        "Jersey Number": 32,
+        "Birth Year": 1999,
+        "Birth Month": 1,
+        "Birth Day": 22,
+        "Height": 1.98,
+        "Weight": 103,
+        "Close Shot": 75,
+        "Midrange Shot": 67,
+        "3pt Shot": 63,
+        "Free Throws": 60,
+        "Layup": 72,
+        "Dunk": 72,
+        "Ball Handling": 60,
+        "Passing": 60,
+        "Post Offense": 71,
+        "Post Defense": 76,
+        "Block": 70,
+        "Steal": 60,
+        "Offensive Rebound": 78,
+        "Defensive Rebound": 76,
+        "Speed": 64,
+        "Stamina": 77,
+        "Durability": 77,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 67,
+        "Headshot ID": 9190,
+        "ProA ID": 2005105
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 32,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 1999,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 1,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 22,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.98,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 103,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 75,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 67,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 63,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 72,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 72,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 71,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 76,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 70,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 60,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 78,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 76,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 64,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 67,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9190,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2005105,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "name": "Jonathan",
+      "team": null,
+      "position": "SG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Jonathan",
+        "Last Name": "Klussmann",
+        "Position": "SG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 71,
+        "Birth Year": 2002,
+        "Birth Month": 10,
+        "Birth Day": 6,
+        "Height": 1.9,
+        "Weight": 88,
+        "Close Shot": 74,
+        "Midrange Shot": 77,
+        "3pt Shot": 79,
+        "Free Throws": 82,
+        "Layup": 81,
+        "Dunk": 61,
+        "Ball Handling": 74,
+        "Passing": 67,
+        "Post Offense": 53,
+        "Post Defense": 51,
+        "Block": 51,
+        "Steal": 72,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 55,
+        "Speed": 82,
+        "Stamina": 77,
+        "Durability": 71,
+        "Defensive Awareness": 69,
+        "Offensive Awareness": 70,
+        "Headshot ID": 9134,
+        "ProA ID": 2004392
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 71,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2002,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 10,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 6,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 88,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 74,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 77,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 82,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 81,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 61,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 74,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 67,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 53,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 72,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 55,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 82,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 71,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 69,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 70,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9134,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004392,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Buzz",
+      "team": null,
+      "position": "PG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Buzz",
+        "Last Name": "Anthony",
+        "Position": "PG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 9,
+        "Birth Year": 1998,
+        "Birth Month": 9,
+        "Birth Day": 4,
+        "Height": 1.8,
+        "Weight": 83,
+        "Close Shot": 77,
+        "Midrange Shot": 79,
+        "3pt Shot": 86,
+        "Free Throws": 60,
+        "Layup": 89,
+        "Dunk": 60,
+        "Ball Handling": 94,
+        "Passing": 91,
+        "Post Offense": 54,
+        "Post Defense": 50,
+        "Block": 50,
+        "Steal": 86,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 50,
+        "Speed": 88,
+        "Stamina": 77,
+        "Durability": 72,
+        "Defensive Awareness": 69,
+        "Offensive Awareness": 74,
+        "Headshot ID": 5052,
+        "ProA ID": 2000116
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 1998,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 4,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.8,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 83,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 77,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 86,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 89,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 60,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 94,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 91,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 54,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 86,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 88,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 69,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 74,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 5052,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2000116,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "Elijah",
+      "team": null,
+      "position": "SF",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Elijah",
+        "Last Name": "Ndi",
+        "Position": "SF",
+        "Secondary Position": "N/A",
+        "Jersey Number": 12,
+        "Birth Year": 2004,
+        "Birth Month": 9,
+        "Birth Day": 2,
+        "Height": 1.95,
+        "Weight": 92,
+        "Close Shot": 73,
+        "Midrange Shot": 73,
+        "3pt Shot": 66,
+        "Free Throws": 60,
+        "Layup": 77,
+        "Dunk": 67,
+        "Ball Handling": 70,
+        "Passing": 64,
+        "Post Offense": 55,
+        "Post Defense": 65,
+        "Block": 60,
+        "Steal": 67,
+        "Offensive Rebound": 62,
+        "Defensive Rebound": 62,
+        "Speed": 75,
+        "Stamina": 76,
+        "Durability": 72,
+        "Defensive Awareness": 69,
+        "Offensive Awareness": 71,
+        "Headshot ID": 5536,
+        "ProA ID": 2001880
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 12,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2004,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 2,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.95,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 92,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 73,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 73,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 66,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 77,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 67,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 70,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 64,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 55,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 60,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 67,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 62,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 62,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 75,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 76,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 69,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 71,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 5536,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2001880,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Dominik",
+      "team": null,
+      "position": "PG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Dominik",
+        "Last Name": "Dolic",
+        "Position": "PG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 3,
+        "Birth Year": 2006,
+        "Birth Month": 10,
+        "Birth Day": 30,
+        "Height": 1.94,
+        "Weight": 87,
+        "Close Shot": 74,
+        "Midrange Shot": 79,
+        "3pt Shot": 86,
+        "Free Throws": 60,
+        "Layup": 82,
+        "Dunk": 62,
+        "Ball Handling": 84,
+        "Passing": 80,
+        "Post Offense": 53,
+        "Post Defense": 50,
+        "Block": 50,
+        "Steal": 82,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 50,
+        "Speed": 86,
+        "Stamina": 77,
+        "Durability": 72,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 68,
+        "Headshot ID": 5535,
+        "ProA ID": 2001879
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 3,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2006,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 10,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 30,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.94,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 87,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 74,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 86,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 82,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 62,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 84,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 80,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 53,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 82,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 86,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 68,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 5535,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2001879,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Ralph",
+      "team": null,
+      "position": "PG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Ralph",
+        "Last Name": "Hounnou",
+        "Position": "PG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 55,
+        "Birth Year": 2002,
+        "Birth Month": 1,
+        "Birth Day": 16,
+        "Height": 1.92,
+        "Weight": 87,
+        "Close Shot": 84,
+        "Midrange Shot": 79,
+        "3pt Shot": 86,
+        "Free Throws": 60,
+        "Layup": 95,
+        "Dunk": 60,
+        "Ball Handling": 86,
+        "Passing": 82,
+        "Post Offense": 56,
+        "Post Defense": 50,
+        "Block": 50,
+        "Steal": 82,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 50,
+        "Speed": 84,
+        "Stamina": 77,
+        "Durability": 72,
+        "Defensive Awareness": 69,
+        "Offensive Awareness": 74,
+        "Headshot ID": 9014,
+        "ProA ID": 1400019
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 55,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2002,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 1,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 16,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.92,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 87,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 84,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 86,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 95,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 60,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 86,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 82,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 56,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 82,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 84,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 69,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 74,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9014,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 1400019,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Jamal",
+      "team": null,
+      "position": "PF",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Jamal",
+        "Last Name": "Fuller",
+        "Position": "PF",
+        "Secondary Position": "N/A",
+        "Jersey Number": 33,
+        "Birth Year": 2001,
+        "Birth Month": 9,
+        "Birth Day": 21,
+        "Height": 1.95,
+        "Weight": 110,
+        "Close Shot": 85,
+        "Midrange Shot": 67,
+        "3pt Shot": 63,
+        "Free Throws": 60,
+        "Layup": 82,
+        "Dunk": 72,
+        "Ball Handling": 60,
+        "Passing": 60,
+        "Post Offense": 75,
+        "Post Defense": 79,
+        "Block": 70,
+        "Steal": 60,
+        "Offensive Rebound": 78,
+        "Defensive Rebound": 76,
+        "Speed": 62,
+        "Stamina": 77,
+        "Durability": 77,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 66,
+        "Headshot ID": 9140,
+        "ProA ID": 2004440
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 33,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2001,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 21,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.95,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 110,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 85,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 67,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 63,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 82,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 72,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 75,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 79,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 70,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 60,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 78,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 76,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 62,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 66,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9140,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004440,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "name": "Danas",
+      "team": null,
+      "position": "C",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Danas",
+        "Last Name": "Kazakevicius",
+        "Position": "C",
+        "Secondary Position": "N/A",
+        "Jersey Number": 10,
+        "Birth Year": 2005,
+        "Birth Month": 5,
+        "Birth Day": 23,
+        "Height": 2.06,
+        "Weight": 102,
+        "Close Shot": 79,
+        "Midrange Shot": 62,
+        "3pt Shot": 50,
+        "Free Throws": 60,
+        "Layup": 70,
+        "Dunk": 79,
+        "Ball Handling": 50,
+        "Passing": 52,
+        "Post Offense": 74,
+        "Post Defense": 83,
+        "Block": 82,
+        "Steal": 55,
+        "Offensive Rebound": 80,
+        "Defensive Rebound": 83,
+        "Speed": 56,
+        "Stamina": 79,
+        "Durability": 78,
+        "Defensive Awareness": 58,
+        "Offensive Awareness": 60,
+        "Headshot ID": 9198,
+        "ProA ID": 2005245
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 10,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2005,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 5,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 23,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 2.06,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 102,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 62,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 50,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 70,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 79,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 50,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 52,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 74,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 83,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 82,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 55,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 80,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 83,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 56,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 79,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 78,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 58,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9198,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2005245,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "name": "Grant",
+      "team": null,
+      "position": "SG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Grant",
+        "Last Name": "Teichmann",
+        "Position": "SG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 6,
+        "Birth Year": 1996,
+        "Birth Month": 8,
+        "Birth Day": 6,
+        "Height": 1.91,
+        "Weight": 90,
+        "Close Shot": 72,
+        "Midrange Shot": 75,
+        "3pt Shot": 77,
+        "Free Throws": 85,
+        "Layup": 79,
+        "Dunk": 60,
+        "Ball Handling": 77,
+        "Passing": 68,
+        "Post Offense": 52,
+        "Post Defense": 51,
+        "Block": 51,
+        "Steal": 79,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 55,
+        "Speed": 79,
+        "Stamina": 74,
+        "Durability": 71,
+        "Defensive Awareness": 75,
+        "Offensive Awareness": 76,
+        "Headshot ID": 9135,
+        "ProA ID": 2004414
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 6,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 1996,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 8,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 6,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.91,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 90,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 72,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 75,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 77,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 85,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 79,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 60,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 77,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 68,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 52,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 79,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 55,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 79,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 74,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 71,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 75,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 76,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9135,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004414,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "name": "Dejan",
+      "team": null,
+      "position": "PF",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Dejan",
+        "Last Name": "Bruce",
+        "Position": "PF",
+        "Secondary Position": "N/A",
+        "Jersey Number": 7,
+        "Birth Year": 2002,
+        "Birth Month": 9,
+        "Birth Day": 2,
+        "Height": 2.07,
+        "Weight": 96,
+        "Close Shot": 75,
+        "Midrange Shot": 67,
+        "3pt Shot": 80,
+        "Free Throws": 60,
+        "Layup": 72,
+        "Dunk": 74,
+        "Ball Handling": 58,
+        "Passing": 60,
+        "Post Offense": 71,
+        "Post Defense": 90,
+        "Block": 85,
+        "Steal": 60,
+        "Offensive Rebound": 78,
+        "Defensive Rebound": 79,
+        "Speed": 62,
+        "Stamina": 77,
+        "Durability": 77,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 67,
+        "Headshot ID": 5161,
+        "ProA ID": 2001690
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 7,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2002,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 2,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 2.07,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 96,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 75,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 67,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 80,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 72,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 74,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 58,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 71,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 90,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 85,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 60,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 78,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 79,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 62,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 67,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 5161,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2001690,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "name": "Emanuel",
+      "team": null,
+      "position": "C",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Emanuel",
+        "Last Name": "Ozike",
+        "Position": "C",
+        "Secondary Position": "N/A",
+        "Jersey Number": 21,
+        "Birth Year": 2002,
+        "Birth Month": 11,
+        "Birth Day": 22,
+        "Height": 2.04,
+        "Weight": 99,
+        "Close Shot": 79,
+        "Midrange Shot": 62,
+        "3pt Shot": 50,
+        "Free Throws": 60,
+        "Layup": 70,
+        "Dunk": 77,
+        "Ball Handling": 50,
+        "Passing": 53,
+        "Post Offense": 74,
+        "Post Defense": 81,
+        "Block": 79,
+        "Steal": 55,
+        "Offensive Rebound": 80,
+        "Defensive Rebound": 80,
+        "Speed": 52,
+        "Stamina": 79,
+        "Durability": 78,
+        "Defensive Awareness": 62,
+        "Offensive Awareness": 66,
+        "Headshot ID": 9139,
+        "ProA ID": 2004438
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 21,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2002,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 11,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 22,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 2.04,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 99,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 79,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 62,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 50,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 70,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 77,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 50,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 53,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 74,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 81,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 79,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 55,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 80,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 80,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 52,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 79,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 78,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 62,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 66,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9139,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004438,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "name": "Eliah",
+      "team": null,
+      "position": "C",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Eliah",
+        "Last Name": "Braun",
+        "Position": "C",
+        "Secondary Position": "N/A",
+        "Jersey Number": 13,
+        "Birth Year": 2007,
+        "Birth Month": 12,
+        "Birth Day": 12,
+        "Height": 2.08,
+        "Weight": 111,
+        "Close Shot": 89,
+        "Midrange Shot": 62,
+        "3pt Shot": 50,
+        "Free Throws": 60,
+        "Layup": 80,
+        "Dunk": 79,
+        "Ball Handling": 50,
+        "Passing": 52,
+        "Post Offense": 77,
+        "Post Defense": 86,
+        "Block": 82,
+        "Steal": 55,
+        "Offensive Rebound": 80,
+        "Defensive Rebound": 83,
+        "Speed": 54,
+        "Stamina": 79,
+        "Durability": 78,
+        "Defensive Awareness": 58,
+        "Offensive Awareness": 60,
+        "Headshot ID": 9161,
+        "ProA ID": 2004622
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 13,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2007,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 12,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 12,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 2.08,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 111,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 89,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 62,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 50,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 80,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 79,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 50,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 52,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 77,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 86,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 82,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 55,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 80,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 83,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 54,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 79,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 78,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 58,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 60,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9161,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004622,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "name": "Epke",
+      "team": null,
+      "position": "PG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Epke",
+        "Last Name": "Kruthaup",
+        "Position": "PG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 2,
+        "Birth Year": 2008,
+        "Birth Month": 9,
+        "Birth Day": 7,
+        "Height": 1.85,
+        "Weight": 75,
+        "Close Shot": 70,
+        "Midrange Shot": 75,
+        "3pt Shot": 70,
+        "Free Throws": 60,
+        "Layup": 81,
+        "Dunk": 60,
+        "Ball Handling": 86,
+        "Passing": 80,
+        "Post Offense": 50,
+        "Post Defense": 50,
+        "Block": 50,
+        "Steal": 82,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 50,
+        "Speed": 90,
+        "Stamina": 77,
+        "Durability": 72,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 65,
+        "Headshot ID": 9433,
+        "ProA ID": 2003111
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 2,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2008,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 7,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.85,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 75,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 70,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 75,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 70,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 60,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 81,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 60,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 86,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 80,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 50,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 50,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 82,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 90,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 65,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9433,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2003111,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Djairo",
+      "team": null,
+      "position": "SG",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Djairo",
+        "Last Name": "Bernardina",
+        "Position": "SG",
+        "Secondary Position": "N/A",
+        "Jersey Number": 5,
+        "Birth Year": 2007,
+        "Birth Month": 6,
+        "Birth Day": 12,
+        "Height": 1.86,
+        "Weight": 82,
+        "Close Shot": 72,
+        "Midrange Shot": 75,
+        "3pt Shot": 77,
+        "Free Throws": 77,
+        "Layup": 79,
+        "Dunk": 63,
+        "Ball Handling": 77,
+        "Passing": 65,
+        "Post Offense": 52,
+        "Post Defense": 51,
+        "Block": 51,
+        "Steal": 72,
+        "Offensive Rebound": 50,
+        "Defensive Rebound": 55,
+        "Speed": 88,
+        "Stamina": 77,
+        "Durability": 71,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 65,
+        "Headshot ID": 5560,
+        "ProA ID": 2002110
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 5,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2007,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 6,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 12,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.86,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 82,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 72,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 75,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 77,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 77,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 79,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 63,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 77,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 65,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 52,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 51,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 72,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 50,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 55,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 88,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 77,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 71,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 65,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 5560,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2002110,
+          "category": "Other Attributes"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Moritz",
+      "team": null,
+      "position": "SF",
+      "overall": null,
+      "potential": null,
+      "fields": {
+        "First Name": "Moritz",
+        "Last Name": "Grüß",
+        "Position": "SF",
+        "Secondary Position": "N/A",
+        "Jersey Number": 8,
+        "Birth Year": 2008,
+        "Birth Month": 9,
+        "Birth Day": 30,
+        "Height": 1.96,
+        "Weight": 92,
+        "Close Shot": 73,
+        "Midrange Shot": 73,
+        "3pt Shot": 66,
+        "Free Throws": 73,
+        "Layup": 77,
+        "Dunk": 69,
+        "Ball Handling": 70,
+        "Passing": 62,
+        "Post Offense": 55,
+        "Post Defense": 65,
+        "Block": 60,
+        "Steal": 67,
+        "Offensive Rebound": 62,
+        "Defensive Rebound": 62,
+        "Speed": 79,
+        "Stamina": 76,
+        "Durability": 72,
+        "Defensive Awareness": 65,
+        "Offensive Awareness": 65,
+        "Headshot ID": 9158,
+        "ProA ID": 2004604
+      },
+      "attributes": [
+        {
+          "name": "Jersey Number",
+          "value": 8,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Year",
+          "value": 2008,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Month",
+          "value": 9,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Birth Day",
+          "value": 30,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Height",
+          "value": 1.96,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Weight",
+          "value": 92,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "Close Shot",
+          "value": 73,
+          "category": "Shooting"
+        },
+        {
+          "name": "Midrange Shot",
+          "value": 73,
+          "category": "Shooting"
+        },
+        {
+          "name": "3pt Shot",
+          "value": 66,
+          "category": "Shooting"
+        },
+        {
+          "name": "Free Throws",
+          "value": 73,
+          "category": "Shooting"
+        },
+        {
+          "name": "Layup",
+          "value": 77,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Dunk",
+          "value": 69,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Ball Handling",
+          "value": 70,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Passing",
+          "value": 62,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Post Offense",
+          "value": 55,
+          "category": "Inside Scoring"
+        },
+        {
+          "name": "Post Defense",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Block",
+          "value": 60,
+          "category": "Defense"
+        },
+        {
+          "name": "Steal",
+          "value": 67,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Rebound",
+          "value": 62,
+          "category": "Rebound"
+        },
+        {
+          "name": "Defensive Rebound",
+          "value": 62,
+          "category": "Rebound"
+        },
+        {
+          "name": "Speed",
+          "value": 79,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Stamina",
+          "value": 76,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Durability",
+          "value": 72,
+          "category": "Athleticism"
+        },
+        {
+          "name": "Defensive Awareness",
+          "value": 65,
+          "category": "Defense"
+        },
+        {
+          "name": "Offensive Awareness",
+          "value": 65,
+          "category": "Playmaking"
+        },
+        {
+          "name": "Headshot ID",
+          "value": 9158,
+          "category": "Other Attributes"
+        },
+        {
+          "name": "ProA ID",
+          "value": 2004604,
+          "category": "Other Attributes"
+        }
+      ]
+    }
+  ]
+}
