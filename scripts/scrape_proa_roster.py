@@ -20,9 +20,11 @@ Options
                     10 games (season_stats.py)
     --top INT       Max players per team written to Excel (default: 15)
     --teams-only    Print discovered team IDs and exit
+    --stats-json-only
+                    Rebuild data/proa_stats.json (pooled stats for the GitHub Pages site) from the cache and exit
 
 Cache location : cache/proa_{season}/   (HTML + parsed JSON)
-Output default : proa_scraped.xlsx  in project root
+Output default : proa_scraped.xlsx  in project root; data/proa_stats.json is written on every run
 """
 
 from __future__ import annotations
@@ -671,6 +673,30 @@ def write_excel(
     print(f"{'='*60}\n")
 
 
+STATS_JSON_PATH = PROJECT_ROOT / "data" / "proa_stats.json"
+STATS_FIELDS = ["games", "minutes_avg_str", "points_avg", "rebounds_avg", "rebounds_off_avg", "rebounds_def_avg",
+                "assists_avg", "steals_avg", "blocks_avg", "turnovers_avg", "fg_pct", "fg3_pct", "ft_pct"]
+
+
+def write_stats_json(rosters: dict[int, list[dict]], season: str, path: Path = STATS_JSON_PATH) -> None:
+    """Pooled stats per ProA ID plus the team id / name per sheet, for the GitHub Pages site (scripts/build_site.py).
+    Committed, because the scrape cache is not."""
+    teams = {sheet[:31]: {"id": tid, "name": name} for tid, (name, sheet) in TEAM_MAP.items() if tid in rosters}
+    players = {}
+    for plist in rosters.values():
+        for p in plist:
+            if p.get("proa_id") is None:
+                continue
+            players[str(p["proa_id"])] = {
+                **{k: p.get(k) for k in STATS_FIELDS},
+                "seasons_used": p.get("seasons_used", []),
+            }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"season": season, "teams": teams, "players": players},
+                               ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"Stats for the site -> {path} ({len(players)} players)")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -701,6 +727,8 @@ def main() -> None:
                     help="Discover team IDs and exit without scraping rosters")
     ap.add_argument("--no-portraits", action="store_true",
                     help="Skip portrait downloading (headshot IDs still assigned if map exists)")
+    ap.add_argument("--stats-json-only", action="store_true",
+                    help="Rebuild data/proa_stats.json from the cache and exit (leaves the workbook untouched)")
     args = ap.parse_args()
 
     print(f"\nProA Roster Scraper")
@@ -726,6 +754,9 @@ def main() -> None:
     rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats, history=args.history_seasons)
     if not rosters:
         sys.exit("ERROR: No roster data collected.")
+    write_stats_json(rosters, args.season)
+    if args.stats_json_only:
+        return
 
     # Gather all unique player IDs and assign/maintain stable headshot IDs.
     all_proa_ids = [

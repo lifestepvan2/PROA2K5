@@ -16,6 +16,7 @@ docs/_*.log
 texture_workspace/
 docs/_tmp/
 cache/
+site/
 data/face_match/faces/
 data/face_match/*.npz
 data/uniform_lods/.~lock*

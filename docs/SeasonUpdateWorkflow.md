@@ -17,6 +17,21 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
 
+## Ratings website (GitHub Pages)
+
+`.github/workflows/pages.yml` rebuilds and deploys a static site (`site_src/` frontend, built by `scripts/build_site.py`) on every
+push to `main` that touches `proa_scraped.xlsx`, `data/proa_stats.json`, `data/overall_model.json`, `assets/PS_out/**`, `site_src/**`
+or the build scripts. Nothing is committed back; the site is a deploy artifact.
+
+- Ratings and bio come from `proa_scraped.xlsx` (edit there, commit, push). Overall is computed by `overall_model.py` (same model
+  as the workbook's formula column). Stats come from `data/proa_stats.json`, which every scraper run writes
+  (`scrape_proa_roster.py --stats-json-only` rebuilds it from the cache without touching the workbook). Team badges are linked live from
+  `api.2basketballbundesliga.de/pics2/<season>/lp/<team id>`; portraits are resized from `assets/PS_out/`.
+- Local preview: `python scripts/build_site.py --check`, then `python -m http.server -d site`.
+- One-time setup: repository Settings -> Pages -> Source = GitHub Actions.
+
+## Pipeline notes
+
 `skin_brighten.py scan` / `embed` are one-off setup steps (rerun only after new face dumps).
 
 Afterwards: review `docs/_face_sheets/` (edit `override_pid` in `proa_pid_map.csv` and re-run steps 6-7 for corrections), then
