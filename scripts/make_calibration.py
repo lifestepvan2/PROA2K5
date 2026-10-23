@@ -39,8 +39,13 @@ def make(a):
     wb = openpyxl.load_workbook(a.source)
     CAL.mkdir(parents=True, exist_ok=True)
     n = 0
+    for name in [s for s in wb.sheetnames if s.startswith("_")]:  # helper sheets (_Overall_Model)
+        del wb[name]
     for ws in wb:
         hdr = [c.value for c in ws[1]]
+        if "Overall" in hdr:  # the live formula would describe the old ratings
+            ws.delete_cols(hdr.index("Overall") + 1)
+            hdr = [c.value for c in ws[1]]
         col = {h: i + 1 for i, h in enumerate(hdr) if h}
         for k, name in enumerate(EXTRA_COLS):
             col.setdefault(name, len(hdr) + 1 + k)

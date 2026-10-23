@@ -88,6 +88,12 @@ The overall shown in game is computed at runtime from the 19 ratings and the pri
 (`scripts/overall_model.py: predict_overall`). `build_roster.py` uses it for the `ovr` column of `player_map.csv`,
 starter selection and the fame byte.
 
+`proa_scraped.xlsx` shows the prediction as a live **Overall** column (last column of every team sheet, an Excel formula, so
+manual edits of ratings or the position recompute immediately). The weights live on the `_Overall_Model` sheet, generated
+from `data/overall_model.json` by `scripts/overall_sheet.py`; `fit_overall.py` and the scraper call it, or run
+`python scripts/overall_sheet.py` by hand. Do not edit the weights on that sheet - refit instead. Helper sheets starting with
+`_` are ignored by `build_roster.py`. The column is for display; `build_roster.py` computes the same value itself.
+
 Re-fit after adding observations (no other input needed):
 
 1. In game, read the overall of players and put it in the `Overall` column of the team sheets in `overall_ratings.xlsx`

@@ -728,6 +728,8 @@ def write_excel(
                     if len(players) > max_players else ""
         print(f"  Sheet '{sheet_name}': {len(top)} player(s) written{truncated}")
 
+    from overall_sheet import add_overall
+    add_overall(wb)  # live Overall formula column + weights sheet
     wb.save(output_path)
     print(f"\n{'='*60}")
     print(f"Wrote {total_players} player rows across {len(rosters)} team sheet(s)")

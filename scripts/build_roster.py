@@ -180,6 +180,8 @@ def load_proa(path):
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     teams = {}
     for name in wb.sheetnames:
+        if name.startswith("_"):  # helper sheets such as _Overall_Model
+            continue
         rows = list(wb[name].iter_rows(values_only=True))
         hdr, rows = rows[0], rows[1:]
         players = []

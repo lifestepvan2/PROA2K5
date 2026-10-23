@@ -59,6 +59,7 @@ def main():
     ap.add_argument("--calibration", default=str(CALIBRATION), help="folder with observed.csv + proa_calibration.xlsx")
     ap.add_argument("--calibration-only", action="store_true", help="ignore overall_ratings.xlsx (real-roster observations)")
     ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--no-xlsx", action="store_true", help="do not refresh the Overall formula column in proa_scraped.xlsx")
     a = ap.parse_args()
 
     ds = ([] if a.calibration_only else dataset(a.displayed, a.players)) + calibration_dataset(a.calibration)
@@ -138,6 +139,17 @@ def main():
     for r_, d in worst:
         print(f"  {d['name']:28s} {d['pos']:2s} shown {d['ovr']}  {r_:+.1f}  [{d['source']}]")
     print(f"\nwrote {a.out}")
+    if Path(a.out) == OUT and not a.no_xlsx:
+        import openpyxl
+        from overall_sheet import add_overall
+        xlsx = ROOT / "proa_scraped.xlsx"
+        try:
+            wb = openpyxl.load_workbook(xlsx)
+            n = add_overall(wb, model)
+            wb.save(xlsx)
+            print(f"updated the Overall formula column in {xlsx.name} ({n} players)")
+        except PermissionError:
+            print(f"{xlsx.name} is open elsewhere - close it and run: python scripts/overall_sheet.py")
 
 
 if __name__ == "__main__":
