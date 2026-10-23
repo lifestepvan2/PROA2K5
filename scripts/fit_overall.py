@@ -92,7 +92,13 @@ def main():
     print(f"chosen: extra bytes {use_extras}, height/weight {use_hw}, deviation scale {s}, ridge {lam}: LOO rmse {rmse:.3f}, max {mx:.2f}")
 
     F = design(Xc, P, Ec, Hz, s, use_extras, use_hw)
-    coef = ridge_matrix(F, lam, n_pen) @ (F.T @ y)
+    M = ridge_matrix(F, lam, n_pen)
+    e = (y - F @ (M @ (F.T @ y))) / (1 - np.einsum("ij,jk,ik->i", F, M, F))
+    for name in ("observed", "calibration"):
+        sel = np.array([r["source"] == name for r in ds])
+        if sel.any():
+            print(f"  LOO on {name} rows: rmse {np.sqrt((e[sel] ** 2).mean()):.3f}, max {np.abs(e[sel]).max():.2f} ({int(sel.sum())} rows)")
+    coef =  ridge_matrix(F, lam, n_pen) @ (F.T @ y)
     shared = coef[:na]
     j = n_pen + len(POS)
     model = {"attributes": ATTRS, "positions": {}, "loo_rmse": round(rmse, 3), "n": int(len(y))}

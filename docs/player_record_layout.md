@@ -120,3 +120,20 @@ weight, all 19 ratings, and the unknown record bytes 0x4C/0x4F/0x50/0x55/0x5A/0x
 
 The fit reports whether the extra bytes / height / weight matter. Tested on synthetic observations generated from a hidden
 per-position formula: weights recovered to within 0.01.
+
+#### Round 1 results (101 random players, 8 teams, `observed.csv`; transcribed screenshot in `screenshot_round1.csv`)
+
+- In-game positions matched the workbook for all 101 players.
+- A single shared weight vector fails (in-sample rmse 3.1); position-specific weights are needed.
+- Height and weight: no effect. Durability, Stamina: about zero weight.
+- Three record bytes matter: **B4F, B50, B55** (about +0.06..0.07 overall per point each; range 50..99 gives about 3 points).
+  Leave-one-out error drops from 2.7 to 1.4 when they are included. DunkFlag, B5A, B5C, B5F, B60 carry no weight.
+  Real players get these bytes from `default_extras` (derived from their ratings), so they are consistent for ProA players.
+- Midrange Shot has the largest weight at every position; Post Defense and Defensive Rebound dominate the C and PF
+  weights; Passing, Ball Handling and Steal dominate the PG weights. Weight sums are 1.2 to 1.4 (the overall is spread
+  wider than the mean of the ratings).
+- Merged model (211 observations): leave-one-out rmse 1.39 overall, **0.65 on the real-roster rows**, 1.9 on the
+  calibration rows (random ratings lie far outside the realistic range). In-sample 151/211 exact after rounding, 208/211
+  within 1. Largest residual: Johannes Patrick (72 shown, 4 points above the prediction; probable misread).
+- With about 20 observations per position and 27 parameters, individual weights remain only loosely identified.
+  A second round (`make_calibration.py --seed N`) would tighten them.

@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `545ecca0`
+- payload: 725056 bytes, CRC32 `fb782b98`
 - teams: 18, players: 249
 - string pool: free before 4000 B, freed 12204 B, free after 4524 B
 - records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: 12
@@ -22,8 +22,8 @@
 - Essen: 'Niclas Jonathan Sperber' -> 'Niclas Sperber' (first-trunc)
 - LIONS: 'Maurice Marko Pluskota' -> 'Maurice Pluskota' (first-trunc)
 - LIONS: 'Isaiah Rayshaud Hart' -> 'Isaiah Hart' (first-trunc)
-- Koln: 'James Patterson III' -> 'James Patterson' (last-shortened)
 - Koln: 'Cedric Cezell Russell Jr' -> 'Cedric Russell Jr' (first-trunc)
+- Koln: 'James Patterson III' -> 'James Patterson' (last-shortened)
 - Koln: 'Antonio Deshon Williams' -> 'Antonio Williams' (first-trunc)
 - Koln: 'Ferdinand Justus Trefzger' -> 'Ferdinand Trefzger' (first-trunc)
 - Koln: 'Konstantin Matthias Lehmann' -> 'Konstantin Lehmann' (first-trunc)

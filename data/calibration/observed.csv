@@ -44,113 +44,113 @@ proa_id,team,slot,name,overall
 1400014,Bayreuth,12,Nic McClain,
 2003855,Bayreuth,13,Matt Frierson,
 2003858,Bayreuth,14,Emanuel Prospere II,
-2000797,Gottingen,0,Emil Bode,
-2003184,Gottingen,1,Radvilas Kneizys,
-2003902,Gottingen,2,Tai Bibbs,
-2001541,Gottingen,3,Robin Lodders,
-2003185,Gottingen,4,Omar Pajic,
-2001992,Gottingen,5,Nils Owen Schmitz,
-2003183,Gottingen,6,Zachary Watson,
-56406,Gottingen,7,Mathis Monninghoff,
-2000803,Gottingen,8,Gaston Nguyen,
-2001580,Gottingen,9,Zach Jackson,
-2001540,Gottingen,10,Daniel Kirchner,
-2004011,Knights Kirchheim,0,Alexander Stief,
-2004032,Knights Kirchheim,1,Fabian John,
-2002089,Knights Kirchheim,2,Nicolas Bretzel,
-2004073,Knights Kirchheim,3,Adrian Worthy,
-1400009,Knights Kirchheim,4,Johannes Patrick,
-2004012,Knights Kirchheim,5,Paul Viefhues,
-1400011,Knights Kirchheim,6,Desmond Watson,
-2005083,Knights Kirchheim,7,Christoph Philipps,
-2004009,Knights Kirchheim,8,Philip Alston,
-2004013,Knights Kirchheim,9,Julius Wolf,
-2004015,Knights Kirchheim,10,Lukas Zerner,
-2004045,Knights Kirchheim,11,Moritz Lemke,
-2001727,Knights Kirchheim,12,Tyrel Morgan,
-2004723,Knights Kirchheim,13,Corey Hines Jr,
-2000305,Bremerhaven,0,Jordan Samare,
-2003165,Bremerhaven,1,Garai Zeeb,
-2002027,Bremerhaven,2,Anton Meyer,
-2004268,Bremerhaven,3,Sami Jahan,
-2003110,Bremerhaven,4,Lukas Stelmokas,
-2000309,Bremerhaven,5,Hendrik Warner,
-2004159,Bremerhaven,6,Tyreese Blunt,
-2004161,Bremerhaven,7,Dominic Parolin,
-2004162,Bremerhaven,8,Jeremiah Oden,
-2000514,Bremerhaven,9,Carlos Carter,
-2002073,Bremerhaven,10,Benjamin Zintz,
-2004975,Bremerhaven,11,Corey McKeithan,
-2003164,Bremerhaven,12,Vincent Friederici,
-2004160,Bremerhaven,13,Nolan Hodge,
-2004971,Bremerhaven,14,Alen Blakaj,
-2003933,Koblenz,0,Dragos-Andre Diculescu,
-2001764,Koblenz,1,Jannis Sonnefeld,
-2003970,Koblenz,2,Jayden Williams,
-2001758,Koblenz,3,Badu Buck,
-2003985,Koblenz,4,Chase Johnson,
-2001760,Koblenz,5,Jonas Niedermanner,
-2001840,Koblenz,6,David Lars Gaspers,
-1400008,Koblenz,7,Tyren Moore,
-2003934,Koblenz,8,Ferenc Gille,
-2001759,Koblenz,9,Alexander Moller,
-2003969,Koblenz,10,Mason Kraus,
-2003988,Koblenz,11,Camaron Tongue,
+2000797,Gottingen,0,Emil Bode,68
+2003184,Gottingen,1,Radvilas Kneizys,78
+2003902,Gottingen,2,Tai Bibbs,80
+2001541,Gottingen,3,Robin Lodders,68
+2003185,Gottingen,4,Omar Pajic,71
+2001992,Gottingen,5,Nils Owen Schmitz,70
+2003183,Gottingen,6,Zachary Watson,64
+56406,Gottingen,7,Mathis Monninghoff,68
+2000803,Gottingen,8,Gaston Nguyen,73
+2001580,Gottingen,9,Zach Jackson,76
+2001540,Gottingen,10,Daniel Kirchner,62
+2004011,Knights Kirchheim,0,Alexander Stief,69
+2004032,Knights Kirchheim,1,Fabian John,79
+2002089,Knights Kirchheim,2,Nicolas Bretzel,74
+2004073,Knights Kirchheim,3,Adrian Worthy,81
+1400009,Knights Kirchheim,4,Johannes Patrick,64
+2004012,Knights Kirchheim,5,Paul Viefhues,84
+1400011,Knights Kirchheim,6,Desmond Watson,76
+2005083,Knights Kirchheim,7,Christoph Philipps,79
+2004009,Knights Kirchheim,8,Philip Alston,81
+2004013,Knights Kirchheim,9,Julius Wolf,70
+2004015,Knights Kirchheim,10,Lukas Zerner,62
+2004045,Knights Kirchheim,11,Moritz Lemke,56
+2001727,Knights Kirchheim,12,Tyrel Morgan,61
+2004723,Knights Kirchheim,13,Corey Hines Jr,67
+2000305,Bremerhaven,0,Jordan Samare,78
+2003165,Bremerhaven,1,Garai Zeeb,73
+2002027,Bremerhaven,2,Anton Meyer,80
+2004268,Bremerhaven,3,Sami Jahan,70
+2003110,Bremerhaven,4,Lukas Stelmokas,67
+2000309,Bremerhaven,5,Hendrik Warner,78
+2004159,Bremerhaven,6,Tyreese Blunt,70
+2004161,Bremerhaven,7,Dominic Parolin,73
+2004162,Bremerhaven,8,Jeremiah Oden,66
+2000514,Bremerhaven,9,Carlos Carter,71
+2002073,Bremerhaven,10,Benjamin Zintz,73
+2004975,Bremerhaven,11,Corey McKeithan,69
+2003164,Bremerhaven,12,Vincent Friederici,69
+2004160,Bremerhaven,13,Nolan Hodge,65
+2004971,Bremerhaven,14,Alen Blakaj,64
+2003933,Koblenz,0,Dragos-Andre Diculescu,86
+2001764,Koblenz,1,Jannis Sonnefeld,83
+2003970,Koblenz,2,Jayden Williams,82
+2001758,Koblenz,3,Badu Buck,72
+2003985,Koblenz,4,Chase Johnson,70
+2001760,Koblenz,5,Jonas Niedermanner,83
+2001840,Koblenz,6,David Lars Gaspers,74
+1400008,Koblenz,7,Tyren Moore,80
+2003934,Koblenz,8,Ferenc Gille,73
+2001759,Koblenz,9,Alexander Moller,70
+2003969,Koblenz,10,Mason Kraus,68
+2003988,Koblenz,11,Camaron Tongue,73
 2001774,Koblenz,12,Marko Bacak,
 2002957,Koblenz,13,Omer Girgin,
-2004605,46ers,0,Milan Elias Genius,
-2003029,46ers,1,Viktor Kovacevic,
-2004463,46ers,2,Nigel Scantlebury,
-2001575,46ers,3,Daniel Norl,
-2004464,46ers,4,Alexander Williams,
-6247,46ers,5,Luis Elias Konig Figge,
-57676,46ers,6,Robin Benzing,
-2004461,46ers,7,Christopher Carter,
-2000861,46ers,8,Kai Musse,
-2004462,46ers,9,Zachery Cooks,
-2004603,46ers,10,Luca-Noel Nickel,
-2001574,46ers,11,Till Gloger,
-2004275,Crailsheim Merlins,0,Matheo Hermann,
-2003864,Crailsheim Merlins,1,Booker Coplin,
-2004363,Crailsheim Merlins,2,Phil Ikejiaku,
-2004274,Crailsheim Merlins,3,Nico Hollerl,
-2005213,Crailsheim Merlins,4,Marko Dordevic,
-2003862,Crailsheim Merlins,5,Peyton Gerald,
-2003168,Crailsheim Merlins,6,Lucas Mayer,
-2003107,Crailsheim Merlins,7,Till Isemann,
-2003169,Crailsheim Merlins,8,Hendrik Drescher,
-2004273,Crailsheim Merlins,9,Courtney Alexander,
-2001472,Crailsheim Merlins,10,Gianni Otto,
-2003170,Crailsheim Merlins,11,Simon Krajcovic,
+2004605,46ers,0,Milan Elias Genius,75
+2003029,46ers,1,Viktor Kovacevic,70
+2004463,46ers,2,Nigel Scantlebury,75
+2001575,46ers,3,Daniel Norl,71
+2004464,46ers,4,Alexander Williams,68
+6247,46ers,5,Luis Elias Konig Figge,83
+57676,46ers,6,Robin Benzing,67
+2004461,46ers,7,Christopher Carter,67
+2000861,46ers,8,Kai Musse,66
+2004462,46ers,9,Zachery Cooks,73
+2004603,46ers,10,Luca-Noel Nickel,70
+2001574,46ers,11,Till Gloger,59
+2004275,Crailsheim Merlins,0,Matheo Hermann,78
+2003864,Crailsheim Merlins,1,Booker Coplin,76
+2004363,Crailsheim Merlins,2,Phil Ikejiaku,78
+2004274,Crailsheim Merlins,3,Nico Hollerl,82
+2005213,Crailsheim Merlins,4,Marko Dordevic,78
+2003862,Crailsheim Merlins,5,Peyton Gerald,77
+2003168,Crailsheim Merlins,6,Lucas Mayer,66
+2003107,Crailsheim Merlins,7,Till Isemann,75
+2003169,Crailsheim Merlins,8,Hendrik Drescher,77
+2004273,Crailsheim Merlins,9,Courtney Alexander,63
+2001472,Crailsheim Merlins,10,Gianni Otto,68
+2003170,Crailsheim Merlins,11,Simon Krajcovic,75
 2003178,Crailsheim Merlins,12,Luc van Slooten,
 2005235,Crailsheim Merlins,13,Dylan Addae-Wusu,
-58183,Falcons,0,Tom Stoiber,
-2003104,Falcons,1,Mattis Stuben,
-2003983,Falcons,2,Daniel Helterhoff,
-2001806,Falcons,3,Nino Neubert,
-2004965,Falcons,4,Drew Stover,
-2004101,Falcons,5,Nate Heise,
-2001468,Falcons,6,Lars Lenke,
-2004606,Falcons,7,Dominick von Waaden,
-2003982,Falcons,8,Jeno Pildner,
-5469,Falcons,9,Tim Kopple,
-2004435,Falcons,10,Xavier Bell,
-5034,Falcons,11,Christian Feneberg,
-2004046,Falcons,12,Ty Allred,
+58183,Falcons,0,Tom Stoiber,80
+2003104,Falcons,1,Mattis Stuben,76
+2003983,Falcons,2,Daniel Helterhoff,76
+2001806,Falcons,3,Nino Neubert,83
+2004965,Falcons,4,Drew Stover,81
+2004101,Falcons,5,Nate Heise,68
+2001468,Falcons,6,Lars Lenke,74
+2004606,Falcons,7,Dominick von Waaden,78
+2003982,Falcons,8,Jeno Pildner,64
+5469,Falcons,9,Tim Kopple,73
+2004435,Falcons,10,Xavier Bell,72
+5034,Falcons,11,Christian Feneberg,65
+2004046,Falcons,12,Ty Allred,68
 2004048,Falcons,13,Nic Welp,
 2003981,Falcons,14,Jarne Jurgens,
-2001051,Baskets,0,Leonard Kroger,
-2002140,Baskets,1,Matej Silic,
-6272,Baskets,2,Nicolas Marty-Decker,
-2004485,Baskets,3,Kevin Kollmar,
-2005106,Baskets,4,Nik Philip Schlipf,
-2005108,Baskets,5,Levy Kaan Koyuturk,
-2004484,Baskets,6,Nicholas Spinoso,
-2004481,Baskets,7,Eyassu Worku,
-2005107,Baskets,8,Hannes Frischemeier,
-2004482,Baskets,9,Christopher Schultz,
-2004483,Baskets,10,Jon'll Fugett,
-2004480,Baskets,11,Emmanuel Ugbo,
+2001051,Baskets,0,Leonard Kroger,78
+2002140,Baskets,1,Matej Silic,75
+6272,Baskets,2,Nicolas Marty-Decker,72
+2004485,Baskets,3,Kevin Kollmar,73
+2005106,Baskets,4,Nik Philip Schlipf,65
+2005108,Baskets,5,Levy Kaan Koyuturk,78
+2004484,Baskets,6,Nicholas Spinoso,70
+2004481,Baskets,7,Eyassu Worku,70
+2005107,Baskets,8,Hannes Frischemeier,70
+2004482,Baskets,9,Christopher Schultz,64
+2004483,Baskets,10,Jon'll Fugett,75
+2004480,Baskets,11,Emmanuel Ugbo,63
 2001911,Essen,0,Jonathan Almstedt,
 2004987,Essen,1,Tre Beard,
 2004675,Essen,2,Isaiah Jevon Sanders,
