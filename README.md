@@ -5,7 +5,7 @@ roster. Companion of the 2K26 live-memory project; only its data pipeline is reu
 
 ## Layout
 - `proa.xlsx`, `proa_rosters.xlsx`, `proa_scraped.xlsx` - frozen ProA datasets (do not regenerate).
-- `scripts/scrape_proa_roster.py`, `scripts/proa_attr_model.py` - cached data pipeline from the 2K26 project.
+- `scripts/scrape_proa_roster.py`, `scripts/proa_attr_model.py` - ProA scrape and stats model; the model outputs the 19 NBA 2K5 attributes directly (cached data pipeline from the 2K26 project).
 - `scripts/` PS2 tooling: PCSX2 RAM access (`fast_scan.py`, `full_scan_ps2_base.py`, `pine_client.py`),
   input/screen automation (`pcsx2_controller.py`, `pcsx2_capture.py`), live name patching (`patch_names.py`),
   memory-card roster reader/writer with ECC (`mc_inspect.py`, `mc_write.py`), repack experiment (`repack_test1.py`).

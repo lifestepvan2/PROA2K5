@@ -76,5 +76,6 @@ Only the first four string pointers (0x0C, 0x10, 0x24, 0x28) are real pointers i
 other words that look like pointers (e.g. 0x14..0x17) are false positives and are ignored by
 `build_roster.py`.
 
-Rating conversion from the 2K26-style `proa_scraped.xlsx` columns is a placeholder in
-`scripts/rating_map_2k5.py`. Units in the source: height in m, weight in kg.
+The 19 rating columns of `proa_scraped.xlsx` are the 2K5 attributes themselves (written by `scripts/proa_attr_model.py`,
+hand-editable); `scripts/rating_map_2k5.py` only maps column name -> byte offset and clamps to 25-99.
+Units in the source: height in m, weight in kg.

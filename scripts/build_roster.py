@@ -26,7 +26,7 @@ import openpyxl
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, convert, dunk_flag  # noqa: E402
+from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
 import skin_brighten  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
@@ -70,8 +70,7 @@ FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA teams sit on the slots of data/team
 
 REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
-RATING_COLS = range(11, 45)
-TRANSLIT = {"Ã¤": "ae", "Ã¶": "oe", "Ã¼": "ue", "Ã„": "Ae", "Ã–": "Oe", "Ãœ": "Ue", "ÃŸ": "ss"}
+TRANSLIT =  {"Ã¤": "ae", "Ã¶": "oe", "Ã¼": "ue", "Ã„": "Ae", "Ã–": "Oe", "Ãœ": "Ue", "ÃŸ": "ss"}
 
 
 def clean(text, keep_umlauts):
@@ -186,12 +185,12 @@ def load_proa(path):
         for r in rows:
             if not r[1]:
                 continue
-            rt = [v for v in r[11:45] if isinstance(v, (int, float))]
             rowd = dict(zip(hdr, r))
+            attrs = read_attrs(rowd)
             players.append({
-                "attrs": convert(rowd), "rowd": rowd,
+                "attrs": attrs, "rowd": rowd,
                 "first": str(r[0] or ""), "last": str(r[1] or ""), "pos": POS.get(str(r[2]), 2),
-                "jersey": r[4], "ovr": sum(rt) / len(rt) if rt else 0, "proa_id": r[hdr.index("ProA ID")] if "ProA ID" in hdr else None,
+                "jersey": r[4], "ovr": sum(attrs.values()) / len(attrs), "proa_id": r[hdr.index("ProA ID")] if "ProA ID" in hdr else None,
                 "row": r,
             })
         teams[name] = players
@@ -226,7 +225,7 @@ def write_record_fields(buf, off, p):
         buf[off + o] = p["attrs"][k]
     for o, v in NEUTRAL_BYTES.items():
         buf[off + o] = v
-    buf[off + DUNK_FLAG] = dunk_flag(p["attrs"]["dunk"])
+    buf[off + DUNK_FLAG] = dunk_flag(p["attrs"]["Dunk"])
 
 
 def order_roster(players):

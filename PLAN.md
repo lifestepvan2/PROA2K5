@@ -18,9 +18,8 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [ ] **Lift the low end of the rating scale.** 2K5 shows values below 50 clipped at 50 (observed in game); the
       ProA data has many values 45-60. When generating 2K5 attributes, rescale so the ProA range maps
       into roughly 50-99 (or 55-99) instead of clipping. Check `rating_map_2k5.py`.
-- [ ] Rework the skill/attribute estimation step to output the 19 2K5 attributes directly
-      (Shot Close/Med/3pt, FT, Layup, Dunk, Ball Handling, Pass, Low Post Off/Def, Block, Steal, Off/Def Reb,
-      Speed, Stamina, Durability, Def/Off Awareness) and one-time convert the existing dataset
+- [x] Skill/attribute estimation now outputs the 19 2K5 attributes directly (`proa_attr_model.py`);
+      `proa_scraped.xlsx` holds those 19 columns (migrated one-time, hand edits kept)
 - [ ] **Decode the hidden/unknown player record bytes using the NBA default export.** Data:
       `data/nba_defaults/players_unknown.csv` (792 records, 575 on teams, 51 non-constant unknown byte columns
       `uXX` next to name, team, birthday, jersey, position, height, weight, years pro) and `teams_unknown.csv`,

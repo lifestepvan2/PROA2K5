@@ -56,17 +56,12 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
-    from nba2k_editor.importing.excel_import import _PROA_PLAYER_COLUMNS
-except ImportError:
-    _PROA_PLAYER_COLUMNS = []  # fallback if run outside the project
-
-try:
-    from scripts.proa_attr_model import PlayerContext, build_ratings
+    from scripts.proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings
 except ImportError:
     # Allow the scraper to run stand-alone (e.g. from project root via
     # 'python scripts/scrape_proa_roster.py') where the package import
     # path resolves differently.
-    from proa_attr_model import PlayerContext, build_ratings  # type: ignore[no-redef]
+    from proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -90,22 +85,16 @@ VALID_HEADSHOT_IDS_PATH = PROJECT_ROOT / "nba2k_editor" / "assets" / "headshot_p
 
 VALID_POSITIONS: frozenset[str] = frozenset({"PG", "SG", "SF", "PF", "C"})
 
-# All rating/attribute column names (must match _PROA_PLAYER_COLUMNS exactly)
-RATING_COLS: frozenset[str] = frozenset({
-    "Close Shot", "Midrange Shot", "3pt Shot", "Free Throws",
-    "Driving Layup", "Driving Dunk", "Standing Dunk",
-    "Post Hook", "Post Fade", "Post Moves",
-    "Draw Foul", "Shot IQ", "Offensive Consistency",
-    "Ball Control", "Speed with Ball",
-    "Pass Accuracy", "Passing IQ", "Passing Vision",
-    "Interior Defense", "Perimeter Defense",
-    "Steal", "Block",
-    "Offensive Rebound", "Defensive Rebound",
-    "Help Defense IQ", "Defensive Consistency",
-    "Speed", "Agility", "Strength", "Vertical", "Stamina",
-    "Hustle", "Intangibles",
-    "Potential",
-})
+# The 19 NBA 2K5 attributes written to the workbook (computed by proa_attr_model)
+RATING_COLS: frozenset[str] = frozenset(ALL_ATTRS)
+
+# Workbook column layout: identity columns, the 2K5 attributes, then the headshot id
+IDENTITY_COLS = [
+    "First Name", "Last Name", "Position", "Secondary Position",
+    "Jersey Number", "Birth Year", "Birth Month", "Birth Day", "Years Pro",
+    "Height", "Weight",
+]
+SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + ["Headshot ID"]
 
 # ---------------------------------------------------------------------------
 # ProA website team ID -> (display name, 2K26 sheet name)
@@ -648,18 +637,17 @@ def write_excel(
     headshot_map: dict[int, int] | None = None,
 ) -> None:
     """
-    Write scraped roster data to an Excel workbook in proa.xlsx format.
+    Write scraped roster data to an Excel workbook.
 
     Column layout:
-      [all columns from _PROA_PLAYER_COLUMNS]  +  [ProA ID]
+      SHEET_COLUMNS (identity, the 19 NBA 2K5 attributes, Headshot ID)  +  [ProA ID]
 
-    The "ProA ID" column is intentionally the last column and carries no
-    header recognised by import_proa_roster(), so it is silently ignored
-    on import — giving us a persistent player ID for portrait matching etc.
+    The "ProA ID" column is the last column and gives a persistent player ID
+    for portrait/face matching.
 
-    Attribute/rating columns are pre-assigned by the stats model in
-    proa_attr_model.py (build_ratings).  DEFAULT_RATING (69) is used only
-    as a fallback for any attribute not covered by the model.
+    Attribute columns are assigned by the stats model in proa_attr_model.py
+    (build_ratings), which outputs the 2K5 attributes directly.  DEFAULT_RATING
+    (69) is used only as a fallback for any attribute not covered by the model.
     Within each team, players are sorted by total minutes played descending;
     only the top *max_players* rows are written.
     """
@@ -794,24 +782,7 @@ def main() -> None:
             print(f"  {tid:>4}   {info[0]}{mark}")
         return
 
-    cols = list(_PROA_PLAYER_COLUMNS) if _PROA_PLAYER_COLUMNS else [
-        "First Name", "Last Name", "Position", "Secondary Position",
-        "Jersey Number", "Birth Year", "Birth Month", "Birth Day", "Years Pro",
-        "Height", "Weight",
-        "Close Shot", "Midrange Shot", "3pt Shot", "Free Throws",
-        "Driving Layup", "Driving Dunk", "Standing Dunk",
-        "Post Hook", "Post Fade", "Post Moves",
-        "Draw Foul", "Shot IQ", "Offensive Consistency",
-        "Ball Control", "Speed with Ball",
-        "Pass Accuracy", "Passing IQ", "Passing Vision",
-        "Interior Defense", "Perimeter Defense",
-        "Steal", "Block",
-        "Offensive Rebound", "Defensive Rebound",
-        "Help Defense IQ", "Defensive Consistency",
-        "Speed", "Agility", "Strength", "Vertical", "Stamina",
-        "Hustle", "Intangibles", "Potential",
-        "Headshot ID",
-    ]
+    cols = list(SHEET_COLUMNS)
 
     rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats)
     if not rosters:

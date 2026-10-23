@@ -1,46 +1,30 @@
-"""Provisional conversion of the ProA (2K26-style, 34 columns) ratings to the 19 NBA 2K5 attributes.
+"""NBA 2K5 (PS2) attribute layout of the player record, and how the ProA workbook columns map onto it.
 
-PLACEHOLDER: the skill/attribute estimation step of the pipeline should eventually produce the
-2K5 attributes directly; until then `convert()` derives them from the cached columns.
-Record layout: docs/player_record_layout.md
+proa_attr_model.py rates the 19 2K5 attributes directly; proa_scraped.xlsx has one column per attribute (same names)
+and manual edits there are written to the roster as they are. Record layout: docs/player_record_layout.md
 """
 
-# attribute -> byte offset inside the 0x94 byte player record (all values 0-99)
+# attribute (= proa_scraped.xlsx column) -> byte offset inside the 0x94 byte player record (all values 0-99)
 ATTR_OFFSETS = {
-    "close": 0x45, "mid": 0x46, "three": 0x47, "ft": 0x48, "layup": 0x49, "dunk": 0x4A,
-    "ballhandling": 0x4D, "pass": 0x4E, "lowpost_off": 0x51, "lowpost_def": 0x52,
-    "block": 0x53, "steal": 0x54, "oreb": 0x56, "dreb": 0x57, "speed": 0x58, "stamina": 0x59,
-    "durability": 0x5B, "def_aware": 0x5D, "off_aware": 0x5E,
+    "Close Shot": 0x45, "Midrange Shot": 0x46, "3pt Shot": 0x47, "Free Throws": 0x48, "Layup": 0x49, "Dunk": 0x4A,
+    "Ball Handling": 0x4D, "Passing": 0x4E, "Post Offense": 0x51, "Post Defense": 0x52,
+    "Block": 0x53, "Steal": 0x54, "Offensive Rebound": 0x56, "Defensive Rebound": 0x57, "Speed": 0x58, "Stamina": 0x59,
+    "Durability": 0x5B, "Defensive Awareness": 0x5D, "Offensive Awareness": 0x5E,
 }
 # bytes whose meaning is unknown; neutral values (modal NBA value) so NBA star traits do not leak
 NEUTRAL_BYTES = {0x4F: 50, 0x50: 70, 0x55: 50, 0x5A: 0, 0x5C: 60, 0x5F: 75, 0x60: 75}
 DUNK_FLAG = 0x4C  # tiers 0/50/99, correlates with dunking (r=0.69)
+ATTR_MIN, ATTR_MAX = 25, 99
+BLANK_DEFAULT = 60  # used for an empty cell
 
 
-def _avg(row, *cols, w=None):
-    vals = [row[c] for c in cols if isinstance(row.get(c), (int, float))]
-    return sum(vals) / len(vals) if vals else 60.0
-
-
-def convert(row):
-    """row: dict keyed by the proa_scraped.xlsx column names -> dict of 2K5 attributes (ints 25-99)."""
-    dunk = max(row["Driving Dunk"], row["Standing Dunk"]) * 0.6 + min(row["Driving Dunk"], row["Standing Dunk"]) * 0.4
-    a = {
-        "close": row["Close Shot"], "mid": row["Midrange Shot"], "three": row["3pt Shot"], "ft": row["Free Throws"],
-        "layup": row["Driving Layup"], "dunk": dunk,
-        "ballhandling": _avg(row, "Ball Control", "Speed with Ball"),
-        "pass": _avg(row, "Pass Accuracy", "Passing IQ", "Passing Vision"),
-        "lowpost_off": _avg(row, "Post Moves", "Post Hook", "Post Fade"),
-        "lowpost_def": row["Interior Defense"],
-        "block": row["Block"], "steal": row["Steal"],
-        "oreb": row["Offensive Rebound"], "dreb": row["Defensive Rebound"],
-        "speed": _avg(row, "Speed", "Agility"),
-        "stamina": row["Stamina"],
-        "durability": 70 + (row["Hustle"] - 70),  # no ProA equivalent
-        "def_aware": _avg(row, "Perimeter Defense", "Help Defense IQ", "Defensive Consistency"),
-        "off_aware": _avg(row, "Shot IQ", "Offensive Consistency", "Intangibles"),
-    }
-    return {k: int(max(25, min(99, round(v)))) for k, v in a.items()}
+def read_attrs(row):
+    """row: dict keyed by the proa_scraped.xlsx column names -> {attribute: int 25-99}; an empty cell gets BLANK_DEFAULT."""
+    out = {}
+    for name in ATTR_OFFSETS:
+        v = row[name]
+        out[name] = int(max(ATTR_MIN, min(ATTR_MAX, round(v)))) if isinstance(v, (int, float)) else BLANK_DEFAULT
+    return out
 
 
 def dunk_flag(dunk):

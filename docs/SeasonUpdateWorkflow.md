@@ -7,7 +7,7 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 
 | # | Step | Script | Output |
 |---|------|--------|--------|
-| 1 | Scrape rosters, stats, portraits; compute ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `cache/proa_S/` |
+| 1 | Scrape rosters, stats, portraits; compute the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
 | 3 | Build payload, pass 1 (writes the player list the face steps need) | `build_roster.py` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
