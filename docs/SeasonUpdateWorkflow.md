@@ -7,7 +7,7 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 
 | # | Step | Script | Output |
 |---|------|--------|--------|
-| 1 | Scrape rosters, stats, portraits; compute the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `cache/proa_S/` |
+| 1 | Scrape rosters, stats (pooled over 6 seasons), portraits; compute the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
 | 3 | Build payload, pass 1 (writes the player list the face steps need) | `build_roster.py` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
@@ -49,7 +49,22 @@ press F10 in PCSX2 (textures) and start a new game from the card (roster).
 
 - Replaced Hagen, Muenster, Leverkusen with Essen (site id 444, ETB Miners), Heidelberg (488, MLP Academics) and Ulm (537,
   OrangeAcademy), taking slots 23 (Rockets), 28 (Warriors) and 13 (Kings). Falcons stay at slot 21.
-- Rosters on the site are still being filled (11-15 players per team, 249 total). Ratings are derived from the latest stats on the
-  player pages (last completed season); new players without stats get defaults. Re-run the update as rosters grow; cached players
-  keep their face pid.
+- Rosters on the site are still being filled (11-15 players per team, 249 total). Ratings are derived from stats pooled over
+  several seasons (see "Stats pooling"); new players without any games get defaults. Re-run the update as rosters grow; cached
+  players keep their face pid.
 - Players who left the league drop out of `proa_pid_map.csv`, freeing their pids.
+
+## Stats pooling (`season_stats.py`)
+
+Early in a season the current stats are a tiny sample, so the scraper pools the current season and the five before it
+(`--history-seasons N`, `0` = current season only). Earlier seasons are fetched through the season selector of the player page
+(one cached request per player and season, `cache/proa_S/player_<id>__<y>_<y+1>.html`; finished seasons are never re-fetched
+unless `--refresh`).
+
+- Season weight: current season 1, previous season 1, then 0.8 / 0.6 / 0.4 / 0.2 for the older ones. A season with fewer than
+  10 games counts half on top (this applies to the current season too, so it takes over as it fills up).
+- Counts (made/attempted, points, rebounds, ...) are weighted and summed, then divided by the weighted games: MPG, scoring,
+  percentages etc. are volume-weighted averages. Because of the normalisation, players with fewer available seasons are not
+  penalised; they just rest on less data (the attribute model only applies percentage modifiers from 5 real games on).
+- All leagues the site lists for the player count (ProB seasons too); only regular-season (`HR`) rows are used.
+- Team sheets are ordered by pooled minutes per game.

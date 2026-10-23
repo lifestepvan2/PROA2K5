@@ -13,7 +13,11 @@ Usage
 Options
     --refresh       Re-fetch pages even if HTML cache exists
     --no-stats      Skip per-player stats pages (faster; no minutes sorting)
-    --season STR    Season string used in URLs/cache (default: 2025_2026)
+    --season STR    Season string used in URLs/cache (default: 2026_2027)
+    --history-seasons INT
+                    Previous seasons pooled into each player's stats (default: 5, 0 = current season only).
+                    Weights per season: current 1, last 1, then 0.8 / 0.6 / 0.4 / 0.2; x0.5 for seasons under
+                    10 games (season_stats.py)
     --top INT       Max players per team written to Excel (default: 15)
     --teams-only    Print discovered team IDs and exit
 
@@ -57,11 +61,13 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
     from scripts.proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings
+    from scripts.season_stats import parse_season_totals, pool_seasons
 except ImportError:
     # Allow the scraper to run stand-alone (e.g. from project root via
     # 'python scripts/scrape_proa_roster.py') where the package import
     # path resolves differently.
     from proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings  # type: ignore[no-redef]
+    from season_stats import parse_season_totals, pool_seasons  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -73,6 +79,7 @@ PLAYER_URL_TPL  = f"{BASE_URL}/teams/kader/spieler/{{player_id}}/"
 PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/{season}/pc/{player_id}"
 
 REQUEST_DELAY   = 1.0   # seconds between live requests
+HISTORY_SEASONS = 5     # previous seasons pooled into the stats (see season_stats.py)
 DEFAULT_RATING  = 69
 MAX_PLAYERS     = 15
 
@@ -135,17 +142,18 @@ def _cache_root(season: str) -> Path:
     return d
 
 
-def fetch_html(url: str, season: str, cache_key: str, *, refresh: bool = False) -> str:
-    """Return HTML for *url*.  Uses disk cache unless *refresh* is True."""
+def fetch_html(url: str, season: str, cache_key: str, *, refresh: bool = False,
+               post_data: dict | None = None) -> str:
+    """Return HTML for *url*.  Uses disk cache unless *refresh* is True.  *post_data* makes it a POST (season selector)."""
     path = _cache_root(season) / f"{cache_key}.html"
     if not refresh and path.exists():
         return path.read_text("utf-8")
-    print(f"    GET {url}")
-    resp = requests.get(
-        url,
-        timeout=20,
-        headers={"User-Agent": "Mozilla/5.0 (compatible; ProADataScraper/1.0)"},
-    )
+    print(f"    {'POST' if post_data else 'GET'} {url} {post_data or ''}")
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; ProADataScraper/1.0)"}
+    if post_data:
+        resp = requests.post(url, data=post_data, timeout=20, headers=headers)
+    else:
+        resp = requests.get(url, timeout=20, headers=headers)
     resp.raise_for_status()
     html = resp.text
     path.write_text(html, "utf-8")
@@ -302,95 +310,29 @@ def parse_kader_page(html: str) -> list[dict]:
     return players
 
 
-def parse_player_stats(html: str) -> dict:
-    """
-    Parse season stats from /teams/kader/spieler/{id}/.
+def collect_player_seasons(pid: int, season: str, history: int, *, refresh: bool = False) -> dict[int, dict | None]:
+    """Season totals {start_year: totals or None} for the current season and *history* seasons before it.
 
-    Finds the Hauptrunde (HR) summary row in the stats table.
-    Returns a dict of averaged / total stats:
-      games, minutes_total_sec, minutes_avg_str,
-      points_avg, assists_avg, rebounds_avg, rebounds_off_avg, rebounds_def_avg,
-      steals_avg, blocks_avg, turnovers_avg, fg_pct, fg3_pct, ft_pct.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-
-    def _nums(txt: str) -> list[float]:
-        return [float(x) for x in re.findall(r"\d+(?:[.,]\d+)?",
-                                              txt.replace(",", "."))]
-
-    def _avg(txt: str) -> float:
-        """'total_val avg_val' cell -> avg (second number)."""
-        n = _nums(txt)
-        return n[1] if len(n) >= 2 else (n[0] if n else 0.0)
-
-    def _last(txt: str) -> float:
-        n = _nums(txt)
-        return n[-1] if n else 0.0
-
-    for table in soup.find_all("table"):
-        for row in table.find_all("tr"):
-            cells = row.find_all("td")
-            if len(cells) < 12:
-                continue
-            t = [c.get_text(separator=" ", strip=True) for c in cells]
-            if t[0].strip() != "HR":
-                continue
-
-            # col 2 = games
+    The current season is parsed from the cached player page; every earlier one is a POST of the page's season
+    selector. Pages are cached as player_{id}__{season}.html and parsed totals in player_{id}_seasons.json
+    (a finished season never changes, so it is only fetched once)."""
+    year = int(season.split("_")[0])
+    url = PLAYER_URL_TPL.format(player_id=pid)
+    out = {year: parse_season_totals(fetch_html(url, season, f"player_{pid}", refresh=refresh))}
+    parsed = {} if refresh else (load_json_cache(season, f"player_{pid}_seasons") or {})
+    for y in range(year - 1, year - 1 - history, -1):
+        label = f"{y}/{y + 1}"
+        if label not in parsed:
             try:
-                games = int(re.findall(r"\d+", t[2])[0])
-            except (IndexError, ValueError):
-                games = 0
-
-            # col 3 = "235:56 29:29" (total avg minutes)
-            min_parts     = t[3].strip().split()
-            min_total_sec = _mm_ss_to_seconds(min_parts[0] if min_parts else "0:00")
-            min_avg_str   = min_parts[1] if len(min_parts) > 1 else "0:00"
-
-            # cols: [4]=2P [5]=3P [6]=FG [7]=FT [8]=P [9]=A [10]=R [11]=F [12]=BL [13]=ST [14]=TO [15]=EF
-            points_avg  = _avg(t[8])  if len(t) > 8  else 0.0
-            assists_avg = _avg(t[9])  if len(t) > 9  else 0.0
-            blocks_avg  = _avg(t[12]) if len(t) > 12 else 0.0
-            steals_avg  = _avg(t[13]) if len(t) > 13 else 0.0
-            to_avg      = _avg(t[14]) if len(t) > 14 else 0.0
-            fg_pct      = _last(t[6]) if len(t) > 6  else 0.0
-            fg3_pct     = _last(t[5]) if len(t) > 5  else 0.0
-            ft_pct      = _last(t[7]) if len(t) > 7  else 0.0
-
-            # col 10 = "3 - 16 - 19 0.4 - 2.0 - 2.4"  (off-def-total  offavg-defavg-totavg)
-            reb_off_avg = reb_def_avg = reb_avg = 0.0
-            if len(t) > 10:
-                rn = _nums(t[10])
-                if len(rn) >= 6:
-                    reb_off_avg, reb_def_avg, reb_avg = rn[3], rn[4], rn[5]
-                elif len(rn) >= 3:
-                    reb_avg = rn[2]
-
-            return {
-                "games":             games,
-                "minutes_total_sec": min_total_sec,
-                "minutes_avg_str":   min_avg_str,
-                "points_avg":        points_avg,
-                "assists_avg":       assists_avg,
-                "rebounds_avg":      reb_avg,
-                "rebounds_off_avg":  reb_off_avg,
-                "rebounds_def_avg":  reb_def_avg,
-                "steals_avg":        steals_avg,
-                "blocks_avg":        blocks_avg,
-                "turnovers_avg":     to_avg,
-                "fg_pct":            fg_pct,
-                "fg3_pct":           fg3_pct,
-                "ft_pct":            ft_pct,
-            }
-
-    # No HR row — new signing / no minutes played this season
-    return {
-        "games": 0, "minutes_total_sec": 0, "minutes_avg_str": "0:00",
-        "points_avg": 0.0, "assists_avg": 0.0,
-        "rebounds_avg": 0.0, "rebounds_off_avg": 0.0, "rebounds_def_avg": 0.0,
-        "steals_avg": 0.0, "blocks_avg": 0.0, "turnovers_avg": 0.0,
-        "fg_pct": 0.0, "fg3_pct": 0.0, "ft_pct": 0.0,
-    }
+                html = fetch_html(url, season, f"player_{pid}__{y}_{y + 1}", refresh=refresh,
+                                  post_data={"season": label})
+            except requests.RequestException as exc:
+                print(f"        {pid}: season {label} not fetched ({exc})")
+                continue
+            parsed[label] = parse_season_totals(html)
+        out[y] = parsed[label]
+    save_json_cache(season, f"player_{pid}_seasons", parsed)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -566,6 +508,7 @@ def scrape_all(
     *,
     refresh: bool = False,
     no_stats: bool = False,
+    history: int = HISTORY_SEASONS,
 ) -> dict[int, list[dict]]:
     """
     Scrape every ProA team for *season*.
@@ -602,21 +545,12 @@ def scrape_all(
 
         if not no_stats:
             for p in players:
-                pid       = p["proa_id"]
-                stats_key = f"player_{pid}_stats"
-                cached_s  = None if refresh else load_json_cache(season, stats_key)
-                if cached_s is not None:
-                    p.update(cached_s)
-                else:
-                    phtml = fetch_html(
-                        PLAYER_URL_TPL.format(player_id=pid),
-                        season, f"player_{pid}", refresh=refresh,
-                    )
-                    stats = parse_player_stats(phtml)
-                    save_json_cache(season, stats_key, stats)
-                    p.update(stats)
-                    g, sec = stats["games"], stats["minutes_total_sec"]
-                    print(f"        {pid}  {p['last_name']:<22}  {g}G  {sec//60}:{sec%60:02d} min total")
+                pid = p["proa_id"]
+                seasons = collect_player_seasons(pid, season, history, refresh=refresh)
+                stats = pool_seasons(seasons, int(season.split("_")[0]))
+                p.update(stats)
+                print(f"        {pid}  {p['last_name']:<22}  {stats['games']:>5.1f} wG  {stats['minutes_avg_str']} mpg  "
+                      f"{', '.join(stats['seasons_used']) or 'no games'}")
 
         rosters[team_id] = players
 
@@ -648,7 +582,7 @@ def write_excel(
     Attribute columns are assigned by the stats model in proa_attr_model.py
     (build_ratings), which outputs the 2K5 attributes directly.  DEFAULT_RATING
     (69) is used only as a fallback for any attribute not covered by the model.
-    Within each team, players are sorted by total minutes played descending;
+    Within each team, players are sorted by pooled minutes per game descending;
     only the top *max_players* rows are written.
     """
     wb = openpyxl.Workbook()
@@ -662,11 +596,11 @@ def write_excel(
         _, sheet_name = TEAM_MAP[team_id]
         sheet_name    = sheet_name[:31]  # Excel 31-char limit
 
-        # Sort by total minutes descending; players with no recorded minutes
-        # (new signings) naturally fall to the bottom.
+        # Sort by pooled minutes per game (independent of how many seasons a player has); players without
+        # any recorded games (new signings) fall to the bottom.
         top = sorted(
             players,
-            key=lambda p: p.get("minutes_total_sec", 0),
+            key=lambda p: p.get("minutes_total_sec", 0) / max(p.get("games", 0), 1),
             reverse=True,
         )[:max_players]
 
@@ -757,7 +691,10 @@ def main() -> None:
     ap.add_argument("--no-stats",   action="store_true",
                     help="Skip per-player stats pages (no minutes-based sorting)")
     ap.add_argument("--season",     default="2026_2027",
-                    help="Season string used in URLs/cache dir (default: 2025_2026)")
+                    help="Season string used in URLs/cache dir (default: 2026_2027)")
+    ap.add_argument("--history-seasons", type=int, default=HISTORY_SEASONS,
+                    help="Previous seasons pooled into the stats, 0 = current season only "
+                         f"(default: {HISTORY_SEASONS}; one extra page request per player and season, cached)")
     ap.add_argument("--top",        type=int, default=MAX_PLAYERS,
                     help=f"Max players per team written to Excel (default: {MAX_PLAYERS})")
     ap.add_argument("--teams-only", action="store_true",
@@ -786,7 +723,7 @@ def main() -> None:
 
     cols = list(SHEET_COLUMNS)
 
-    rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats)
+    rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats, history=args.history_seasons)
     if not rosters:
         sys.exit("ERROR: No roster data collected.")
 
