@@ -4,7 +4,20 @@ The roster file on the memory card is an uncompressed **heap snapshot** (size `0
 in the `EXTRA` blob). After loading, payload offset `X` lives at PS2 RAM `0xA95B80 + X`
 (the loader rewrites the pointers to absolute addresses; the on-card form is self-relative).
 Tooling: `scripts/mc_inspect.py` (extract), `scripts/mc_write.py` (write in place + ECC),
-`scripts/build_roster.py` (build the ProA payload).
+`scripts/build_roster.py` (build the ProA payload), `scripts/card_patch.py` (versioned `data/roster.bin` <-> card).
+
+## Hex-editing workflow
+
+`data/roster.bin` is the versioned payload (0xB1040 bytes). Edit it with a hex editor, then, with PCSX2 closed:
+
+```
+python scripts/card_patch.py              # roster.bin -> card: CRC32 into EXTRA, page ECC, timestamped card backup in data/roster_test/, verify + read-back
+python scripts/card_patch.py --diff       # byte ranges that differ between roster.bin and the card, labelled player/team record + offset
+python scripts/card_patch.py --pull       # card -> roster.bin (e.g. after the game saved a roster)
+python scripts/card_patch.py --from-build # build_roster.py output (data/roster_build/payload_proa.bin) -> roster.bin
+```
+`--dry` checks without writing; the script refuses to write while PCSX2 runs (`--force` overrides). The size cannot change.
+`git diff --stat data/roster.bin` / `--diff` show what an experiment changed; `git checkout data/roster.bin` reverts it.
 
 ## Pointers
 
