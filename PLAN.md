@@ -11,7 +11,9 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [x] Rosters and starters for 18 ProA teams in NBA slots 12-29 (final mapping `data/team_slots.csv`; Falcons = Pistons slot 21, Gottingen = Lakers slot 15, so the default Quick Match is a full ProA game)
 - [x] Jersey, position, height, weight, years pro, birthday, 19 ratings written and verified in-game (ratings confirmed correct)
 
-- [x] Home arena names: venue table in the payload (rows keyed by `sNNN` = team slot), `data/proa_arenas.csv`, built by `build_roster.py` (see `docs/roster_payload_format.md`); live RAM patch verified, card write pending a roster rebuild
+- [x] Home arena names: venue table in the payload (rows keyed by `sNNN` = team slot), combined `data/proa_teams.csv` (`arena,verified`), built by `build_roster.py` (see `docs/roster_payload_format.md`); live RAM patch verified, card write pending a roster rebuild
+- [x] Separate jersey/UI colours in the combined team CSV: `colorjersey1/2` for cloth generation, `colorui1/2` written to roster team RGB triplets at +0x62/+0x65; UI defaults copied from the original jersey values
+- [x] Shared lettering ISO proof: Pacers home number and alphabet palette edits propagate to all 12 generated player numbers/names; independent apply/restore targets in `scripts/patch_lettering_iso.py` (cosmetic refinement not required for this toolchain test)
 
 ## Todo
 ### Attributes / ratings
@@ -50,12 +52,16 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] Team logo variants on Team Select, courts, scoreboards, pre-game banner (`00002213` / `00001993` / `00001dd3`): 108 variants across all ProA slots, found by template matching (`scripts/build_logo_map.py` -> `data/texture_map/logo_variants.csv`, `scripts/gen_logo_replacements.py`). Verified in-game: Team Select and banner for BG/Falcons. Only variants that have been rendered/dumped exist; more dumps (e.g. playing a game per team) -> re-run both scripts
 - [ ] Logo atlases (256x256 `2213` collages, 512x512 `2653` grids of NBA logos, in-game jumbotron/court signs) are not handled automatically (need multi-ref masked matching + compositing); use the workspace
 - [ ] Cavaliers wordmark is split over two textures (`PARTIAL_REFS`); needs a composite reference. Logos inside arena signs (mode B matches) and team-name wordmarks are not handled automatically; use the workspace
+- [ ] manually add face portraits for players who lack it
 - [x] Manual replacement workspace (`scripts/texture_workspace.py`, folder `texture_workspace/`, gitignored): dumps grouped into named folders, edits synced back resized to the original resolution; pipeline-managed textures always win. Alpha convention verified in-game (see `docs/pcsx2_texture_mapping.md`)
 - [x] Uniform LODs: LODs and duplicate 512x256/256x256 files inherit from their MASTER; `texture_workspace.py sync` generates all copies and LODs from the master (see `docs/pcsx2_texture_mapping.md`)
 - [x] Filename-label grouping `ROLE__LABEL__RES__ID.png` in a flat `texture_workspace/uniforms/` (`scripts/uniform_labels.py`: adopt/link/promote/relabel/check/restore, snapshot `data/uniform_lods/labels_snapshot.csv`); step-by-step in `docs/JerseyTextureWorkflow.md`
 - [ ] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
 - [x] Team mapping is final (`data/team_slots.csv`). `record_faces.csv` is record-keyed, icons/logos are keyed by NBA slot: no re-scan needed when the ProA order changes, only re-run the generators. More logo variants need more dumps (only rendered textures exist)- [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
-- [x] Baseline jerseys/shorts for all 18 teams: `scripts/create_baseline_jersey.py` colourises the templates (colours = `color1`/`color2` in `data/proa_teams.csv`, first-pass guesses from the team logos), keeps the cloth structure, adds ProA + club logo on jerseys (shorts plain), plain primary-colour warm-ups with club logo, writes the home/away/warm-up MASTERs (backup + hand-edit protection), then `texture_workspace.py sync` for LODs (see `docs/JerseyTextureWorkflow.md` section 4). Open: review the colours, hand-finetune (wordmarks, stripes, side panels), alt jerseys
+- [x] Baseline jerseys/shorts for all 18 teams: `scripts/create_baseline_jersey.py` colourises the templates (colours = `colorjersey1`/`colorjersey2` in `data/proa_teams.csv`, first-pass guesses from the team logos), keeps the cloth structure, adds ProA + club logo on jerseys (shorts plain), plain primary-colour warm-ups with club logo, writes the home/away/warm-up MASTERs (backup + hand-edit protection), then `texture_workspace.py sync` for LODs (see `docs/JerseyTextureWorkflow.md` section 4). Open: review the colours, hand-finetune (wordmarks, stripes, side panels), alt jerseys
+- [ ] Enable editable lettering palettes per ProA team/uniform and ISO pipeline integration; include the team-select front number. Implementation plan: `docs/JerseyTextureWorkflow.md` section 5 (preview source must first be verified; not assumed static)
+- [ ] figure out how to edit court paint colours - lines, the zone and out of bounds
+
 
 ### Roster/data quality
 - [ ] Duplicate player: Lars Lagerpusch is on Falcons and Baskets in the source data (stale row?)
@@ -63,12 +69,14 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [ ] Review name shortening rules / overrides (`data/overrides.csv`); umlaut glyph support untested
 - [ ] Spare player records (482+) used for 15-man rosters: check conflicts with all-star teams
 - [ ] Nicknames are blanked; birthday display untested
+- [ ] better replacement of non - UTF8 characters
 
 ### Automation / tooling
 - [ ] Player card cannot be opened via keyboard (Select = Backspace not working); verify other bindings
 - [ ] Restore the SDL pad bindings in `PCSX2.ini` when automation is done (`docs/pad1_sdl_backup.txt`)
 - [x] Replace the photoshop batch step (cropping portraits) with a python script: `scripts/crop_headshots.py`
 - [ ] CRC/ECC experiments (E3), glyph-set test (E5)
+- [ ] add a workflow that ensures non-rating player attribute edits (accessoire flags, left handed flag) are not overwritten when re-generating rosters
 
 ### QOL
 - [x] Default matchup (Lakers at Pistons) is a full ProA game: Gottingen at Falcons (ProA teams moved to slots 12-29)
@@ -79,16 +87,19 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] accessories (headband, wristbands, arm bands/elbow braces, knee tape/braces): record bytes verified in game, configured per player in `data/accessories.csv` (see `docs/player_record_layout.md`). Open: fill the csv from photos; test left elbow/knee brace presets and 0x79/0x7A
 - [ ] update textures (jerseys, courts) and arena names of the new teams Essen, Heidelberg, Ulm. 
 - [ ] manual refinement pass over player attributes
-- [ ] manual editing of Falcons home court (texture, via the workspace)
-- [ ] verify the arena names in `data/proa_arenas.csv` (only the Falcons entry is confirmed; rest are best guesses, flag `verified`)
+- [x] manual editing of Falcons home court (texture, via the workspace)
+- [ ] verify the arena names in `data/proa_teams.csv` (only the Falcons entry is confirmed; rest are best guesses, flag `verified`)
 - [ ] re-do player face mapping
 - [ ] rollout and test
-
+- [ ] enable iso-patching for roster file manipulations (keep manual workflow for quick editing)
+- [ ] enable iso-patching for texture replacements (keep texture workspace workflow for quick editing)
+- [ ] figure out how to create a DVD that's executable on a real PS2 slim (PAL)
+ 
 ### Nice-to-have (last)
 - [ ] Fill the remaining 12 NBA team slots (0-11, now the donor teams) with filler/other teams; handle all-star/legend teams referencing NBA 
 records
 - [ ] create a pipeline to generate in game player face assets from our portrait database
-- [ ] figure out how to save the players display-stats for loading screens, then populate with real ProA data
+- [ ] figure out how to save the players display-stats for loading screens and player cards, including per-season stats, then populate with real ProA data automatically
 - [ ] automated colouring of jersey number textures
 - [ ] long term: after re-sorting the workspace to make sure no strays remain, re-do live memory home arena texture mapping (which textures get loaded where), then add automatic grouping of LODs and duplicates and auto LOD updates to arena textures, same as for jerseys.
 

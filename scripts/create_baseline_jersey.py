@@ -8,8 +8,9 @@ trouser legs come from the logo-less templates cloth_top_tmpl / cloth_shorts_tmp
     python scripts/create_baseline_jersey.py [--team Falcons ...] [--dry-run] [--overwrite] [--restore]
     then:  python scripts/texture_workspace.py sync        (rebuilds the duplicates + LODs from the new MASTERs)
 
-* colours:  data/proa_teams.csv  columns color1 / color2 (hex).  Home = white body + color1 trim/stripes,
-            away = color1 body + color2 trim/stripes (white when color2 is empty).
+* colours:  data/proa_teams.csv columns colorjersey1 / colorjersey2 (hex).
+            Home = white body + primary trim/stripes, away = primary body + secondary trim/stripes
+            (white when colorjersey2 is empty). UI colours are independent.
 * fabric:   each template region is divided by its own median luminance -> a 'shade' map (folds, perforations),
             which is re-applied on top of the target colour, so the cloth structure survives the recolouring.
 * logos:    jerseys: ProA league patch (data/proa_logo.png) on the player's left breast, team logo
@@ -72,18 +73,20 @@ def smoothstep(a, b, x):
 
 
 def load_teams():
-    teams = list(csv.DictReader(open(ROOT / "data/proa_teams.csv", encoding="utf-8")))
-    slots = {r["sheet"]: r["nba_team"] for r in csv.DictReader(open(ROOT / "data/team_slots.csv", encoding="utf-8"))}
+    with open(ROOT / "data/proa_teams.csv", encoding="utf-8") as file:
+        teams = list(csv.DictReader(file))
+    with open(ROOT / "data/team_slots.csv", encoding="utf-8") as file:
+        slots = {r["sheet"]: r["nba_team"] for r in csv.DictReader(file)}
     out = []
     for i, t in enumerate(teams):
         if t["sheet"] not in slots:
             continue
-        c1 = hex_rgb(t.get("color1"), None)
+        c1 = hex_rgb(t.get("colorjersey1"), None)
         if c1 is None:
-            print(f"  {t['sheet']}: no color1 in proa_teams.csv - skipped")
+            print(f"  {t['sheet']}: no colorjersey1 in proa_teams.csv - skipped")
             continue
         out.append(dict(sheet=t["sheet"], nba=slots[t["sheet"]], logo=ROOT / f"nba2k_editor/assets/{LOGO_ID0 + i}.png",
-                        c1=c1, c2=hex_rgb(t.get("color2"), WHITE)))
+                        c1=c1, c2=hex_rgb(t.get("colorjersey2"), WHITE)))
     return out
 
 

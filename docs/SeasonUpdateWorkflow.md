@@ -41,13 +41,35 @@ press F10 in PCSX2 (textures) and start a new game from the card (roster).
 
 1. `TEAM_MAP` in `scrape_proa_roster.py`: site team id -> (display name, sheet name). New ids are listed by
    `scrape_proa_roster.py --teams-only --season S` (marked "NOT IN TEAM_MAP").
-2. `data/proa_teams.csv` (sheet, city, nickname, abbr; ASCII only). Row order = logo asset index (`nba2k_editor/assets/<38+row>.png`),
-   so a new club takes the row of the club it replaces.
+2. `data/proa_teams.csv`: team names, jersey/UI colours, and home arena (see schema below).
+   Row order = logo asset index (`nba2k_editor/assets/<38+row>.png`), so a new club takes the row of the club it replaces.
 3. `data/team_slots.csv`: sheet -> NBA slot. The new club inherits the slot of the replaced club (textures are keyed by NBA slot);
    keep the default-matchup club (Falcons, slot 21) where it is.
-4. `data/proa_arenas.csv`: arena name (`verified` = yes only when checked in game).
-5. `python scripts/fetch_team_logos.py --sheets <new sheets>`: downloads the club logo. The site only has ~100 px logos
+4. `python scripts/fetch_team_logos.py --sheets <new sheets>`: downloads the club logo. The site only has ~100 px logos
    (upscaled): replace `nba2k_editor/assets/<38+row>.png` with a high-res logo when available.
+
+### Combined team metadata
+
+`data/proa_teams.csv` is the single source for the following fields; arena metadata is
+no longer maintained in a separate CSV. Text written into the game should be ASCII.
+
+| Columns | Consumer / meaning |
+|---|---|
+| `sheet,city,nickname,abbr` | Workbook identity and roster team names |
+| `colorjersey1,colorjersey2` | Existing baseline jersey/warm-up generator's primary and secondary hex colours |
+| `colorui1` | Roster team RGB at `+0x62`: general UI and accessories such as armbands |
+| `colorui2` | Roster team RGB at `+0x65`: secondary UI, sometimes behind white text |
+| `arena,verified` | Home arena name; `verified=yes` only when that name has been checked in-game |
+
+The UI colours were initially copied exactly from the jersey colours, but can now be
+edited independently. Review light `colorui2` defaults (especially white) for text
+contrast; no automatic darkening is applied. These are **not lettering colours**.
+`build_roster.py --teams PATH` reads the combined schema, writes both UI triplets and
+arena names, and reports UI colours in `team_map.csv`. The separate `--arenas` option
+has been removed. Hex UI values must have exactly six digits, optionally prefixed by `#`.
+
+Shared lettering/ISO automation is a separate, planned step, not part of
+`update_season.py` yet. See [the lettering workspace plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
 
 ## Not automated
 

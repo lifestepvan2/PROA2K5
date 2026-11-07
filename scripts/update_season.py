@@ -3,7 +3,7 @@
     python scripts/update_season.py --season 2026_2027 [--card PATH] [--skip-scrape] [--rematch-faces]
 
 Manual prerequisites (see docs/SeasonUpdateWorkflow.md): when the league's team set changed, edit TEAM_MAP in
-scrape_proa_roster.py, data/proa_teams.csv, data/team_slots.csv, data/proa_arenas.csv and run fetch_team_logos.py once for
+scrape_proa_roster.py, data/proa_teams.csv (including arenas), data/team_slots.csv and run fetch_team_logos.py once for
 the new clubs. Without --card the card is left alone (writing needs PCSX2 closed).
 """
 import argparse

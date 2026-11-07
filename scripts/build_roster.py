@@ -59,6 +59,7 @@ TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
 T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
 T_STARTERS = 0x90
+T_UI_COLOURS = {"colorui1": 0x62, "colorui2": 0x65}
 ARENA_BASE, ARENA_STRIDE = 0xC8, 0x30  # venue table: name ptr, +8 venue city ptr, +0xC "sNNN" (NBA slot number) ptr
 A_NAME, A_CITY, A_ID = 0, 8, 0xC
 GAP = (0x6663C, 0x675DC)  # zero gap before the string pool
@@ -72,6 +73,17 @@ FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA teams sit on the slots of data/team
 REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
 TRANSLIT =  {"Ã¤": "ae", "Ã¶": "oe", "Ã¼": "ue", "Ã„": "Ae", "Ã–": "Oe", "Ãœ": "Ue", "ÃŸ": "ss"}
+
+
+def apply_team_colours(buf, base, team):
+    colours = {}
+    for field in T_UI_COLOURS:
+        value = team.get(field, "").strip()
+        if not re.fullmatch(r"#?[0-9a-fA-F]{6}", value):
+            raise ValueError(f"{team['sheet']}: {field} must contain exactly six hex digits, optionally prefixed by #")
+        colours[field] = bytes.fromhex(value.lstrip("#"))
+    for field, offset in T_UI_COLOURS.items():
+        buf[base + offset:base + offset + 3] = colours[field]
 
 
 def clean(text, keep_umlauts):
@@ -402,9 +414,9 @@ def main():
     ap.add_argument("--proa", default=str(ROOT / "proa_scraped.xlsx"))
     ap.add_argument("--pids", default=str(ROOT / "data/face_match/proa_pid_map.csv"),
                     help="csv from face_match.py: proa_id, pid (automatic), override_pid (manual, wins) -> player model")
-    ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"))
+    ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"),
+                    help="combined team metadata: names, jersey/UI colours, arena, verified")
     ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
-    ap.add_argument("--arenas", default=str(ROOT / "data/proa_arenas.csv"), help="csv: sheet,arena (home arena names)")
     ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
                     help="csv: sheet,orig_last,first,last (manual name overrides)")
     ap.add_argument("--accessories", default=str(ROOT / "data/accessories.csv"),
@@ -451,6 +463,7 @@ def main():
         base = TEAM_BASE + k * TEAM_STRIDE
         players = team_players[i_team]
         recs = alloc[i_team]
+        apply_team_colours(pl.d, base, tr)
 
         # team strings: replace every referrer of the old strings
         old = {f: pl.target(base + f) for f in (T_NICK, T_ABBR, T_CITY_A, T_CITY_B)}
@@ -460,7 +473,8 @@ def main():
             for fld in sorted(pl.refs[t]):
                 assignments.append((fld, new_text[f]))
         team_out.append({"slot": k, "old_nick": old_names[T_NICK], "old_abbr": old_names[T_ABBR], "old_city": old_names[T_CITY_A],
-                         "nick": tr["nickname"], "abbr": tr["abbr"], "city": tr["city"], "sheet": tr["sheet"], "players": len(players)})
+                         "nick": tr["nickname"], "abbr": tr["abbr"], "city": tr["city"], "sheet": tr["sheet"], "players": len(players),
+                         "colorui1": tr["colorui1"], "colorui2": tr["colorui2"]})
 
         # roster list + starters (pointers to player records)
         for i in range(ROSTER_SLOTS):
@@ -513,14 +527,11 @@ def main():
             break
         if re.fullmatch(r"s\d{3}", tag):
             venue_row[int(tag[1:])] = r
-    arenas = {}
-    if Path(a.arenas).exists():
-        arenas = {r["sheet"]: r["arena"] for r in csv.DictReader(open(a.arenas, encoding="utf-8")) if r["arena"].strip()}
     arena_out = []
     for tr in team_rows:
-        name = arenas.get(tr["sheet"])
+        name = tr["arena"].strip()
         if not name:
-            notes.append(f"{tr['sheet']}: no arena in {a.arenas}, keeping original")
+            notes.append(f"{tr['sheet']}: no arena in {a.teams}, keeping original")
             continue
         row = venue_row[tr["nba_slot"]]
         base = ARENA_BASE + ARENA_STRIDE * row

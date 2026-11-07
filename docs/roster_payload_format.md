@@ -53,6 +53,404 @@ the default visitor); slots 0-11 stay NBA teams and donate players.
 Team-name strings are also referenced by a nickname/`pbNN.iff` playbook pointer table at
 `0x10E8-0x11E8`; `build_roster.py` rewrites **all referrers** of an old string.
 
+### Team colours / jersey lettering investigation (2026-11-06)
+
+Read-only comparison of the saved NBA baseline (`data/roster_test/payload_current.bin` and
+the roster in `Mcd001.original.ps2`) with the edited `data/roster.bin` found two **RGB-like
+triplets**, unchanged across all 30 NBA slots:
+
+| Team-relative offset | Encoding candidate | Status |
+|---|---|---|
+| +0x62..+0x64 | three u8 channels, R/G/B | General team colour: armbands and some UI elements (user-tested) |
+| +0x65..+0x67 | three u8 channels, R/G/B | Secondary UI colour, including backgrounds with white text (user-tested) |
+
+These are six consecutive bytes, **not two aligned RGBA words**. Examples:
+
+`build_roster.py` now writes them from `colorui1` / `colorui2` in the combined
+`data/proa_teams.csv`. The independent `colorjersey1` / `colorjersey2` columns retain
+the old baseline jersey-generator colours. UI defaults were copied exactly, not
+darkened: review bright secondary colours for white-text contrast.
+
+| NBA slot / team | First triplet | Second triplet | Absolute payload offsets |
+|---|---|---|---|
+| 0 / 76ers | `94 0B 2E` (#940B2E, dark red) | `14 14 14` (#141414, near-black) | 0x1252 / 0x1255 |
+| 20 / Pacers | `2A 32 5A` (#2A325A, dark blue) | `2D 3D 6E` (#2D3D6E, dark blue) | 0x2922 / 0x2925 |
+| 6 / Celtics | #006A3C (green) | #141414 | 0x192A / 0x192D |
+| 15 / Lakers | #F5CC08 (yellow) | #7E2C9D (purple) | 0x236E / 0x2371 |
+| 25 / Spurs | #141414 | #9C9C9C (grey) | 0x2ED6 / 0x2ED9 |
+
+The colours broadly track NBA team palettes. However, the Pacers have **no yellow in
+either triplet**, whereas their away lettering is observed as yellow. Thus these fields
+cannot be labelled "home lettering" and "away lettering"; the tests below establish
+accessory/UI uses, not lettering controls.
+No fill/outline selector or outline colour has been confirmed. Interpreting other
+team words as RGB555/RGB565 produces occasional plausible colours but no established mapping.
+
+Re-run the read-only scan:
+
+```
+python scripts/team_colour_scan.py
+python scripts/team_colour_scan.py --payload data/roster_test/payload_current.bin --slot 20
+```
+
+Name and number text comes from player-record fields, not the borrowed model ID (see
+`player_record_layout.md`). Custom text working does not rule out glyph atlases or
+dynamically assembled textures: existing dumps include `jersey_name_plates` and
+`jersey_numbers` groups. Lettering colour may be in a texture palette or uniform asset
+instead of the roster.
+
+**User test results (2026-11-06):** changing the first Sixers triplet at 0x1252 to
+`00 FF 00` turned armbands and some UI elements green. Changing the second at 0x1255
+to `FF 00 FF` produced limited magenta, notably in secondary UI elements combined
+with white text. Keep the second colour dark enough for white-text contrast; bright
+magenta is a diagnostic value, not a suitable final palette. No jersey-lettering change
+was reported. Exact coverage of both fields across screens/accessories remains untested.
+
+**Long-term constraint (user, 2026-11-06):** no manual replacements for each new player.
+The desired control is roster-driven; a shared team/uniform template or palette would
+also be worth investigating if it automatically applies to future names and numbers.
+If no maintainable shared control is found, leave lettering colours unchanged.
+
+The existing workspace contains 2,651 number dumps across four resolutions and 2,262
+name-strip dumps across three resolutions. Sample number images contain assembled
+`11` and `22`, not full digit atlases; a sample name strip contains `JOHNSON`.
+Only 140 number dumps and 956 name-strip dumps have entirely greyscale visible RGB
+pixels (alpha > 0). Thus many output textures already contain colour, although this
+does not establish where the generator obtains it. No filename-labelled font/palette/
+glyph template was found; initial grouping may have put such assets elsewhere.
+
+**Next test: find the shared input to lettering generation.** A one-off replacement
+test below is diagnostic only, not the proposed production workflow.
+
+1. Restore the diagnostic team colours. Use Pacers home/away as the control pair
+   (blue/yellow lettering), holding player identity and jersey number constant.
+2. Find the matching glyph/number and name-strip dumps in
+   `texture_workspace/jersey_numbers/` and `texture_workspace/jersey_name_plates/`.
+   If ambiguous, capture fresh dumps during a close-up and compare newly created
+   or changed textures between variants.
+3. Recolour one candidate's opaque fill pixels to green, preserving its alpha and
+   outline pixels. Sync using `texture_workspace.py sync`, then reload textures with
+   F10 while unpaused. Check whether numbers/names change and whether this affects
+   only one uniform or other teams too. Restore after each individual test.
+4. If fill changes directly, map the texture keys and isolate the outline separately.
+   If a confirmed visible glyph texture contains only white/greyscale coverage, investigate
+   uniform material/vertex tinting. Read the loaded TXTR palette first: colour can be baked
+   into a generated palette even when a source atlas is monochrome. A replacement having
+   no effect alone does not prove tinting; it may be the wrong key or inactive LOD.
+
+Prefer tracing the loaded number/name-strip TXTR back to its uniform asset and
+generation inputs. Search for a reusable digit/alphabet atlas, a fill/outline palette,
+or a per-uniform style structure. Compare Pacers home and away inputs while keeping
+the player constant. A colour-template texture could encode fill/outline colours,
+but a palette table or material fields could do the same without appearing as a dump.
+Confirm a candidate by changing one shared input and then generating lettering for
+at least two players with different names/numbers. Both must inherit the change;
+editing already assembled player textures does not satisfy the long-term requirement.
+
+**Follow-up pointer audit:** the 30 NBA team records' consistent tagged pointers
+resolve to player records (+0x00..0x38 and +0x90..0xA0), name/abbreviation/id strings
+(+0x48, +0x4C, +0x50, +0x74, +0x78, +0x7C), the playbook table (+0x54), and the
+venue table (+0x58). No direct texture/palette pointer was identified. Small integer
+fields also accidentally pass the tagged-pointer range test; that alone is not evidence
+of a pointer. +0x68..0x6F are zero across these teams; +0x84/+0x8C are invariant
+floats 1.0/0.4; +0x80 ranges 0..5 and +0x88 ranges 0..4 (+0x89 is always 2).
+The small fields might be enums/selectors but their purpose is unknown.
+The later +0xE4..0x100 words have not been semantically decoded; interpreting them
+as packed colours is possible but has not yielded a convincing uniform-colour mapping.
+A readable UTF-16 asset-name scan found playbook `.iff` references, not explicit
+uniform/font/palette asset names. This does not exclude numeric asset identifiers or
+tables elsewhere in the payload, nor assets loaded outside the roster.
+
+The assistant's initial scan was read-only; the colour edits above were performed and
+reported by the user.
+
+#### Live experiment: shared digit atlases found (2026-11-06)
+
+User supplied savestate slot 1: Pacers vs Pacers at team select. The savestate contains
+NBA player names despite active ProA texture replacements. No memory card, roster file,
+replacement texture, or saved state was written during this experiment.
+
+Four **`numbers` TXTRs, 1024x64**, contain complete digit strips 0..9 with baked fill,
+outlines and antialiasing. They belong to preview uniform assets, not individual players:
+
+| Preview asset | Numbers TXTR | Pixels | Palette / CLUT |
+|---|---|---|---|
+| `seluh021.iff` (Pistons home) | 0xFB4B80 | 0xFB4BF0 | 0xFCA140 |
+| `selua021.iff` (Pistons away) | 0x1034B80 | 0x1034BF0 | 0x104A140 |
+| `selua020.iff` (Pacers away) | 0x10B4B80 | 0x10B4BF0 | 0x10CA140 |
+| `seluh020.iff` (Pacers home) | 0x1134B80 | 0x1134BF0 | 0x114A140 |
+
+Preview ownership was resolved from each UTF-16 file-name address: words at +0x68/+0x6C
+give the asset allocation range containing the numbers TXTR. These offsets are observations
+for this preview layout, not a general `.iff` parser.
+
+**Decoding correction:** these indexed PSMT8 textures include seven mip levels before
+the CSM1-swizzled, 256-entry RGBA palette. Each mip's byte count is rounded up to 16 bytes.
+Thus CLUT = pixel + 0x15550 for 1024x64, or pixel + 0x2AC0 for 128x64 / 256x32.
+Assuming CLUT follows only the first mip produces misleading colours/empty images.
+The decoded Pacers home atlas has blue fill/yellow outline, and away has yellow fill/
+blue outline. The generated preview `15` decodes with the matching style.
+
+After game load, buffers `jerseyname00..23` (256x32) and `jerseynum00..23` (128x64)
+exist. All 12 home number buffers have a palette **byte-identical (all 1024 bytes)**
+to the preview home atlas palette; all 12 away buffers match the away atlas palette.
+Name palettes likewise form two groups of 12 identical palettes, but are not identical
+to either number palette. Decoded name samples contain `O'NEAL`.
+The game has loaded `uh020.iff` and `ua020.iff`; source `numbers` TXTRs from preview
+are no longer present as valid named objects in the game snapshot.
+
+**Controlled RAM-only test:** recoloured every non-transparent entry of the preview
+home atlas CLUT at 0x114A140 green, without touching assembled number buffers.
+After resuming team select, the cached preview number palette did not inherit the edit.
+After starting a fresh game, sampled generated home number palettes were restored to
+the original palette, not green. Therefore patching this preview atlas alone is **not**
+a persistent game-lettering solution. The test does not rule out the separate game
+uniform atlas as the real shared generation input.
+
+Next target: generation-time data from `uh020.iff` / `ua020.iff`, including the name
+glyph source. A patch to those source assets or their load/generation routine could
+apply to future players; ordinary PCSX2 replacement of a CPU-read source atlas cannot
+be assumed to affect generated output. No roster-controlled lettering setting is proven.
+
+Reproducible offline inspection:
+
+```
+python scripts/inspect_lettering.py snapshot.bin --out OUTPUT_DIRECTORY
+```
+
+Exports decoded images and `lettering.json` with addresses, preview asset ownership and
+full palette hashes. Addresses above are EE RAM offsets specific to this run, **not**
+roster offsets or stable addresses for a future session.
+
+### ISO experiment: shared number source confirmed
+
+The supplied `ESPN NBA 2K5 (Europe) - Kopie.iso` was patched and **fresh-booted**,
+without loading a savestate. This establishes a working alternative to per-player
+PCSX2 texture replacements: change the uniform's shared number palette on disc, and
+the game copies it into every generated player-number texture.
+
+The experiment used an isolated PCSX2 data directory, both memory-card slots disabled,
+and texture replacement/dumping disabled. The normal profile, memory cards and slot 1
+savestate were not used or overwritten.
+
+#### Archive and source-texture offsets
+
+These are **ISO byte offsets**, not roster/EE addresses, for the verified
+3,439,427,584-byte European image:
+
+| Location | Value / interpretation |
+|---|---|
+| ISO9660 sector size | `0x800` bytes |
+| `VC_53022` archive | Four physically contiguous files `0` through `3`; first three are 1 GiB |
+| Archive start | LBA 4895 = `0x98F800` |
+| Archive entry count | `3728`, u32 at archive start |
+| Index start / stride | archive `+0x9C` / `0x0C` |
+| Index entry fields | u32 hash, u32 byte length, u32 sector offset relative to archive start |
+| Tested uniform bundle | index 2103 (zero-based), hash `0xAD6241D2` |
+| Bundle start / length | `0x0DF07800` / `0xB5630` |
+| Shared alphabet chunk | `0x0DF2BFA0`, `HITX`, name `names`, 1024 x 32 |
+| Alphabet CLUT | `0x0DF36AD0` (last 1024 bytes of this chunk) |
+| Shared digit chunk | `0x0DF36F90`, `HITX`, name `numbers`, 1024 x 64 |
+| Digit base-mip indices | `0x0DF37020` (chunk `+0x90`) |
+| **Patched digit CLUT** | **`0x0DF4C570`, 1024 bytes** |
+
+Bundle chunks advance by `0x20 + u32(chunk+4)`. Some `TXTR` chunks are compressed;
+the lettering `HITX` chunks above are not. `HITX` dimensions are u16 at `+0x7C` /
+`+0x7E`; the UTF-16 name begins at `+0x40`. Each atlas is followed by a `NAME` chunk
+containing glyph-position/width data. The alphabet and digit outlines are baked into
+their indexed images/palettes, not independent RGB fields in the roster.
+
+For these two source chunks, the CLUT is the final 1024 bytes of the chunk. Do not
+blindly reuse the RAM exporter's seven-mip calculation for the 1024 x 32 alphabet:
+that would put its CLUT 16 bytes too late.
+
+The digit indices and entire original palette match the earlier Pacers home RAM
+atlas byte-for-byte. The archive's filename hash algorithm has **not** been decoded;
+the bundle's literal filename is not yet established. Its role as the in-game Pacers
+home number source is established by the controlled patch, not a guessed filename.
+Two away-palette matches also exist at `0x122DED70` and `0x143B0D70`; neither was patched.
+
+#### Patch and verified result
+
+[patch_lettering_iso.py](../scripts/patch_lettering_iso.py) changes only the
+blue-dominant, nontransparent palette entries to diagnostic bright green. Specifically:
+`alpha != 0`, `B > R+12`, `B > G+8`; replace RGB with `00 FF 00`.
+It leaves alpha, transparent entries, yellow/neutral palette entries, indices, glyph
+metrics and all file sizes unchanged. This is a diagnostic colour selection, not a
+production-quality antialiased recolouring algorithm.
+
+* **94 palette entries / 282 RGB bytes** changed, all within the single CLUT.
+* The expected full-image SHA-256 was calculated from the original copy with only
+  that replacement, then matched against the entire patched ISO.
+* Fresh Pacers versus Pacers game: all **12** home `jerseynum00..11` CLUTs match
+  the patched source exactly.
+* All **12** away-number CLUTs and **24** home/away name CLUTs match the unpatched
+  game's snapshot.
+* All **48** base-mip index buffers and alpha arrays remain byte-identical.
+* Decoded player-number images show green numbers with the yellow outline retained.
+* On-court visual check at tip-off: the white home jerseys display green numbers
+  (including `10`, `1` and `7`); the blue away jerseys retain yellow numbers. Name
+  lettering remains unchanged.
+* The team-select jersey preview did **not** visibly turn green. That presentation
+  must not be used as the test for the in-game generation source.
+
+| Fingerprint | SHA-256 |
+|---|---|
+| Original source number CLUT | `308eb4ba3724e3599eeb60ac52cb8ffdcc82191c5c83afdfa1cab97f2e0a2397` |
+| Patched source / generated home number CLUT | `c89020f9439f5273b525148652c06be9d9f35ac3983fb45e7893c535422e96f0` |
+| First, damaged ISO copy before patch | `96fc033cd3298145fad05901257be9a2000e3ad181c68db52c9af0fd3c09e5f5` |
+| First, damaged ISO copy after patch | `3638b9f12fb2b947f66d60d989c58a8f45b153cdd657f8c6504c56e531f02fc7` |
+
+The other ISO in that directory already differed from the supplied copy near the
+end of the image **before** this experiment; it was not used as an identical baseline
+and was never written.
+
+#### Follow-up: blank warm-ups and intermittent stalls
+
+The user observed completely white/blank player warm-ups and occasional multi-second
+hangs during the test. The captured pregame scene also shows blank white warm-ups.
+These are tracked observations, **not established side effects of the palette patch**.
+The experiment proves number-colour propagation, not general gameplay stability.
+
+A subsequent read-only check identified a serious pre-existing baseline problem:
+
+* From ISO offset `0xC7700000` to EOF, the supplied copy contains **93,421,568 zero
+  bytes** (about 89.1 MiB), with no nonzero bytes anywhere in that range.
+* The archive index references **306 assets overlapping this range**, beginning
+  with entry 3422 at `0xC7663000` (partially affected). This is not solely ISO padding.
+* At the same offset, a 1 MiB sample of the other ISO contains nonzero data. The
+  pre-patch whole-image comparison already established the difference, before the
+  palette write. Our palette modification at `0x0DF4C570` cannot account for it.
+
+This is consistent with an incomplete/damaged supplied copy and is a plausible
+confound for missing assets or stalls. It does **not** yet identify which affected
+asset is a warm-up texture or prove the cause of either observed symptom.
+The isolated profile also differs from the normal profile and uses a separate shader
+cache. Its log contains no explicit disc-read failure establishing a cause.
+
+The required follow-up was to recreate a disposable copy, verify identical complete
+hashes, then compare unpatched and patched fresh boots under the **same** emulator
+profile, renderer and texture-replacement settings. That comparison is recorded below.
+
+#### Intact-copy A/B retest (2026-11-06)
+
+After the user recreated the copy, both ISOs were independently confirmed to have
+SHA-256 `4cdad2339dbe2828b440ca222f869f234b15c0321c8dcdeac016a30b10678fb7`.
+The original ISO was not modified.
+
+Two fresh boots of the copy were tested in order: unpatched, then patched. Both used
+the same isolated PCSX2 2.8.2 profile, Direct3D 12 at native 640 x 512, normal 100%
+speed, Pacers versus Pacers with current home/away uniforms, disabled memory-card
+slots, and disabled texture replacement/dumping. The profile's four shader/pipeline
+cache files were saved before the baseline and restored to that same seed before the
+patched boot. A dedicated PINE port (28012) avoided the earlier socket conflict.
+
+| Check | Intact unpatched copy | Intact patched copy |
+|---|---|---|
+| Warm-ups | Properly textured, with Pacers logos | Properly textured, with Pacers logos; home white/blue/yellow panels and away blue |
+| Home jersey numbers | Original navy/yellow | Diagnostic green/yellow |
+| Away numbers / player names | Original | Unchanged |
+| Sampled gameplay window | 30.28 s, 119 samples | 30.17 s, 118 samples |
+| Identical consecutive game-image samples during gameplay | None | None |
+| Additional sampled pregame window | 35.16 s, 140 samples | 35.17 s, 138 samples |
+
+Screen sampling hashed only the game image, excluding window/menu/status bars, at
+approximately 4 Hz; the largest interval between samples across both runs was 0.344 s.
+The baseline pregame sample's longest identical-image run was 0.25 s. The patched
+pregame sample contained a **2.25 s** stationary interval on the black
+`Pacers vs Pacers` loading/transition screen, followed by normally animated scenes.
+The pregame windows began at different points in the sequence, so these numbers are
+**not** a matched loading-time benchmark or evidence of a patch-specific loading stall.
+No deliberate emulator pauses were used during the sampled windows.
+
+Final RAM snapshots, taken after generation had completed, establish:
+
+* All **12 home-number palettes** equal the original palette with precisely the
+  diagnostic `green_fill` transform.
+* All **12 away-number** and **24 name** palettes match the intact baseline.
+* All **48** alpha arrays and base-mip index buffers match the intact baseline.
+
+The intact copy's patched SHA-256 is
+`ce8c037aeaff00735fe94478821c2b71d0a36827f58648dd530fbc080ad82adf`.
+It was checked against a complete expected-image hash computed by substituting only
+the known palette into the unpatched byte stream: **282 changed RGB bytes**, with no
+other byte changes. Neither run's log reported an explicit disc-read/asset error.
+
+**Conclusion:** blank warm-ups are not reproduced with the intact image, either
+unpatched or patched. The missing tail in the first copy remains the best-supported
+explanation, although individual affected asset hashes have not been mapped to warm-up
+textures. No gameplay freeze was detected in the short sampled windows. The stationary
+loading transition is recorded, and intermittent stalls remain a longer-run observation
+item rather than a proven palette-patch regression or a conclusively resolved issue.
+The isolated test processes were closed; the supplied copy remains patched, with its
+palette restore manifest beside it. Normal memory cards and savestates were untouched.
+
+#### Shared alphabet patch: toolchain verified
+
+`patch_lettering_iso.py --target names` now applies the same reversible diagnostic
+palette edit to the Pacers home alphabet chunk. Default operation still targets
+numbers. The alphabet source CLUT is at `0x0DF36AD0`; its original SHA-256 is
+`36acca4d2c21626095a2a6a03c395ae0aa65cb88c89bb18d21c260ccf88bfe7f`.
+
+The blue-dominant-entry transform changes **9 entries / 27 RGB bytes** in the source
+alphabet, producing SHA-256
+`b880f9caf5c70254a1ee0a63c3a6ad0f1c66d6e6c212bfd915a3dd3ad83828b3`.
+These glyphs contain mostly gold/brown tones, so this diagnostic changes only blue
+accents, not the whole visible fill. No cosmetic result is required: the purpose of
+this test is to establish that edits to the shared source reach generated names.
+
+A fresh Pacers-versus-Pacers boot with both patches established:
+
+* All **12 home-name palettes** changed to generated SHA-256
+  `befd39783c56ef686b55f1ad9d7e8a8e3b892d4a486fa43e1e91d913d6916864`.
+  Decoded glyph images contain the changed green accents for every home player.
+* All **12 away-name palettes** match the intact baseline.
+* All **24 number palettes** match the preceding successful numbers-only test.
+* All **48** base-mip index buffers and palette alpha arrays remain unchanged.
+
+Generated name palettes are processed output, not byte-for-byte copies of the alphabet
+CLUT. Validation therefore compared final generated glyphs/palettes against the clean
+baseline rather than expecting the source CLUT hash in player textures.
+
+The copy carrying **both** patches has SHA-256
+`2513e06df91ae74657cb01a7c56e8d53c9203ba407c545c6869e98f4d90708fd`.
+Its full hash was checked against the numbers-patched image with exactly the additional
+27-byte name edit. Both targets have independent manifests and can be restored without
+undoing the other. The source ISO, normal memory cards and savestates were not written.
+An actual name-only restore returned the complete image to the earlier numbers-only
+hash `ce8c037aeaff00735fe94478821c2b71d0a36827f58648dd530fbc080ad82adf`;
+reapplying names reproduced the combined hash above.
+
+#### Repeat / restore
+
+Stop emulation of this image before writing it. Always operate on a disposable copy:
+
+```powershell
+# Read-only inspection of an unpatched copy (the default).
+python scripts\patch_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Kopie.iso"
+# Apply the diagnostic patch.
+python scripts\patch_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Kopie.iso" --apply
+# Restore the exact original palette.
+python scripts\patch_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Kopie.iso" --restore
+# Independently apply or restore the shared alphabet palette.
+python scripts\patch_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Kopie.iso" --target names --apply
+python scripts\patch_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Kopie.iso" --target names --restore
+```
+
+The number restore manifest is written beside the ISO as `<ISO filename>.lettering-test.json`;
+names use `<ISO filename>.lettering-names-test.json`. Each is written **before** its
+palette is patched. Keep both with the test copy. Operations verify the ISO layout,
+bundle index, source chunk and palette fingerprints and read back the write. Applying
+twice, using an unknown palette, or restoring over unrelated palette edits is refused.
+An already-restored palette is left untouched. Apply/restore and rejection paths were
+also tested on a disposable sparse fixture.
+
+**Long-term implication:** no player-specific edits are needed for either tested shared
+source. Uniform-level ISO palette edits propagate to generated names and numbers.
+Mapping all team/uniform archive entries and resolving the team-select preview remain
+future work; see the [editable workspace/pipeline plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
+No ISO, extracted game texture or emulator RAM dump belongs in Git.
+
 ### Player record (0x94 bytes)
 | Off | Meaning |
 |---|---|
@@ -81,7 +479,9 @@ so always resolve the row by its `sNNN` string. Different teams may share one ar
 `s006` and Lakers `s015`); rewrite single fields, not all referrers.
 The game uses the heap copy of the payload (RAM `0xA95B80 + file offset`); a second copy of the name in RAM
 (e.g. `0x1CE8638`) is irrelevant. Names may be longer than the original (string is relocated).
-`build_roster.py` reads `data/proa_arenas.csv` (`sheet,arena,verified`) and writes `data/roster_build/arena_map.csv`.
+`build_roster.py` reads `arena,verified` alongside the team names and colours in
+`data/proa_teams.csv` and writes `data/roster_build/arena_map.csv`. `verified` describes
+the arena name only. The separate arena CSV and `--arenas` argument were removed.
 Live tools: `scripts/arena_table.py` (list rows from RAM), `scripts/ram_write_str.py` (in-place patch, max original length),
 `scripts/find_ps2_ram.py` (re-find RAM base after every PCSX2 restart).
 

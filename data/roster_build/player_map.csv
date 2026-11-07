@@ -124,21 +124,19 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 20,8,Crailsheim Merlins,11,117,0xa898,Peyton,Gerald,Peyton Kennedy,Gerald,3,13,79.1,2003862,False,195,first-trunc
 20,8,Crailsheim Merlins,12,109,0xa3f8,Matheo,Hermann,Mathéo,Hermann,1,4,75.8,2004275,False,908,
 20,8,Crailsheim Merlins,13,92,0x9a24,Phil,Ikejiaku,Phil,Ikejiaku,4,19,72.4,2004363,False,1036,
-21,9,Falcons,0,267,0xff50,Xavier,Bell,Xavier,Bell,0,4,88.9,2004435,True,303,
-21,9,Falcons,1,268,0xffe4,Nate,Heise,Nate,Heise,1,33,90.1,2004101,True,1138,
-21,9,Falcons,2,269,0x10078,Jeno,Pildner,Jenö,Pildner,2,37,78.9,2003982,True,266,
-21,9,Falcons,3,270,0x1010c,Ty,Allred,Ty,Allred,3,10,79.8,2004046,True,653,
+21,9,Falcons,0,267,0xff50,Xavier,Bell,Xavier,Bell,0,4,85.2,2004435,True,303,
+21,9,Falcons,1,268,0xffe4,Nate,Heise,Nate,Heise,1,33,87.7,2004101,True,1138,
+21,9,Falcons,2,269,0x10078,Jeno,Pildner,Jenö,Pildner,2,37,75.8,2003982,True,266,
+21,9,Falcons,3,270,0x1010c,Ty,Allred,Ty,Allred,3,10,81.9,2004046,True,653,
 21,9,Falcons,4,272,0x10234,Lars,Lagerpusch,Lars,Lagerpusch,4,44,81.8,2002186,True,457,
-21,9,Falcons,5,273,0x102c8,Tim,Kopple,Tim,Köpple,0,5,87.9,5469,False,981,
-21,9,Falcons,6,274,0x1035c,Daniel,Helterhoff,Daniel,Helterhoff,4,13,81.0,2003983,False,460,
-21,9,Falcons,7,275,0x103f0,Dominick,von Waaden,Dominick,von Waaden,1,9,80.7,2004606,False,992,
-21,9,Falcons,8,276,0x10484,Jarne,Jurgens,Jarne,Jürgens,4,21,79.6,2003981,False,268,
-21,9,Falcons,9,277,0x10518,Drew,Stover,Drew,Stover,4,42,78.8,2004965,False,453,
-21,9,Falcons,10,279,0x10640,Nic,Welp,Nic,Welp,4,20,78.6,2004048,False,421,
-21,9,Falcons,11,80,0x9334,Christian,Feneberg,Christian,Feneberg,1,7,78.6,5034,False,89,
-21,9,Falcons,12,65,0x8a88,Tom,Stoiber,Tom,Stoiber,3,28,77.5,58183,False,316,
-21,9,Falcons,13,53,0x8398,Joscha,Eckert,Joscha,Eckert,0,4,76.8,2000034,False,78,
-21,9,Falcons,14,24,0x72d4,Lars,Lenke,Lars,Lenke,2,11,74.0,2001468,False,1040,
+21,9,Falcons,5,273,0x102c8,Tim,Kopple,Tim,Köpple,0,5,80.1,5469,False,981,
+21,9,Falcons,6,274,0x1035c,Jarne,Jurgens,Jarne,Jürgens,4,21,79.6,2003981,False,268,
+21,9,Falcons,7,275,0x103f0,Nic,Welp,Nic,Welp,4,20,79.2,2004048,False,421,
+21,9,Falcons,8,276,0x10484,Christian,Feneberg,Christian,Feneberg,1,7,78.6,5034,False,89,
+21,9,Falcons,9,277,0x10518,Dominick,von Waaden,Dominick,von Waaden,1,9,77.3,2004606,False,992,
+21,9,Falcons,10,279,0x10640,Drew,Stover,Drew,Stover,4,42,75.8,2004965,False,453,
+21,9,Falcons,11,80,0x9334,Lars,Lenke,Lars,Lenke,2,11,73.7,2001468,False,1040,
+21,9,Falcons,12,65,0x8a88,Daniel,Helterhoff,Daniel,Helterhoff,4,13,70.9,2003983,False,460,
 22,10,Baskets,0,280,0x106d4,Jon'll,Fugett,Jon'll Larenz,Fugett,0,0,95.2,2004483,True,732,first-trunc
 22,10,Baskets,1,281,0x10768,Nik Philip,Schlipf,Nik Philip,Schlipf,1,9,86.0,2005106,True,619,
 22,10,Baskets,2,282,0x107fc,Christopher,Schultz,Christopher,Schultz,2,13,84.1,2004482,True,751,
@@ -150,7 +148,7 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 22,10,Baskets,8,291,0x10d30,Nicolas,Marty-Decker,Nicolas Ignacio,Marty-Decker,1,10,80.0,6272,False,615,first-trunc
 22,10,Baskets,9,292,0x10dc4,Leonard,Kroger,Leonard,Kröger,4,26,79.4,2001051,False,358,
 22,10,Baskets,10,293,0x10e58,Levy Kaan,Koyuturk,Levy Kaan,Koyutürk,0,12,75.0,2005108,False,735,
-22,10,Baskets,11,392,0x14794,Hannes,Frischemeier,Hannes,Frischemeier,4,11,72.4,2005107,False,901,
+22,10,Baskets,11,53,0x8398,Hannes,Frischemeier,Hannes,Frischemeier,4,11,72.4,2005107,False,901,
 23,11,Essen,0,294,0x10eec,Quashawn,Lane,Quashawn Tyrese,Lane,0,4,91.2,2001905,True,748,first-trunc
 23,11,Essen,1,296,0x11014,Isaiah Jevon,Sanders,Isaiah Jevon,Sanders,1,10,85.0,2004675,True,155,
 23,11,Essen,2,297,0x110a8,Darius,Dawson,Darius,Dawson,2,13,88.0,2004674,True,369,
@@ -162,7 +160,7 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 23,11,Essen,8,304,0x114b4,Craig,Moller,Craig,Moller,3,6,79.3,2004677,False,882,
 23,11,Essen,9,305,0x11548,Niclas,Sperber,Niclas Jonathan,Sperber,3,12,78.9,2000441,False,1131,first-trunc
 23,11,Essen,10,306,0x115dc,Ronney,Ani,Ronney,Ani,0,1,77.5,2004683,False,404,
-23,11,Essen,11,367,0x13920,Jackson,Price-Townse,Jackson,Price-Townsend,3,24,76.2,2004682,False,833,last-shortened
+23,11,Essen,11,24,0x72d4,Jackson,Price-Townse,Jackson,Price-Townsend,3,24,76.2,2004682,False,833,last-shortened
 24,12,LIONS,0,307,0x11670,Isaiah,Hart,Isaiah Rayshaud,Hart,0,4,93.1,2002947,True,805,first-trunc
 24,12,LIONS,1,308,0x11704,Martel,Williams,Martel,Williams,1,3,85.2,2004016,True,312,
 24,12,LIONS,2,309,0x11798,Kilian,Binapfl,Kilian,Binapfl,2,12,81.7,2001526,True,620,
@@ -172,11 +170,11 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 24,12,LIONS,6,314,0x11a7c,Zac,Owens,Zac,Owens,0,2,92.2,2004014,False,817,
 24,12,LIONS,7,316,0x11ba4,Robert,Jones,Robert,Jones,4,21,86.9,2004189,False,968,
 24,12,LIONS,8,317,0x11c38,Noah,Koch,Noah,Koch,0,1,84.2,1400015,False,1189,
-24,12,LIONS,9,10,0x6abc,Wesley Chima,Oba,Wesley Chima,Oba,3,7,81.3,2001572,False,1130,
-24,12,LIONS,10,146,0xb95c,David,Scheu,David,Scheu,0,0,79.6,2004187,False,917,
-24,12,LIONS,11,134,0xb26c,Jason,George,Jason,George,3,11,78.9,2003099,False,743,
-24,12,LIONS,12,108,0xa364,Luka,Galic,Luka,Galic,3,77,75.5,2004188,False,886,
-24,12,LIONS,13,91,0x9990,Julijo,Kendes,Julijo,Kendeš,1,16,72.8,2004451,False,963,
+24,12,LIONS,9,392,0x14794,Wesley Chima,Oba,Wesley Chima,Oba,3,7,81.3,2001572,False,1130,
+24,12,LIONS,10,367,0x13920,David,Scheu,David,Scheu,0,0,79.6,2004187,False,917,
+24,12,LIONS,11,10,0x6abc,Jason,George,Jason,George,3,11,78.9,2003099,False,743,
+24,12,LIONS,12,146,0xb95c,Luka,Galic,Luka,Galic,3,77,75.5,2004188,False,886,
+24,12,LIONS,13,134,0xb26c,Julijo,Kendes,Julijo,Kendeš,1,16,72.8,2004451,False,963,
 25,13,Koln,0,319,0x11d60,Cedric,Russell Jr,Cedric Cezell,Russell Jr,0,0,94.1,2002277,True,227,first-trunc
 25,13,Koln,1,320,0x11df4,Haris,Hujic,Haris,Hujic,1,10,82.3,2001838,True,838,
 25,13,Koln,2,321,0x11e88,James,Patterson,James,Patterson III,2,4,78.0,2004254,True,256,last-shortened
@@ -187,9 +185,9 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 25,13,Koln,7,327,0x12200,Maximilian,Begue,Maximilian,Begue,0,9,85.6,2001447,False,813,
 25,13,Koln,8,328,0x12294,Nat,Diallo,Nat,Diallo,4,8,83.6,2004249,False,914,
 25,13,Koln,9,330,0x123bc,Marko,Cuvalo,Marko,Cuvalo,4,14,77.9,2002994,False,397,
-25,13,Koln,10,79,0x92a0,Konstantin,Lehmann,Konstantin Matthias,Lehmann,1,7,76.9,58073,False,1048,first-trunc
-25,13,Koln,11,64,0x89f4,Karl,Buhner,Karl,Bühner,3,11,76.5,1400017,False,1145,
-25,13,Koln,12,52,0x8304,Ferdinand,Trefzger,Ferdinand Justus,Trefzger,0,3,76.4,2001841,False,547,first-trunc
+25,13,Koln,10,108,0xa364,Konstantin,Lehmann,Konstantin Matthias,Lehmann,1,7,76.9,58073,False,1048,first-trunc
+25,13,Koln,11,91,0x9990,Karl,Buhner,Karl,Bühner,3,11,76.5,1400017,False,1145,
+25,13,Koln,12,79,0x92a0,Ferdinand,Trefzger,Ferdinand Justus,Trefzger,0,3,76.4,2001841,False,547,first-trunc
 26,14,Wolmirstedt,0,331,0x12450,Martin,Bogdanov,Martin,Bogdanov,0,6,89.1,5575,True,1042,
 26,14,Wolmirstedt,1,332,0x124e4,Kenneth,Cooper,Kenneth Andrew,Cooper,1,22,90.9,2004201,True,1020,first-trunc
 26,14,Wolmirstedt,2,333,0x12578,Alieu,Ceesay,Alieu,Ceesay,2,28,81.2,2001705,True,1155,
@@ -201,9 +199,9 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 26,14,Wolmirstedt,8,340,0x12984,Matthias,Fichtner,Matthias,Fichtner,3,35,79.9,6055,False,1163,
 26,14,Wolmirstedt,9,341,0x12a18,Marcus,Evans,Marcus,Evans,1,1,79.8,2004206,False,291,
 26,14,Wolmirstedt,10,343,0x12b40,Dennis,Nawrocki,Dennis,Nawrocki,2,2,79.6,2004202,False,556,
-26,14,Wolmirstedt,11,23,0x7240,Julius,von Oertzen,Julius,von Oertzen,4,36,79.5,2004266,False,841,
-26,14,Wolmirstedt,12,391,0x14700,Aeneas,Jung,Aeneas,Jung,3,9,79.0,2004199,False,745,
-26,14,Wolmirstedt,13,366,0x1388c,Paul Manuel,Raabe,Paul Manuel,Raabe,2,77,72.3,2004707,False,1045,
+26,14,Wolmirstedt,11,64,0x89f4,Julius,von Oertzen,Julius,von Oertzen,4,36,79.5,2004266,False,841,
+26,14,Wolmirstedt,12,52,0x8304,Aeneas,Jung,Aeneas,Jung,3,9,79.0,2004199,False,745,
+26,14,Wolmirstedt,13,23,0x7240,Paul Manuel,Raabe,Paul Manuel,Raabe,2,77,72.3,2004707,False,1045,
 27,15,Tubingen,0,344,0x12bd4,Simon,Feneberg,Simon,Feneberg,0,20,91.9,1400000,True,540,
 27,15,Tubingen,1,345,0x12c68,Isaac,Haney,Isaac,Haney,1,11,85.8,2003150,True,1028,
 27,15,Tubingen,2,346,0x12cfc,Timothy,Smith,Timothy,Smith,2,2,85.8,2003819,True,1178,
@@ -215,10 +213,10 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 27,15,Tubingen,8,353,0x13108,Till-Joscha,Jonke,Till-Joscha,Jönke,1,26,82.6,56773,False,835,
 27,15,Tubingen,9,354,0x1319c,Aron,Heberle,Aron,Heberle,4,17,80.7,2004237,False,597,
 27,15,Tubingen,10,355,0x13230,Kristian,Sjolund,Kristian Henning,Sjolund,3,12,79.0,2004210,False,1044,first-trunc
-27,15,Tubingen,11,9,0x6a28,Jesse,Ani,Jesse Chidera,Ani,1,14,78.5,2004990,False,22,first-trunc
-27,15,Tubingen,12,145,0xb8c8,Nico,Mojica,Nico,Santana Mojica,2,10,77.5,2003798,False,411,last-shortened
-27,15,Tubingen,13,133,0xb1d8,Julian,Hilt,Julian,Hilt,0,4,75.1,2004234,False,1126,
-27,15,Tubingen,14,107,0xa2d0,Neil,Schwanenberg,Neil,Schwanenberg,1,8,72.0,2003945,False,1199,
+27,15,Tubingen,11,391,0x14700,Jesse,Ani,Jesse Chidera,Ani,1,14,78.5,2004990,False,22,first-trunc
+27,15,Tubingen,12,366,0x1388c,Nico,Mojica,Nico,Santana Mojica,2,10,77.5,2003798,False,411,last-shortened
+27,15,Tubingen,13,9,0x6a28,Julian,Hilt,Julian,Hilt,0,4,75.1,2004234,False,1126,
+27,15,Tubingen,14,145,0xb8c8,Neil,Schwanenberg,Neil,Schwanenberg,1,8,72.0,2003945,False,1199,
 28,16,Heidelberg,0,370,0x13adc,Lukas,Roth,Lukas,Roth,0,29,90.4,1400013,True,573,
 28,16,Heidelberg,1,371,0x13b70,Charles,Harris Jr.,Charles Tyrone,Harris Jr.,1,0,87.2,2003953,True,818,first-trunc
 28,16,Heidelberg,2,372,0x13c04,Oskar,Humpert,Oskar,Humpert,2,22,79.3,2004146,True,1025,
@@ -230,10 +228,10 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 28,16,Heidelberg,8,379,0x14010,Franklin,Champion,Franklin Lenard,Champion,3,55,81.9,2005080,False,420,first-trunc
 28,16,Heidelberg,9,380,0x140a4,Cantia Jevon,Rahming,Cantia Jevon,Rahming,3,21,80.4,2003788,False,240,
 28,16,Heidelberg,10,381,0x14138,Paul,Zipser,Paul,Zipser,3,9,78.8,56380,False,934,
-28,16,Heidelberg,11,90,0x98fc,Felix,Diez,Felix,Diez,3,12,76.6,2004391,False,933,
-28,16,Heidelberg,12,78,0x920c,Niklas,Wurzner,Niklas,Würzner,2,2,75.7,56479,False,816,
-28,16,Heidelberg,13,63,0x8960,Dominic,Vengert,Dominic,Vengert,1,8,73.7,2004007,False,1015,
-28,16,Heidelberg,14,51,0x8270,Julius,Hoffmann,Julius,Hoffmann,1,10,72.5,2004390,False,143,
+28,16,Heidelberg,11,133,0xb1d8,Felix,Diez,Felix,Diez,3,12,76.6,2004391,False,933,
+28,16,Heidelberg,12,107,0xa2d0,Niklas,Wurzner,Niklas,Würzner,2,2,75.7,56479,False,816,
+28,16,Heidelberg,13,90,0x98fc,Dominic,Vengert,Dominic,Vengert,1,8,73.7,2004007,False,1015,
+28,16,Heidelberg,14,78,0x920c,Julius,Hoffmann,Julius,Hoffmann,1,10,72.5,2004390,False,143,
 29,17,Stars Bochum,0,27,0x7490,Niklas,Geske,Niklas,Geske,0,4,94.0,5119,True,572,
 29,17,Stars Bochum,1,28,0x7524,JaMonta,Black,JaMonta,Black,1,24,91.8,2004916,True,1127,
 29,17,Stars Bochum,2,29,0x75b8,Gabriel,Kuku,Gabriel,Kuku,2,3,78.5,2004907,True,802,
@@ -245,6 +243,6 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,orig_first,orig_last,pos
 29,17,Stars Bochum,8,37,0x7a58,Aitor Julen,Pickett Lazo,Aitor Julen,Pickett Lazo,3,7,79.1,2003097,False,829,
 29,17,Stars Bochum,9,38,0x7aec,Dyami,Janeck,Dyami,Janeck,0,21,78.5,2004927,False,774,
 29,17,Stars Bochum,10,40,0x7c14,Jaylen,Wesley,Jaylen,Wesley,1,23,77.4,2004918,False,388,
-29,17,Stars Bochum,11,22,0x71ac,Pablo,Estelle,Pablo,Estelle,3,16,76.5,2004928,False,737,
-29,17,Stars Bochum,12,390,0x1466c,Mats,Neumann,Mats,Neumann,1,13,72.0,2001926,False,937,
-29,17,Stars Bochum,13,365,0x137f8,Neo,Scholz,Neo,Scholz,3,22,70.5,2005196,False,1184,
+29,17,Stars Bochum,11,63,0x8960,Pablo,Estelle,Pablo,Estelle,3,16,76.5,2004928,False,737,
+29,17,Stars Bochum,12,51,0x8270,Mats,Neumann,Mats,Neumann,1,13,72.0,2001926,False,937,
+29,17,Stars Bochum,13,22,0x71ac,Neo,Scholz,Neo,Scholz,3,22,70.5,2005196,False,1184,
