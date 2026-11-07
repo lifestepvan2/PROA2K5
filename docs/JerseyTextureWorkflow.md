@@ -86,21 +86,26 @@ and writes the result over **every MASTER** whose label is `<Team><Item><Variant
 
 ## 5. Shared lettering and team-select preview plan
 
-**Status:** the Pacers home shared-number and shared-name ISO toolchains are both
-verified with freshly generated player textures. Cosmetic palette choices are not part
-of these diagnostic tests. The all-team workspace and pipeline described here are **planned**,
+**Status:** Pacers home shared numbers/names and the separate team-select number
+source are verified after a fresh boot. The read-only inventory now covers all 30
+NBA slots: 60 home/away uniforms plus 19 alternates, 237 lettering sources.
+Cosmetic palette choices are not part of these diagnostic tests. The editable
+workspace and season pipeline described here are still **planned**,
 not commands currently implemented. Do not feed CPU-read source atlases through
 ordinary PCSX2 replacement sync: that route has not changed the generated output.
 Experimental commands and measured offsets are in [the payload/ISO findings](roster_payload_format.md).
 
 ### A. Identify the preview's actual input before choosing a solution
 
-The team-select number stayed unchanged after a fresh boot with the in-game source
-palette patched. This does **not** establish that the preview number is baked into a
-static jersey image. Existing team-select RAM evidence already contains 128 x 64
-`jerseynum00` / `jerseynum01` buffers as well as `seluhNNN.iff` / `seluaNNN.iff`
-1024 x 64 digit sources. The preview may use a separate generation path or cached
-output; literal archive filenames are not yet mapped.
+**Resolved for the control case:** the visible preview number is a separate generated
+128 x 64 buffer, not baked jersey artwork. A GS frame dump matches its palette uploads
+to `jerseynum00` / `jerseynum01`; a reversible RAM probe turns the visible left/right
+numbers magenta/green. Pacers home preview reads the compressed `numbers` resource in
+`seluh020.iff` (archive entry 178), whereas court lettering reads `uh020.iff` (entry
+2103). Patching both produces green home preview/court numbers after a fresh boot.
+Details and diagnostic commands: [payload/ISO findings](roster_payload_format.md#team-select-preview-source-and-all-30-slot-inventory-2026-11-07).
+
+The following checks remain the rollout procedure for other presentation surfaces:
 
 1. Capture a fresh team-select frame and RAM snapshot. Resolve the visible number's
    draw texture/CLUT with a PCSX2 GS frame dump, then match it to the preview buffers
@@ -126,7 +131,7 @@ Proposed layout, separate from ordinary dump/replacement sync:
 ```text
 texture_workspace/lettering/
   manifest.json
-  020_<sheet>/
+  020/
     home/
       numbers.palette.png
       names.palette.png
@@ -142,6 +147,8 @@ texture_workspace/lettering/
   logical CLUT entry (row-major). Edit at high zoom in an image editor. This avoids
   accidental atlas re-indexing or palette quantisation. Enlarged atlas previews are
   generated feedback, not import sources. The tool handles physical PS2 CLUT swizzling.
+* Folders are keyed by stable NBA slot (000-029), not by the current ProA sheet.
+  Assigned ProA sheets are separate manifest metadata; unassigned slots remain editable.
 * The manifest keeps original PS2 alpha bytes, indices/mips hashes, source ISO hash,
   chunk/bundle identities, slot, ProA sheet and uniform variant. Import changes RGB
   only; alpha, geometry, glyph metrics and index buffers remain immutable.
@@ -157,11 +164,20 @@ texture_workspace/lettering/
 
 ### C. Inventory and pipeline integration
 
-1. Inventory `HITX names/numbers` chunks across the archive. Map every required
+1. Inventory `HITX names/numbers` chunks and compressed preview `TXTR numbers`
+   across the archive. Map every required
    slot/variant through known RAM owners and decoded previews; do not assume matching
    palette hashes imply identical ownership. Include all confirmed preview/game copies.
-   Start with the 18 ProA slots from `data/team_slots.csv`, not CSV row indices.
-2. Export editable palettes once, keyed by both NBA slot and current ProA sheet.
+   Cover **all 30 NBA slots (0-29)**, including donor teams, not just the current
+   18 ProA teams. NBA slot/variant is the stable asset identity; current ProA
+   assignments from `data/team_slots.csv` are a separate layer, not CSV row indices.
+   **Implemented inventory:** `python scripts/inventory_lettering_iso.py PRISTINE.iso --out data/texture_map/lettering_sources.csv`.
+   Home/away and `ux`/`selux` alternate pairs are mapped by the verified filename hash;
+   all 79 pairs have identical game/preview number palettes. Number atlases may be
+   1024 x 64 or 512 x 64 (17 uniforms use the latter); names are 1024 x 32.
+2. Export editable palettes once for all 30 slots, keyed by NBA slot/variant with
+   the current ProA sheet recorded separately where assigned. Unassigned slots
+   remain editable and must not require a ProA sheet or guessed club colours.
    `colorjersey1/2` may seed a **new** club's initial choices after fill/outline ramps
    are mapped, but must never overwrite hand-edited palettes on a season rebuild.
    `colorui1/2` remain exclusively roster controls.

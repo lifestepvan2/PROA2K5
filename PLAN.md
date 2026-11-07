@@ -14,6 +14,8 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
 - [x] Home arena names: venue table in the payload (rows keyed by `sNNN` = team slot), combined `data/proa_teams.csv` (`arena,verified`), built by `build_roster.py` (see `docs/roster_payload_format.md`); live RAM patch verified, card write pending a roster rebuild
 - [x] Separate jersey/UI colours in the combined team CSV: `colorjersey1/2` for cloth generation, `colorui1/2` written to roster team RGB triplets at +0x62/+0x65; UI defaults copied from the original jersey values
 - [x] Shared lettering ISO proof: Pacers home number and alphabet palette edits propagate to all 12 generated player numbers/names; independent apply/restore targets in `scripts/patch_lettering_iso.py` (cosmetic refinement not required for this toolchain test)
+- [x] Separate team-select number source: GS draw/upload trace, reversible rendered-buffer probe, compressed `seluh020.iff` palette patch and fresh-boot preview/court agreement; `scripts/patch_preview_lettering_iso.py`
+- [x] Lettering source inventory for all 30 NBA slots: uppercase UTF-16LE CRC32 filenames, 60 home/away + 19 alternate uniforms, 237 sources; `scripts/inventory_lettering_iso.py`, `data/texture_map/lettering_sources.csv`
 
 ## Todo
 ### Attributes / ratings
@@ -59,7 +61,7 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [ ] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
 - [x] Team mapping is final (`data/team_slots.csv`). `record_faces.csv` is record-keyed, icons/logos are keyed by NBA slot: no re-scan needed when the ProA order changes, only re-run the generators. More logo variants need more dumps (only rendered textures exist)- [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [x] Baseline jerseys/shorts for all 18 teams: `scripts/create_baseline_jersey.py` colourises the templates (colours = `colorjersey1`/`colorjersey2` in `data/proa_teams.csv`, first-pass guesses from the team logos), keeps the cloth structure, adds ProA + club logo on jerseys (shorts plain), plain primary-colour warm-ups with club logo, writes the home/away/warm-up MASTERs (backup + hand-edit protection), then `texture_workspace.py sync` for LODs (see `docs/JerseyTextureWorkflow.md` section 4). Open: review the colours, hand-finetune (wordmarks, stripes, side panels), alt jerseys
-- [ ] Enable editable lettering palettes per ProA team/uniform and ISO pipeline integration; include the team-select front number. Implementation plan: `docs/JerseyTextureWorkflow.md` section 5 (preview source must first be verified; not assumed static)
+- [ ] Enable editable lettering palettes for all 30 NBA slots/uniforms and ISO pipeline integration; layer current ProA assignments separately and include the team-select front number. Implementation plan: `docs/JerseyTextureWorkflow.md` section 5 (preview source must first be verified; not assumed static)
 - [ ] figure out how to edit court paint colours - lines, the zone and out of bounds
 
 

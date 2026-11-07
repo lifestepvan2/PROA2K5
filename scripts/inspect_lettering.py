@@ -48,6 +48,9 @@ def inspect(ram, out):
         if name != "numbers" and not re.fullmatch(r"jersey(?:name|num)\d{2}", name):
             continue
         pixel = struct.unpack_from("<I", ram, header + 0x18)[0]
+        if pixel == 0:
+            print(f"Skipping uninitialized {name} at 0x{obj:X} (no pixel buffer)")
+            continue
         width, height = struct.unpack_from("<HH", ram, header + 0x2C)
         psm = (struct.unpack_from("<Q", ram, header)[0] >> 20) & 63
         if psm != 0x13 or (width, height) not in {(1024, 64), (128, 64), (256, 32)}:

@@ -421,6 +421,97 @@ An actual name-only restore returned the complete image to the earlier numbers-o
 hash `ce8c037aeaff00735fe94478821c2b71d0a36827f58648dd530fbc080ad82adf`;
 reapplying names reproduced the combined hash above.
 
+#### Team-select preview source and all-30-slot inventory (2026-11-07)
+
+The preview number is **not baked into the full jersey texture**. A fresh team-select
+GS dump contains four frames of draw/transfer evidence:
+
+* Left/Lakers number: PSMT8 128 x 64, TEX0 `8006b6059d30b580`, TBP 13696,
+  CBP 13744. The 1024-byte CLUT upload exactly matches RAM `jerseynum01` at
+  `0xC31C70` (and the loaded `selua015.iff` number palette).
+* Right/Pistons number: PSMT8 128 x 64, TEX0 `80070a059d30b820`, TBP 14368,
+  CBP 14416. The CLUT upload exactly matches RAM `jerseynum00` at `0xC2ECF0`.
+* These palettes are uploaded in every captured frame. A RAM-only edit to all
+  nontransparent entries makes the visible left/right numbers magenta/green,
+  without changing jersey artwork or indices. Both palettes were restored and
+  read back immediately. Addresses are specific to this process.
+
+The archive filename hash is now established: **CRC32 of uppercase UTF-16LE,
+without a trailing null** (`zlib.crc32(name.upper().encode("utf-16le"))`).
+Examples verified against runtime file-request records and archive entries:
+
+| Filename | Hash | Entry |
+|---|---|---|
+| `seluh020.iff` | `0F1821E5` | 178 |
+| `selua015.iff` | `43D4368F` | 110 |
+| `uh020.iff` | `AD6241D2` | 2103 |
+| `ua020.iff` | `70194F0C` | 2211 |
+
+Pacers home preview entry 178 begins at ISO `0x203D800`, length `0x188D0`.
+Its first `TXTR` has stored body length `0x3390`, system/video sizes
+`0x70` / `0x15950`, sentinel `FEEDBEEF`, and 128 scratch bytes.
+The body starts at `0x203D820`; its VC-LZ header declares `0x159C0` decoded
+bytes, stream tag `0x5C`, and 10 distance bits. The decoded digit indices and
+original palette match the loaded Pacers home atlas exactly. The palette is
+the final 1024 decoded bytes, not a directly writable 1024-byte ISO window.
+
+`scripts/vc_lz.py` decodes bounded streams and rebuilds only the edited tail,
+retaining earlier tokens. Recompression must fit the original stored span and
+the existing in-place loader scratch allowance; a separate-buffer round trip
+alone is insufficient. Match tokens copy backwards, including reads of unwritten
+zero bytes on overlap. The format was cross-checked with
+[the independent NFL 2K5 VC-LZ investigation](https://github.com/cruuz/2k-football-mod-tools/blob/main/tools/nfl_txtr.py)
+and then verified against this game's RAM and all 79 preview/game palette pairs.
+
+`scripts/patch_preview_lettering_iso.py` accepts only the pristine Europe hash
+`4cdad2339dbe2828b440ca222f869f234b15c0321c8dcdeac016a30b10678fb7`.
+Inspection is read-only; `--out` creates a **new** output, verifies the complete
+expected output hash and unchanged bytes elsewhere, and publishes after read-back.
+Existing outputs, source-as-output and non-pristine sources are refused. Its
+manifest is `<output>.preview-lettering-test.json`; the source remains the restore
+copy. `--with-game-test` composes the earlier court number/name diagnostics.
+
+```powershell
+python scripts\patch_preview_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso"
+python scripts\patch_preview_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - Preview Test.iso" --with-game-test
+python scripts\inventory_lettering_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --out data\texture_map\lettering_sources.csv
+```
+
+Fresh-boot verification used isolated PCSX2 2.8.2 at native resolution/normal
+speed, both memory-card slots disabled, no texture replacements/dumping:
+
+* Pacers versus Pacers team select: home `15` visibly green with original
+  outline; away `15` unchanged. Home generated preview palette equals
+  `c89020f9439f5273b525148652c06be9d9f35ac3983fb45e7893c535422e96f0`.
+* After a real game start, all 12 home-number palettes equal that same hash;
+  all 12 home-name palettes equal the previously verified generated diagnostic
+  `befd39783c56ef686b55f1ad9d7e8a8e3b892d4a486fa43e1e91d913d6916864`.
+* A second fresh boot of the pristine ISO with the same isolated profile supplies
+  the matched baseline. Both rendered preview-number buffers and all 48 generated
+  court textures retain every pixel index at all seven mip levels and every alpha
+  byte. Only the home preview-number palette and 24 home court palettes change;
+  the away preview and all 24 away court palettes match the baseline exactly.
+  Thirty-six unused mip-alignment padding bytes differ between the court snapshots;
+  they are not mip pixels. Source resource padding remains byte-identical.
+* Full combined output hash:
+  `72fd84ea17cdddee69d99839bcb59659ca42d66c9a2083c0bc10a0e554a28eb7`.
+  Source descriptors, all mip/index bytes and palette alpha are unchanged by
+  the verified decode/rebuild; only preview RGB and the two earlier court
+  diagnostic palettes change.
+
+The tracked inventory contains **30 NBA slots, 79 uniforms, 237 sources**:
+home/away for every slot plus 19 paired `uxNNN.iff` / `seluxNNN.iff` alternates.
+Each uniform has game names, game numbers and preview numbers. All game/preview
+number palettes match exactly. Seventeen number atlases are 512 x 64, the other
+62 are 1024 x 64; all alphabet atlases are 1024 x 32. Metadata includes entry/chunk
+identity, stored/decoded offsets, compression, scratch and immutable-data hashes;
+it contains no extracted artwork or palette bytes. Broader uniform/surface
+visual acceptance and the editable workspace/season integration remain future work.
+
+Team select also preallocates player `jerseyname02..23` / `jerseynum02..23`
+objects with null pixel pointers. `inspect_lettering.py` now explicitly reports
+and skips these uninitialized buffers; nonzero invalid pointers still fail.
+
 #### Repeat / restore
 
 Stop emulation of this image before writing it. Always operate on a disposable copy:
@@ -447,8 +538,9 @@ also tested on a disposable sparse fixture.
 
 **Long-term implication:** no player-specific edits are needed for either tested shared
 source. Uniform-level ISO palette edits propagate to generated names and numbers.
-Mapping all team/uniform archive entries and resolving the team-select preview remain
-future work; see the [editable workspace/pipeline plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
+Home/away and alternate source mapping for all 30 slots and the Pacers home preview
+are now resolved. The editable workspace and season pipeline remain future work;
+see the [workspace/pipeline plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
 No ISO, extracted game texture or emulator RAM dump belongs in Git.
 
 ### Player record (0x94 bytes)
