@@ -5,7 +5,9 @@ Background and file formats: [pcsx2_texture_mapping.md](./pcsx2_texture_mapping.
 
 ## The naming scheme
 
-All uniform textures live **flat** in `texture_workspace/uniforms/` and the file name says everything:
+Clearly labelled uniform textures live in `texture_workspace/uniforms/<Team>/`.
+Unknown/unsorted roles and unlabelled small parts stay in their existing locations.
+The filename still determines inheritance; folders are for browsing only:
 
 ```
 ROLE__LABEL__RES__ID.png
@@ -25,6 +27,7 @@ Inheritance is nothing but "same LABEL": every COPY / LOD is regenerated from th
 `texture_workspace.py sync`. A group needs exactly one MASTER; none or several give a warning and the group is skipped.
 A COPY must have the MASTER's size, a LOD must be smaller.
 
+Team folders use NBA / in-game names (Pistons, 76ers, etc.), matching the stable texture labels.
 Generator labels: `<Team><Item><Variant>` - Team = NBA / in-game name (Pistons, 76ers, ... see `data/team_slots.csv`),
 Item = `Jersey | Shorts | WUtorso | WUsleeves | WUlegs`, Variant = `Home | Away | Alt` (optionally followed by a counter)
 or a plain number for not-yet-identified variants. `create_baseline_jersey.py` reads these labels. Other labels
@@ -41,6 +44,22 @@ Not part of the scheme (stay in their sub folders, unchanged): shoes, the 64x64 
 
 If you had edited a COPY and not the MASTER, `sync` notices (it prints a note) and uses the edited copy as the source.
 
+After discovering/linking new LODs, an edited MASTER automatically generates missing
+replacements even if it has not changed since the previous sync. To rebuild **all
+linked COPYs and LODs**, including groups whose MASTER equals the original export:
+
+```powershell
+python scripts\texture_workspace.py sync --force-regen --dry-run
+python scripts\texture_workspace.py sync --force-regen
+```
+
+Forced regeneration bypasses the derived-output cache and always uses the MASTER,
+not an edited COPY. Sync now also refreshes the workspace COPY/LOD images for
+browsing; MASTER images remain untouched. Generated workspace hashes are tracked
+so generated COPYs are not mistaken for manual source edits. It respects
+pipeline-managed replacements. Normal sync still reverts derived replacements
+when the MASTER is restored to its original content.
+
 ## 2. After new texture dumps
 
 1. `python scripts/texture_workspace.py export` - copies the new dumps into the workspace. For new uniform-family textures it then runs `adopt` automatically: hi-res files that look like an existing group become a `COPY__<label>`, LODs become `LOD__<label>`, everything else opens a new `MASTER__Unsorted<n>__...` group (unmatched LODs become `LOD__Unmatched__...`). New 256x256 cloth is compared to the existing cloth pixels.
@@ -48,6 +67,14 @@ If you had edited a COPY and not the MASTER, `sync` notices (it prints a note) a
 3. `python scripts/texture_workspace.py sync`, then F10.
 
 `adopt` can also be run alone (`uniform_labels.py adopt [--dry-run]`); it is slow because it compares all dumps.
+
+Repeated `export` runs identify existing images by the stable `__ID` suffix,
+not their prefix or folder. Artist edits and renamed role files are preserved.
+An existing ID missing from the manifest is adopted without exporting a second
+image; its original-content hash is recovered from the dump. Duplicate IDs already
+present produce warnings (newest file wins); export does not delete artist files.
+Different dump keys can legitimately have identical-looking images: keep those
+COPY/LOD targets, since each addresses a distinct game texture.
 
 ## 3. Organising groups
 
@@ -60,9 +87,14 @@ Do it in the file explorer - rename the `ROLE` / `LABEL` part, keep `__RES__ID`.
 | `uniform_labels.py link FILE MASTERFILE` | make FILE a COPY / LOD of that master's group |
 | `uniform_labels.py promote FILE` | FILE becomes MASTER, the old master becomes a COPY |
 | `uniform_labels.py restore [--dry-run]` | rename everything back to the committed snapshot |
+| `uniform_labels.py organise [--dry-run]` | move clearly team-labelled roles into team folders, updating manifest paths without changing images or labels |
 
 Typical work: identify an `Unsorted<n>` group -> `relabel Unsorted3 NetsJerseyAway`; wrong LOD -> `link` it to the right master.
 Run `sync` afterwards.
+
+`link`, `relabel`, `promote`, `adopt` and snapshot restoration retain this team-folder
+layout. Scans, generation and sync are recursive. `organise` is safe to repeat;
+ambiguous labels such as Legends/Unknown/Unsorted are not assigned to a team.
 
 Warnings you can get: *several MASTERs with label X* (demote one to COPY or relabel it), *no MASTER* (promote one), *COPY size differs*,
 *LOD not smaller*, *RES mismatch*, *duplicate ID*.

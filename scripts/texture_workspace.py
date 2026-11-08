@@ -1,15 +1,17 @@
 """Manual texture replacement workspace: a mirror of the PCSX2 dump folder, grouped into named folders.
 
     python scripts/texture_workspace.py export [--ws DIR]   build / update the working folder from the dumps
-    python scripts/texture_workspace.py sync   [--ws DIR]   copy edited files back to PCSX2's replacements\\ folder
+    python scripts/texture_workspace.py sync   [--ws DIR]   refresh workspace COPYs/LODs and PCSX2 replacements
     python scripts/texture_workspace.py sync --dry-run      only list what would change
+    python scripts/texture_workspace.py sync --force-regen  rebuild all linked COPYs/LODs from their MASTERs
 
 Workflow: export -> overwrite files in the working folder with your own images (any size, any of png/jpg/bmp/tga/webp,
 keep the "__xxxxxxxx" token in the file name; folders may be reorganised freely) -> sync -> press F10 in PCSX2.
-Uniform textures (jerseys, shorts, warm-ups, cloth) are the exception: they sit flat in uniforms/ as
+Uniform textures (jerseys, shorts, warm-ups, cloth) are the exception: labelled ones sit in uniforms/<Team>/ as
 ROLE__LABEL__RES__ID.png (MASTER / COPY / LOD), `export` names new ones (uniform_labels.py adopt) and never moves them, and
 `sync` regenerates COPYs and LODs from the MASTER with the same label (see docs/JerseyTextureWorkflow.md).
-Sync resizes to the original resolution. Restoring a file to its exported content (or exporting it again) reverts it.
+Sync resizes to the original resolution. Restoring a file to its exported content reverts it.
+Repeated exports preserve files by their stable ID suffix, regardless of prefix or folder.
 Textures the pipeline replaces itself (ProA faces, team icons, team logo variants) are never exported and always win.
 Alpha: files are exported with normal 0..255 alpha (PS2 0..128 is converted back on sync). Images without an alpha
 channel keep the original's transparency.
@@ -18,6 +20,7 @@ import argparse
 import collections
 import csv
 import hashlib
+import io
 import json
 import re
 import shutil
@@ -130,12 +133,12 @@ def catalog(files=None, ws=None):
 
 
 def mark_uniform_roles(rows, ws):
-    """Uniform role files (scripts/uniform_labels.py): flat in uniforms/, named ROLE__LABEL__RES__ID."""
+    """Uniform role files keep their identity, with clearly labelled teams grouped into subfolders."""
     mp = uniform_labels.load_mapping(ws)
     for r in rows:
         m = mp.get(r["key"])
         if m:
-            r["group"], r["sub"] = "uniforms", ""
+            r["group"], r["sub"] = "uniforms", uniform_labels.team_folder(m["label"]) or ""
             r["label"] = f"{m['role'].upper()}__{m['label']}__{m['size']}"
     return rows
 
@@ -151,14 +154,23 @@ def scan(ws):
     for p in ws.rglob("*"):
         if p.is_file() and p.suffix.lower() in EXTS and not skipped(p.relative_to(ws).parts[:-1]):
             m = TOKEN.search(p.stem + " ")
-            if m and (m.group(1) not in found or p.stat().st_mtime > found[m.group(1)].stat().st_mtime):
-                found[m.group(1)] = p
+            if m:
+                previous = found.get(m.group(1))
+                if previous is not None:
+                    keep, drop = (p, previous) if p.stat().st_mtime > previous.stat().st_mtime else (previous, p)
+                    print(f"warning: duplicate workspace ID {m.group(1)}: using {keep}, ignoring {drop}")
+                    found[m.group(1)] = keep
+                else:
+                    found[m.group(1)] = p
     return found
 
 
 def read_manifest(ws):
     mf = ws / "_manifest.csv"
-    return {r["token"]: r for r in csv.DictReader(open(mf, encoding="utf-8"))} if mf.exists() else {}
+    if not mf.exists():
+        return {}
+    with mf.open(encoding="utf-8", newline="") as file:
+        return {r["token"]: r for r in csv.DictReader(file)}
 
 
 def export(ws):
@@ -183,20 +195,28 @@ def export(ws):
         p = found.get(t)
         if p is not None and t in old:
             osha = old[t]["sha1"]
-            if t not in role_tokens and p == ws / old[t]["relpath"] and p != ws / want and sha1(p) == osha:
+            if (t not in role_tokens and p == ws / old[t]["relpath"] and p != ws / want
+                    and not (ws / want).exists() and sha1(p) == osha):
                 (ws / want).parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(p, ws / want)
                 p, moved = ws / want, moved + 1
             new[t] = dict(old[t], relpath=str(p.relative_to(ws)), group=r["group"])
             kept += 1
             continue
-        (ws / want).parent.mkdir(parents=True, exist_ok=True)
         a = load_rgba(files[r["key"]]).copy()
         a[..., 3] = np.minimum(255, np.round(a[..., 3].astype(np.float32) * 255 / 128)).astype(np.uint8)
-        Image.fromarray(a, "RGBA").save(ws / want)
-        new[t] = dict(token=t, key=r["key"], group=r["group"], relpath=str(want), w=r["w"], h=r["h"],
-                      sha1=sha1(ws / want))
-        added += 1
+        buffer = io.BytesIO()
+        Image.fromarray(a, "RGBA").save(buffer, format="PNG")
+        original = buffer.getvalue()
+        if p is None:
+            p = ws / want
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(original)
+            added += 1
+        else:
+            kept += 1
+        new[t] = dict(token=t, key=r["key"], group=r["group"], relpath=str(p.relative_to(ws)),
+                      w=r["w"], h=r["h"], sha1=hashlib.sha1(original).hexdigest())
     with open(ws / "_manifest.csv", "w", newline="", encoding="utf-8") as f:
         wr = csv.DictWriter(f, ["token", "key", "group", "relpath", "w", "h", "sha1"])
         wr.writeheader()
@@ -252,12 +272,16 @@ def lod_from(img, size):
     return img.convert("RGBa").resize(size, Image.BOX).convert("RGBA")
 
 
-def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry):
-    """Duplicates and LODs of a uniform inherit from the MASTER 512x256 (mapping: data/uniform_lods/mapping.csv)."""
+def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry, force_regen=False):
+    """Refresh workspace children and replacements using current filename groups."""
     ed = {}  # key -> edited working file
+    working = {}
+    generated = dict(state.get("_workspace_auto", {}))
     for m in manifest.values():
         p = found.get(m["token"])
-        if p is not None and sha1(p) != m["sha1"]:
+        if p is not None:
+            working[m["key"]] = p
+        if p is not None and sha1(p) != m["sha1"] and sha1(p) != generated.get(m["key"]):
             ed[m["key"]] = p
     masters = collections.defaultdict(list)
     for k, r in mp.items():
@@ -267,7 +291,10 @@ def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
         if mk in managed or mk not in files:
             continue
         copies = [k for k in members if mp[k]["role"] == "copy"]
-        src = ed.get(mk)
+        src = working.get(mk) if force_regen else ed.get(mk)
+        if force_regen and src is None:
+            print(f"warning: cannot force-regenerate group {sid(mk)}: MASTER is missing from the workspace")
+            continue
         if src is None:
             alt = sorted((ed[k] for k in copies if k in ed), key=lambda p: -p.stat().st_mtime)
             src = alt[0] if alt else None
@@ -275,6 +302,27 @@ def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
                 print(f"note: master {sid(mk)} unchanged but duplicate {src.name} edited - using it as the source "
                       f"(edit the MASTER file to avoid this)")
         targets = [k for k in members if k != mk]
+        workspace_source = src or working.get(mk)
+        workspace_image = None
+        for k in targets:
+            if k in managed or k not in working or workspace_source is None:
+                continue
+            if workspace_image is None:
+                with Image.open(files[mk]) as original:
+                    workspace_image = fit_resize(workspace_source, original.size, mode)[0]
+            with Image.open(files[k]) as original:
+                size = original.size
+            output = (lod_from(workspace_image, size) if mp[k]["role"] == "lod"
+                      else workspace_image)
+            with Image.open(working[k]) as current:
+                matches = current.mode == output.mode and current.size == output.size and current.tobytes() == output.tobytes()
+            if force_regen or not matches:
+                print(f"write (workspace {mp[k]['role']})", working[k])
+                n_write += 1
+                if not dry:
+                    output.save(working[k])
+            if not dry:
+                generated[k] = sha1(working[k])
         if src is None:
             for k in [mk] + targets:
                 if str(state.get(k, "")).startswith("auto:"):
@@ -286,11 +334,11 @@ def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
             continue
         want = f"auto:{sha1(src)}:{mode}"
         img = None
-        for k in ([mk] if src != ed.get(mk) else []) + targets:
+        for k in ([mk] if not force_regen and src != ed.get(mk) else []) + targets:
             if k in managed:
                 continue
             target = REPL_DIR / f"{k}.png"
-            if state.get(k) == want and target.exists():
+            if not force_regen and state.get(k) == want and target.exists():
                 continue
             n_write += 1
             print(f"write (auto {mp[k]['role']}{' ' + mp[k]['size'] if mp[k]['role'] == 'lod' else ''})", k)
@@ -304,10 +352,12 @@ def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
             REPL_DIR.mkdir(parents=True, exist_ok=True)
             out.save(target)
             state[k] = want
+    if not dry and generated:
+        state["_workspace_auto"] = generated
     return n_write, n_revert
 
 
-def sync(ws, mode, dry):
+def sync(ws, mode, dry, force_regen=False):
     manifest, found = read_manifest(ws), scan(ws)
     if not manifest:
         raise SystemExit("no manifest - run export first")
@@ -327,7 +377,7 @@ def sync(ws, mode, dry):
         role = mp.get(key, {}).get("role")
         if role in ("copy", "lod"):
             continue  # generated from the master below; edits of the copy itself are applied only if the master is unedited
-        if role == "master" and str(state.get(key, "")).startswith("auto:") and sha == m["sha1"]:
+        if role == "master" and not force_regen and str(state.get(key, "")).startswith("auto:") and sha == m["sha1"]:
             continue
         if sha == m["sha1"]:
             if key in state:
@@ -352,9 +402,10 @@ def sync(ws, mode, dry):
     if mp:
         for t, m in manifest.items():
             p = found.get(t)
-            if p is not None and mp.get(m["key"], {}).get("role") == "lod" and sha1(p) != m["sha1"]:
+            if (p is not None and mp.get(m["key"], {}).get("role") == "lod"
+                    and sha1(p) != m["sha1"] and sha1(p) != state.get("_workspace_auto", {}).get(m["key"])):
                 ignored += 1
-        w, r = sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry)
+        w, r = sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry, force_regen)
         written, reverted = written + w, reverted + r
     if not dry:
         state_f.write_text(json.dumps(state, indent=1))
@@ -371,8 +422,12 @@ def main():
     ap.add_argument("--fit", choices=["stretch", "contain", "cover"], default="stretch",
                     help="how images with a different aspect ratio are fitted (default: stretch)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force-regen", action="store_true",
+                    help="sync: rebuild every linked COPY/LOD from its MASTER, even unchanged/cached masters")
     a = ap.parse_args()
-    export(a.ws) if a.cmd == "export" else sync(a.ws, a.fit, a.dry_run)
+    if a.force_regen and a.cmd != "sync":
+        ap.error("--force-regen is only supported by sync")
+    export(a.ws) if a.cmd == "export" else sync(a.ws, a.fit, a.dry_run, a.force_regen)
 
 
 if __name__ == "__main__":

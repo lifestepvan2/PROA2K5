@@ -1,6 +1,6 @@
 """Filename-based grouping of the uniform textures: which LOD / duplicate inherits from which MASTER.
 
-Role files live flat in texture_workspace/uniforms/ and are named
+Clearly team-labelled role files live in texture_workspace/uniforms/<Team>/ and are named
 
     ROLE__LABEL__RES__ID.png        e.g. MASTER__PistonsShortsHome__512x256__12345678.png
                                          COPY__PistonsShortsHome__512x256__456123ce.png
@@ -25,6 +25,7 @@ Several MASTERs with one label are a warning and that group is skipped (nothing 
     python scripts/uniform_labels.py promote FILE           make FILE the MASTER of its group (the old MASTER becomes a COPY)
     python scripts/uniform_labels.py relabel OLD NEW        rename a whole group
     python scripts/uniform_labels.py restore [--dry-run]    rename the files back to the names in the tracked snapshot
+    python scripts/uniform_labels.py organise [--dry-run]   move clearly team-labelled roles into team subfolders
 """
 import argparse
 import collections
@@ -43,6 +44,12 @@ LABEL = re.compile(r"^(?P<team>[A-Za-z0-9-]+?)(?P<item>Jersey|Shorts|WUtorso|WUs
                    r"(?P<variant>(?:Home|Away|Alt)\d*|\d+)$")
 SKIP_DIRS = {"templates", "backups", "visual_sort", "lettering", "team_palettes"}  # plus every folder starting with "_"
 UNIFORM_FAMILIES = {"00002253", "00002254", "00002213", "00001e13", "000019d3", "00001593", "00001153", "00000d13"}  # hi-res, cloth, LODs
+TEAM_NAMES = (
+    "76ers", "Blazers", "Bobcats", "Bucks", "Bulls", "Cavaliers", "Celtics", "Clippers",
+    "Grizzlies", "Hawks", "Heat", "Hornets", "Jazz", "Kings", "Knicks", "Lakers",
+    "Magic", "Mavericks", "Nets", "Nuggets", "Pacers", "Pistons", "Raptors", "Rockets",
+    "Sonics", "Spurs", "Suns", "Timberwolves", "Warriors", "Wizards",
+)
 
 
 def parse_label(label):
@@ -57,6 +64,20 @@ def parse_label(label):
 
 def uni_dir(ws):
     return Path(ws) / "uniforms"
+
+
+def team_folder(label):
+    parsed = parse_label(label)
+    if parsed and parsed["team"] in TEAM_NAMES:
+        return parsed["team"]
+    return next((team for team in TEAM_NAMES if label.startswith(team)
+                 and re.fullmatch(r"(Home|Away|Alt)\d*", label[len(team):])), None)
+
+
+def role_path(ws, role, label, res, token, ext=".png"):
+    team = team_folder(label)
+    base = uni_dir(ws) / team if team else uni_dir(ws)
+    return base / role_name(role, label, res, token, ext)
 
 
 def scan(ws=WS):
@@ -89,7 +110,10 @@ def role_files(ws=WS):
 
 def token_rows(ws=WS):
     mf = Path(ws) / "_manifest.csv"
-    return {r["token"]: r for r in csv.DictReader(open(mf, encoding="utf-8"))} if mf.exists() else {}
+    if not mf.exists():
+        return {}
+    with mf.open(encoding="utf-8", newline="") as file:
+        return {r["token"]: r for r in csv.DictReader(file)}
 
 
 def by_label(roles):
@@ -220,7 +244,7 @@ def cmd_link(ws, ref, master_ref):
         raise SystemExit(f"{master_ref} is not a role file")
     res = res_of(ws, t)
     role = "COPY" if res == m["res"] else "LOD"
-    move(p, uni_dir(ws) / role_name(role, m["label"], res, t, p.suffix.lower()))
+    move(p, role_path(ws, role, m["label"], res, t, p.suffix.lower()))
     print(f"{t} is now a {role} of {m['label']}")
 
 
@@ -233,8 +257,8 @@ def cmd_promote(ws, ref):
         if o["role"] == "MASTER" and o["token"] != t:
             if o["res"] != e["res"]:
                 raise SystemExit(f"the MASTER {o['path'].name} has another size ({o['res']}) than {e['res']}")
-            move(o["path"], o["path"].with_name(role_name("COPY", o["label"], o["res"], o["token"], o["path"].suffix)))
-    move(p, p.with_name(role_name("MASTER", e["label"], e["res"], t, p.suffix.lower())))
+            move(o["path"], role_path(ws, "COPY", o["label"], o["res"], o["token"], o["path"].suffix))
+    move(p, role_path(ws, "MASTER", e["label"], e["res"], t, p.suffix.lower()))
     print(f"{t} is now the MASTER of {e['label']}")
 
 
@@ -245,7 +269,7 @@ def cmd_relabel(ws, old, new):
     if not es:
         raise SystemExit(f"no group '{old}'")
     for e in es:
-        move(e["path"], e["path"].with_name(role_name(e["role"], new, e["res"], e["token"], e["path"].suffix)))
+        move(e["path"], role_path(ws, e["role"], new, e["res"], e["token"], e["path"].suffix))
     print(f"{len(es)} files: {old} -> {new}")
 
 
@@ -273,17 +297,54 @@ def cmd_restore(ws, dry):
         except SystemExit:
             print("missing:", want)
             continue
-        if p.name != want:
+        destination = role_path(ws, r["role"], r["label"], r["res"], r["token"])
+        if p != destination:
             n += 1
             print("rename", p.name, "->", want)
             if not dry:
-                move(p, uni_dir(ws) / want)
+                move(p, destination)
     print(f"restore: {n} files renamed")
 
 
 def next_unsorted(roles):
     used = [int(m[1]) for e in roles.values() if (m := re.fullmatch(r"Unsorted(\d+)", e["label"]))]
     return max(used or [0]) + 1
+
+
+def cmd_organise(ws, dry=False):
+    roles, problems = scan(ws)
+    if problems:
+        raise SystemExit("Cannot organise ambiguous role files:\n" + "\n".join(problems))
+    rows = token_rows(ws)
+    if not rows:
+        raise SystemExit("no manifest - run texture_workspace.py export first")
+    plan = []
+    for entry in roles.values():
+        if not team_folder(entry["label"]):
+            continue
+        destination = role_path(ws, entry["role"], entry["label"], entry["res"],
+                                entry["token"], entry["path"].suffix)
+        if destination == entry["path"]:
+            continue
+        if destination.exists():
+            raise SystemExit(f"cannot organise {entry['path']}: {destination} already exists")
+        if entry["token"] not in rows:
+            raise SystemExit(f"ID {entry['token']} is missing from the manifest - run export first")
+        plan.append((entry, destination))
+    counts = collections.Counter()
+    for entry, destination in plan:
+        counts[destination.parent.name] += 1
+        if not dry:
+            move(entry["path"], destination)
+            rows[entry["token"]]["relpath"] = str(destination.relative_to(ws))
+    if plan and not dry:
+        with (Path(ws) / "_manifest.csv").open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=list(next(iter(rows.values()))))
+            writer.writeheader()
+            writer.writerows(rows.values())
+    print(f"organise: {len(plan)} files {'would move' if dry else 'moved'} into {len(counts)} team folders")
+    for team, count in sorted(counts.items()):
+        print(f"  {team}: {count}")
 
 
 def adopt(ws=WS, dry=False):
@@ -351,7 +412,7 @@ def adopt(ws=WS, dry=False):
         name = role_name(role, label, res_of(ws, t), t, p.suffix.lower())
         print(f"  {'would name' if dry else 'naming'} {p.name} -> {name}")
         if not dry:
-            move(p, uni_dir(ws) / name)
+            move(p, role_path(ws, role, label, res_of(ws, t), t, p.suffix.lower()))
     print(f"adopt: {len(plan)} uniform textures named" + (" (dry run)" if dry else ""))
     if plan and not dry:
         report(ws)
@@ -360,7 +421,7 @@ def adopt(ws=WS, dry=False):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["check", "list", "adopt", "link", "promote", "relabel", "restore"])
+    ap.add_argument("cmd", choices=["check", "list", "adopt", "link", "promote", "relabel", "restore", "organise"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--ws", type=Path, default=WS)
     ap.add_argument("--dry-run", action="store_true")
@@ -385,6 +446,8 @@ def main():
         report(a.ws)
     elif a.cmd == "restore":
         cmd_restore(a.ws, a.dry_run)
+    elif a.cmd == "organise":
+        cmd_organise(a.ws, a.dry_run)
 
 
 if __name__ == "__main__":
