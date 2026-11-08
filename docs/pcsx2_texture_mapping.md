@@ -192,5 +192,152 @@ Pipeline: `arena_scan.py scan/report` -> `texture_workspace.py export` -> `label
 
 Caveats: the away team is fixed to Magic in the savestate, so Magic-away items appear in every run and are labelled `various`; late slots (Warriors) under-captured loading tiles (labelled visually, source `visual`); items never seen in any scan keep their old names.
 
+## Court rendering investigation (2026-11-08)
+
+Initially captured EE RAM and a four-field GS trace from the paused Falcons/Pistons
+replay read-only. Subsequent user-approved probes changed one four-byte colour word
+at a time and restored/read back its exact original bytes. No controller navigation,
+ISO changes or emulator setting changes occurred.
+
+The live court graphics match **`s021.iff`**, archive record 2365, ISO offset
+`0x17A90800`, size 1,202,144 bytes in the pristine Europe ISO. Its court `SCNE` chunk
+starts at bundle `+0xB6AA0`: compressed body 286,672 bytes, decoded system 116,480
+bytes (`0x1C700`) and video 504,320 bytes. Embedded GS texture descriptors are not
+ordinary named `TXTR` objects, explaining why the initial live texture-name inventory
+missed these sources.
+
+Offsets below are relative to that **decoded court SCNE body**, not the compressed
+ISO bytes:
+
+| Source | Descriptor | Pixel/video start | Verified representation |
+|---|---|---|---|
+| `floor_stuff_vcSwShader2` | `0x490` | `0x48700` | 64x32 PSMT4 horizontal white stripe: 256 opaque base pixels, 1,792 transparent pixels; 16-entry RGBA CLUT at `0x48C70` |
+| `lines1` | `0x4C8` | `0x48CB0` | 64x64 PSMT8 diagonal line segment with antialiased alpha |
+| `lines5` | `0x500` | `0x4A620` | 256x256 PSMT8 red filled-circle texture with transparent exterior and antialiased edge |
+| `test_lines1` | `0x5A8` | `0x8C620` | 64x64 PSMT8 short curved white segment |
+| `test_lines3` | `0x5E0` | `0x8DF90` | 64x64 PSMT8 short near-horizontal white segment |
+
+Court geometry stretches/positions these masks; there is no single full-court line
+image. Material records are 0x60 bytes for the verified shader records: the
+self-relative name pointer is at `+0x08`, packed RGBA at `+0x58`, and the
+self-relative GS-descriptor pointer at `+0x5C`. `lines1`, `lines5`, `test_lines1`
+and `test_lines3` have white RGBA controls in both the source and captured RAM.
+
+The **true out-of-bounds apron is reddish-brown**, not the blue area seen inside
+the court in the initial camera view. A later sideline camera view exposed this
+misattribution. Its base colour comes from material **`vcSwShader4`**, record
+`0x6E0`, packed RGBA at decoded **`0x738`**: `(126,52,40,255)`, RGB `#7E3428`.
+The material's texture pointer at `0x73C` is zero; it does not supply its colour
+through an editable texture CLUT. This is separate from the red key/circle source
+below.
+
+The red-circle base predominantly samples logical palette index 10,
+RGBA `(110, 0, 0, 128)`. That entry is at decoded `0x5E7A8`. The complete
+90,112-byte packed video transfer matches the ISO scene and captured RAM, not just
+a repeated-colour prefix. GS alpha 128 is full opacity: the circle interior is
+not uniformly translucent. Its draw uses texture modulation and normal alpha
+blending, with vertex alpha 128.
+
+Approved live probes confirmed:
+
+| Source edit | Visible result | Restoration |
+|---|---|---|
+| Red-circle CLUT index 10: `(110,0,0,128)` to `(0,110,110,128)` | Both the rectangular red key and free-throw circles turned cyan; 335,957 pixels passed the red-to-cyan change test | Exact original four bytes verified through host RAM and PINE |
+| `floor_stuff_vcSwShader2` material RGBA at decoded `0xA38`: white to green | Selected straight lane/boundary lines and short markings turned green (35,397 pixels); curved lines stayed white | Exact original four bytes verified |
+| `lines1` material RGBA at decoded `0x8B8`: white to green | A small diagonal/far-court line segment changed (156 pixels); not every curved marking | Exact original four bytes verified |
+| `floor_stuff_vcSwShader5` material RGBA at decoded `0x798`: grey to green | No visible recolouring of the blue in-bounds region previously misidentified as out-of-bounds | Exact original four bytes verified |
+| `vcSwShader4` material RGBA at decoded `0x738`: `(126,52,40,255)` to `(0,126,0,255)` | The true reddish-brown sideline/baseline apron turned green; in-bounds hardwood and white markings retained their colours | Exact original four bytes verified through host RAM and PINE |
+
+Final PINE reads confirmed all five original source words. Comparing the initial four-probe restored
+viewport with the first probe's baseline found no pixel differing by more than 20
+RGB levels; mean absolute RGB difference was 0.025 levels, consistent with minor
+rendering variation rather than a changed pose or retained recolouring.
+The later sideline probe changed 406,717 pixels under a brown-to-green test.
+A clear apron sample had median RGB `(131,51,28)` before, `(0,130,0)` during the
+probe, and `(131,51,28)` after restoration. Alpha was preserved at 255.
+That probe captured only the unobstructed game region because Windows refused
+foreground focus transfer; no controller input or camera navigation was used.
+
+The red texture is therefore reused for both filled circles and the rectangular
+key, rather than being a separate complete key image. Other palette entries still
+control antialiasing/mips: changing only the dominant entry is a diagnostic, not a
+finished recolouring algorithm. White line colour controls are material RGBA,
+distinct from the paint CLUT.
+
+There is also subsequent wood-textured geometry with normal alpha blending:
+vertex alpha 34, texture alpha 0..125, giving effective GS alpha 0..33 after
+modulation. A separate additive lighting pass uses a shared 32x32 greyscale spot
+texture and red/blue vertex tints. That spot's pixel and CLUT transfers match the
+first arena `SCNE` chunk exactly. These additional passes must be considered when
+explaining visible grain/reflections; the earlier red/blue vertex-tint observation
+alone does not identify the base paint controls.
+
+The out-of-bounds colour control is now confirmed. Its grain and reflections
+remain visible after the material-colour change, consistent with the separate
+wood/light passes rather than a baked reddish hardwood texture.
+
+The blue **in-bounds lane/zone** is also confirmed, but uses a third representation:
+**packed vertex RGB in the court scene's `paint` mesh**, not a CLUT or one material
+RGB field. The mesh name pointer at decoded `0xDC0` resolves to `paint`; its
+two-part table pointer at `0xDEC` resolves to `0x1BC70`, and its VIF data starts
+at `0x1BCC0`. The complete source stream matches captured EE RAM at `0x18A1300`.
+The two VIF `UNPACK V4-8` commands are `0x6E04412B` at `0x1BD04` and
+`0x6E0441E1` at `0x1BDA8`; each supplies four RGBA vertices:
+
+| Lane end | Decoded RGBA offsets | Original RGBA values, in stream order |
+|---|---|---|
+| Positive court Z | `0x1BD08`, `0x1BD0C`, `0x1BD10`, `0x1BD14` | `(52,78,128,128)`, `(17,31,81,128)`, `(0,0,95,128)`, `(0,0,0,95)` |
+| Negative court Z | `0x1BDAC`, `0x1BDB0`, `0x1BDB4`, `0x1BDB8` | `(43,80,128,128)`, `(27,30,44,128)`, `(0,44,128,128)`, `(9,36,74,95)` |
+
+The corresponding position streams at `0x1BD3C` and `0x1BDE0` describe mirrored
+lane rectangles: X approximately -242..242, Z approximately 852..1436 or
+-1436..-852, Y zero. Source colours already vary by corner; the rendered zone
+also receives lighting, wood and reflection passes. There is no single original
+blue hex colour that describes all of it.
+
+An approved single-word probe at decoded **`0x1BDB4`**, captured EE
+`0x18A13F4`, changed `(0,44,128,128)` to `(0,128,0,128)`. The visible blue zone
+shifted toward green with interpolation toward the unchanged corners; 462,783
+pixels gained more than 10 green levels and lost more than 10 blue levels.
+Red paint, white lines, wood grain and reflections remained. Exact original bytes
+were restored and independently verified through host RAM and PINE. The opposite
+lane's first-vertex probe produced no visible change in this close-up; its source
+assignment follows the matching mirrored geometry, not a separate visual proof.
+A main-arena blue vertex probe also produced no visible change and is not the
+zone control. Do not label the separate blue lighting tint as base paint.
+
+### Court-colour tool design readiness
+
+The verified court needs three bounded edit types: material RGB for the apron
+and line masks, CLUT RGB for red paint, and vertex RGB for blue lane paint.
+Preserve alpha, positions, topology, descriptors, indices and mip pixels.
+Lane recolouring must cover all eight colour words, with an explicit policy for
+retaining the original corner shading versus making the base vertex RGB uniform.
+One-word probes establish ownership, not a finished whole-zone recolouring.
+
+Read-only rebuilding experiments changed all eight lane RGB values to green,
+then combined those edits with the apron RGB change. Both round-tripped exactly
+inside the original court SCNE's 286,672-byte stored span and 16-byte scratch
+limit using the existing bounded VC-LZ rebuilder; each used 286,660 bytes.
+Only the requested RGB bytes differed after decoding. These are feasibility
+checks, not an ISO patch or proof that every colour combination fits.
+
+Before an all-30-arena tool is ready, inventory and structurally resolve each
+arena's scene/material/mesh/CLUT locations; these names and offsets have only
+been established for `s021.iff`. Complete the remaining curved/short-line
+mask assignments if separate line-category controls are wanted. Recolour every
+relevant paint palette entry, including antialiasing/mip colours, and validate
+combined edits against stored-span/scratch bounds. Finally, confirm a published
+ISO after a fresh boot at both court ends and multiple viewing distances.
+Opacity authoring and geometry/line-shape edits are separate, unimplemented scope;
+RGB-only tools can preserve the existing layered rendering without solving them.
+Do not infer source ownership from the workspace's team labels alone: identical
+white masks were found under multiple dump keys/team labels.
+
+Court video contains pre-swizzled GS data and CLUTs inside compressed `SCNE`
+resources. Do not apply the lettering assumption that the final 1,024 bytes are
+the palette. IMAGE tags can split one transfer (e.g. 65,536 + 24,576 bytes);
+VRAM addresses are reused, so attribution requires transfer versions and offsets.
+
 ## Open
 Jerseys and name plates: see `PLAN.md`.
