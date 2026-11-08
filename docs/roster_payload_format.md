@@ -506,7 +506,9 @@ number palettes match exactly. Seventeen number atlases are 512 x 64, the other
 62 are 1024 x 64; all alphabet atlases are 1024 x 32. Metadata includes entry/chunk
 identity, stored/decoded offsets, compression, scratch and immutable-data hashes;
 it contains no extracted artwork or palette bytes. Broader uniform/surface
-visual acceptance and the editable workspace/season integration remain future work.
+visual acceptance remains future work. The editable all-30-slot workspace and
+opt-in season stage are implemented; see the
+[workspace commands](JerseyTextureWorkflow.md#b-dedicated-editable-palette-workspace).
 
 Team select also preallocates player `jerseyname02..23` / `jerseynum02..23`
 objects with null pixel pointers. `inspect_lettering.py` now explicitly reports
@@ -539,8 +541,22 @@ also tested on a disposable sparse fixture.
 **Long-term implication:** no player-specific edits are needed for either tested shared
 source. Uniform-level ISO palette edits propagate to generated names and numbers.
 Home/away and alternate source mapping for all 30 slots and the Pacers home preview
-are now resolved. The editable workspace and season pipeline remain future work;
-see the [workspace/pipeline plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
+are now resolved. `lettering_workspace.py` provides `export`, `check`, `build`
+and explicit per-slot `reset`; `update_season.py` provides opt-in ISO preflight and
+build stages. Each uniform now has `colours.json`: monochrome fill, generic
+three-reference outlined recolouring, or legacy palette mode. Reference weights
+are derived from the pristine source, not hand-tuned per uniform or refitted against
+new colours. Monochrome covers every nonzero-alpha entry, including those used only
+by lower mips; source alphabet atlases have six mip levels and number atlases seven.
+Black/white/green monochrome passed all 711 source/preset checks and all compressed
+preview spans; a real controls-driven build verified all 237 sources.
+An all-slot diagnostic build verified all 237 edited sources, including
+home/away/alternate and both number-atlas widths: RGB matched the edited swatches,
+descriptors/indices/mips and alpha stayed byte-identical, and full-image hashing
+verified unchanged bytes outside the patch spans. This is data-level coverage, not
+an in-emulator visual test of every uniform. The original ISO and editable user
+workspace were left unchanged. Fixed-span compression can reject some RGB edits;
+see the [workspace workflow and limits](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
 No ISO, extracted game texture or emulator RAM dump belongs in Git.
 
 ### Player record (0x94 bytes)

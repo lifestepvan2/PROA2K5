@@ -41,7 +41,7 @@ SNAP = OUT / "labels_snapshot.csv"
 NAME = re.compile(r"^(MASTER|COPY|LOD)__([A-Za-z0-9-]+)__(\d+x\d+)__([0-9a-f]{8})$")
 LABEL = re.compile(r"^(?P<team>[A-Za-z0-9-]+?)(?P<item>Jersey|Shorts|WUtorso|WUsleeves|WUlegs)"
                    r"(?P<variant>(?:Home|Away|Alt)\d*|\d+)$")
-SKIP_DIRS = {"templates", "backups", "visual_sort"}  # plus every folder starting with "_"
+SKIP_DIRS = {"templates", "backups", "visual_sort", "lettering"}  # plus every folder starting with "_"
 UNIFORM_FAMILIES = {"00002253", "00002254", "00002213", "00001e13", "000019d3", "00001593", "00001153", "00000d13"}  # hi-res, cloth, LODs
 
 

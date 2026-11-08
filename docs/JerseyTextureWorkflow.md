@@ -90,8 +90,11 @@ and writes the result over **every MASTER** whose label is `<Team><Item><Variant
 source are verified after a fresh boot. The read-only inventory now covers all 30
 NBA slots: 60 home/away uniforms plus 19 alternates, 237 lettering sources.
 Cosmetic palette choices are not part of these diagnostic tests. The editable
-workspace and season pipeline described here are still **planned**,
-not commands currently implemented. Do not feed CPU-read source atlases through
+workspace and opt-in season ISO stage are now **implemented**. All 237 sources
+were verified in a real all-slot diagnostic build: intended RGB changes, unchanged
+alpha, descriptors and indices/mips, and a verified full output hash. Broader
+in-emulator visual acceptance beyond the Pacers control case remains to be done.
+Do not feed CPU-read source atlases through
 ordinary PCSX2 replacement sync: that route has not changed the generated output.
 Experimental commands and measured offsets are in [the payload/ISO findings](roster_payload_format.md).
 
@@ -126,24 +129,110 @@ The following checks remain the rollout procedure for other presentation surface
 
 ### B. Dedicated editable palette workspace
 
-Proposed layout, separate from ordinary dump/replacement sync:
+Implemented layout, separate from ordinary dump/replacement sync:
 
 ```text
 texture_workspace/lettering/
   manifest.json
+  _originals/
+    020/home/numbers.palette.png
+    ...
   020/
     home/
+      colours.json
       numbers.palette.png
       names.palette.png
       numbers.preview.png
       names.preview.png
     away/
       ...
-    alt_<variant>/
+    alt/
       ...
 ```
 
-* Each editable `*.palette.png` is a **16 x 16 RGB swatch image**, one pixel per
+All 30 slot folders exist; `alt/` exists for the 19 mapped alternate uniforms.
+There are 79 colour-control files, 158 legacy editable palettes, 158 original
+backups and 158 generated previews.
+
+```powershell
+# Export from the untouched original, not the earlier patched "- Kopie.iso".
+python scripts\lettering_workspace.py export --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso"
+# Edit colours.json, then rerun export to refresh previews.
+python scripts\lettering_workspace.py export --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso"
+# Read-only preflight, including destination and compressed-palette fit.
+python scripts\lettering_workspace.py check --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
+# Publish a new ISO; an existing output is refused.
+python scripts\lettering_workspace.py build --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
+# Explicitly discard palette edits for selected slots, including all their variants.
+python scripts\lettering_workspace.py reset --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --slot 20
+```
+
+The default workspace is `texture_workspace/lettering`; `--workspace PATH` selects
+another workspace. Keep alternate workspaces outside ordinary replacement folders.
+`--slots PATH` selects another assignment CSV. A changed assignment/source manifest
+is rejected: export a new workspace and migrate the desired RGB swatches explicitly.
+
+#### Simple colour controls (recommended)
+
+Edit the uniform's `colours.json`, not individual swatch pixels. For monochrome
+white numbers and names, use:
+
+```json
+{
+  "schema": 1,
+  "numbers": {
+    "mode": "monochrome",
+    "fill": "#FFFFFF",
+    "outline1": "#000000",
+    "outline2": "#000000"
+  },
+  "names": {
+    "mode": "monochrome",
+    "fill": "#FFFFFF",
+    "outline1": "#000000",
+    "outline2": "#000000"
+  }
+}
+```
+
+* `monochrome`: only `fill` affects output. Every palette entry with nonzero source
+  alpha gets that RGB, including entries used only by smaller mip levels. The
+  original alpha supplies antialiasing. All existing foreground regions merge into
+  one colour; this does not remove outline pixels or change the glyph silhouette.
+* `outlined`: set `fill`, `outline1` and `outline2`. One generic algorithm infers
+  reference colours from the original atlas/palette and fits convex blend weights
+  for its entries. New colours replace those references while retaining original
+  RGB shading/quantisation residuals. There are no hand-tuned uniform profiles.
+  Weights always come from the pristine source, never from previously recoloured
+  palettes, so changing colours again does not invalidate or accumulate the fit.
+  The two outline controls are approximate colour roles, not a guaranteed
+  inner/outer-border assignment for every font. Inspect the generated previews.
+* `palette`: use the legacy `*.palette.png` inputs instead. This is the default
+  on export, preserving original appearance and existing artist edits. Old workspaces
+  without colour-control files also retain this behaviour.
+
+Source number rasters are not identical: the inventory includes two widths and
+59 distinct full-size silhouettes across 79 uniforms. A universal palette-index
+gradient would therefore misassign colours. The generic algorithm is shared, but
+looks up each original source's relationships automatically.
+
+All three RGB fields must contain six hex digits, optionally prefixed by `#`.
+Numbers and names have independent modes and colours. In colour-control modes,
+legacy palette PNGs are preserved but are not the colour input. `export` refreshes
+previews from the chosen mode; `check` and `build` derive the same palettes in memory
+without overwriting workspace files. Mode/field typos and malformed colours fail.
+Outlined approximation diagnostics and RGB range-clipping counts are reported by
+preflight/build; clipping is a bounded approximation, not an archive-size workaround.
+Unchanged outlined reference colours reproduce the original palette exactly.
+Setting all three outlined colours equal produces the same result as monochrome.
+
+Validation covered black, white and green monochrome for all 237 sources (711
+source/preset combinations), with all 79 compressed preview spans fitting. A real
+colour-controls ISO build verified every source, and the generic white-fill/black-
+outlines preset also fitted all 79 preview spans. These are data/preview checks;
+broader in-emulator acceptance still remains.
+
+* Each legacy editable `*.palette.png` is a **16 x 16 RGB swatch image**, one pixel per
   logical CLUT entry (row-major). Edit at high zoom in an image editor. This avoids
   accidental atlas re-indexing or palette quantisation. Enlarged atlas previews are
   generated feedback, not import sources. The tool handles physical PS2 CLUT swizzling.
@@ -152,14 +241,21 @@ texture_workspace/lettering/
 * The manifest keeps original PS2 alpha bytes, indices/mips hashes, source ISO hash,
   chunk/bundle identities, slot, ProA sheet and uniform variant. Import changes RGB
   only; alpha, geometry, glyph metrics and index buffers remain immutable.
-* Numbers and names have independent palettes. Artists can adjust fill, outlines and
+* One number palette, generated from controls or imported in palette mode, updates
+  both court and team-select sources; names have an
+  independent palette. Artists can adjust fill, outlines and
   antialiasing ramps together. The diagnostic blue-to-green threshold is **not** the
   production recolouring algorithm.
-* Export creates missing files only. Preserve existing edits, keep backups for an
-  explicit reset, reject wrong dimensions/modes or an unexpected team/slot mapping.
+* Export creates missing editable palettes/backups, validates existing ones and
+  adds missing colour-control files without overwriting settings or palettes.
+  It refreshes generated previews using current edits. `check` and `build` do not refresh
+  previews or change the workspace. Backups and metadata are validated; RGB PNG mode
+  and 16 x 16 dimensions are required (RGBA, indexed PNGs and other formats are rejected).
+  `reset` restores selected editable palettes, colour controls and previews from
+  the verified source, returning those controls to palette mode.
   Keep extracted copyrighted atlas previews/workspace files out of Git; compact
   user palette overrides and mapping metadata can later be tracked separately.
-* Explicitly exclude this folder from the existing `texture_workspace.py` export,
+* This folder is excluded from the existing `texture_workspace.py` export,
   sync and uniform-label/LOD scans. It targets the ISO, not PCSX2's replacements.
 
 ### C. Inventory and pipeline integration
@@ -175,21 +271,32 @@ texture_workspace/lettering/
    Home/away and `ux`/`selux` alternate pairs are mapped by the verified filename hash;
    all 79 pairs have identical game/preview number palettes. Number atlases may be
    1024 x 64 or 512 x 64 (17 uniforms use the latter); names are 1024 x 32.
-2. Export editable palettes once for all 30 slots, keyed by NBA slot/variant with
+2. Export editable colour controls and legacy palettes for all 30 slots, keyed by NBA slot/variant with
    the current ProA sheet recorded separately where assigned. Unassigned slots
    remain editable and must not require a ProA sheet or guessed club colours.
-   `colorjersey1/2` may seed a **new** club's initial choices after fill/outline ramps
-   are mapped, but must never overwrite hand-edited palettes on a season rebuild.
+   The exporter starts in palette mode with original appearance, not guessed club
+   colours. Reference colours are automatically inferred for the generic outlined
+   mode; nothing is seeded from `colorjersey1/2`.
    `colorui1/2` remain exclusively roster controls.
-3. Add an explicit opt-in ISO stage to `update_season.py` after roster/texture
-   generation (proposed options: `--iso-source`, `--iso-out`, `--lettering-workspace`).
-   Normal roster-only runs must neither require an ISO nor write one.
+3. `update_season.py` accepts paired `--iso-source` / `--iso-out` options and optional
+   `--lettering-workspace`. It runs read-only lettering preflight before scraping,
+   roster/card writes or replacement generation, then builds the ISO after the last
+   logo-generation step. Normal runs neither require an ISO nor invoke this stage.
+   See [season commands](SeasonUpdateWorkflow.md#optional-lettering-iso-stage).
 4. Build a new output from a verified pristine source, never cumulatively edit an
    unknown image. Validate every original chunk/palette, apply equal-size patches,
    verify the whole expected output hash and unchanged bytes elsewhere, then publish
    the output atomically. Save a patch/restore manifest. Refuse a mounted output ISO.
-   Compressed preview assets need a separately verified codec/repack path if their
-   palettes cannot be patched in place; do not silently resize archive members.
+   Compressed preview palettes are rebuilt inside the original stored span with
+   decoder scratch limits enforced. If an edit does not fit, preflight names its
+   slot/variant/asset and fails before ISO publication; no sources are silently
+   skipped and no archive members are resized. Not every possible RGB palette fits:
+   a full channel-rotation test fitted 75 of 79 original preview chunks; four needed
+   1-3 extra bytes. Adjust the palette or leave that edit unapplied.
+   Output must be outside the lettering workspace. The adjacent
+   `<ISO filename>.lettering.json` records patch fingerprints, original byte spans,
+   assignments and source/output hashes. Restore by booting the untouched source or
+   resetting selected workspace palettes and rebuilding to another new output.
 5. Gate rollout with fresh-boot preview + gameplay checks for home/away/alternate,
    long/short/new player names, one/two-digit numbers, outlines, warm-ups and loading.
    F10 only reloads PCSX2 replacement textures: ISO changes require a fresh boot.

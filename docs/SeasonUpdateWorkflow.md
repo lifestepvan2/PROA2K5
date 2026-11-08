@@ -17,6 +17,40 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
 
+With ISO options, a read-only lettering preflight runs before step 1 and ISO
+publication runs after all replacements (the final script is `gen_logo_replacements.py`).
+Neither stage runs without explicit ISO options.
+
+### Optional lettering ISO stage
+
+Export and edit the [all-30-slot colour-control workspace](JerseyTextureWorkflow.md#simple-colour-controls-recommended)
+first. The ISO source must be the verified untouched European original, not a prior
+patched copy. Run the normal season update with both ISO flags:
+
+```powershell
+python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
+```
+
+Add `--card "<Mcd001.ps2>"` to write the roster as usual (PCSX2 must be closed).
+`--lettering-workspace PATH` overrides `texture_workspace/lettering` and requires
+both ISO flags. A missing/mismatched workspace, invalid palette, compressed edit
+that does not fit, or existing output fails preflight before pipeline side effects.
+
+New assignments require a new workspace and explicit palette migration.
+
+Set each uniform's `colours.json` to `monochrome` and choose `fill` for simple solid
+lettering, or use `outlined` with three base colours. `palette` retains legacy
+swatch editing. Export refreshes previews; the pipeline derives palettes in memory
+from these controls without rewriting them.
+
+The ISO stage patches shared number/name RGB only; it does **not** embed the roster
+or PCSX2 replacement textures into the ISO. Number swatches update court and preview
+sources together; names remain independent. Artist edits are never overwritten or
+derived automatically from the jersey/UI colour CSV. Existing output ISOs are refused.
+The source remains untouched and an adjacent `.lettering.json` records verified
+patches and source/output hashes. Boot the new ISO **fresh**; F10 reloads replacements,
+not ISO lettering. Omit both ISO flags to preserve the original roster-only workflow.
+
 ## Ratings website (GitHub Pages)
 
 `.github/workflows/pages.yml` rebuilds and deploys a static site (`site_src/` frontend, built by `scripts/build_site.py`) on every
@@ -68,8 +102,8 @@ contrast; no automatic darkening is applied. These are **not lettering colours**
 arena names, and reports UI colours in `team_map.csv`. The separate `--arenas` option
 has been removed. Hex UI values must have exactly six digits, optionally prefixed by `#`.
 
-Shared lettering/ISO automation is a separate, planned step, not part of
-`update_season.py` yet. See [the lettering workspace plan](JerseyTextureWorkflow.md#5-shared-lettering-and-team-select-preview-plan).
+Shared lettering uses the independent editable palette workspace and the
+[opt-in ISO stage](#optional-lettering-iso-stage), not these jersey/UI CSV colours.
 
 ## Not automated
 
