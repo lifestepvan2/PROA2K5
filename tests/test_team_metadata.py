@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_roster import T_UI_COLOURS, apply_team_colours
 from create_baseline_jersey import load_teams
+from team_palettes import DEFAULT_WS, team_colours
 
 
 class TeamMetadataTests(unittest.TestCase):
@@ -36,14 +37,16 @@ class TeamMetadataTests(unittest.TestCase):
         with (ROOT / "data" / "proa_teams.csv").open(encoding="utf-8") as file:
             reader = csv.DictReader(file)
             self.assertEqual(reader.fieldnames, [
-                "sheet", "city", "nickname", "abbr", "colorjersey1", "colorjersey2",
-                "colorui1", "colorui2", "arena", "verified",
+                "sheet", "city", "nickname", "abbr", "arena", "verified",
             ])
             rows = list(reader)
         self.assertEqual(len({row["sheet"] for row in rows}), len(rows))
         jerseys = {row["sheet"]: row for row in load_teams()}
         self.assertEqual(set(jerseys), {row["sheet"] for row in rows})
+        with (ROOT / "data" / "team_slots.csv").open(encoding="utf-8") as file:
+            slots = {row["sheet"]: int(row["nba_slot"]) for row in csv.DictReader(file)}
         for row in rows:
+            row.update(team_colours(DEFAULT_WS, slots[row["sheet"]]))
             with self.subTest(team=row["sheet"]):
                 self.assertTrue(row["arena"].strip())
                 self.assertIn(row["verified"], ("yes", "no"))

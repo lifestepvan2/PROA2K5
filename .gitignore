@@ -13,7 +13,13 @@ docs/_faces/
 docs/_face_sheets/
 docs/_face_match/
 docs/_*.log
-texture_workspace/
+texture_workspace/*
+!texture_workspace/team_palettes/
+texture_workspace/team_palettes/*
+!texture_workspace/team_palettes/README.md
+!texture_workspace/team_palettes/[0-9][0-9][0-9]/
+texture_workspace/team_palettes/[0-9][0-9][0-9]/*
+!texture_workspace/team_palettes/[0-9][0-9][0-9]/colours.json
 docs/_tmp/
 cache/
 site/

@@ -197,7 +197,8 @@ Caveats: the away team is fixed to Magic in the savestate, so Magic-away items a
 Initially captured EE RAM and a four-field GS trace from the paused Falcons/Pistons
 replay read-only. Subsequent user-approved probes changed one four-byte colour word
 at a time and restored/read back its exact original bytes. No controller navigation,
-ISO changes or emulator setting changes occurred.
+ISO changes or emulator setting changes occurred during those probes. The later
+all-arena scan below used controller navigation and temporary fast-forward.
 
 The live court graphics match **`s021.iff`**, archive record 2365, ISO offset
 `0x17A90800`, size 1,202,144 bytes in the pristine Europe ISO. Its court `SCNE` chunk
@@ -277,8 +278,12 @@ remain visible after the material-colour change, consistent with the separate
 wood/light passes rather than a baked reddish hardwood texture.
 
 The blue **in-bounds lane/zone** is also confirmed, but uses a third representation:
-**packed vertex RGB in the court scene's `paint` mesh**, not a CLUT or one material
-RGB field. The mesh name pointer at decoded `0xDC0` resolves to `paint`; its
+**packed vertex RGBA in the court scene's `paint` mesh, modulated by material RGB**,
+rather than a CLUT. Its plain-paint material is index 14, **`trophy`**, record
+`0xBC0`, RGBA at **`0xC18`**: `(26,100,206,191)`. For example, multiplying source
+vertex `(52,78,128,128)` by that material and truncating after division by 255
+gives `(5,30,103,95)`, exactly present in the captured GS trace.
+The mesh name pointer at decoded `0xDC0` resolves to `paint`; its
 two-part table pointer at `0xDEC` resolves to `0x1BC70`, and its VIF data starts
 at `0x1BCC0`. The complete source stream matches captured EE RAM at `0x18A1300`.
 The two VIF `UNPACK V4-8` commands are `0x6E04412B` at `0x1BD04` and
@@ -308,12 +313,19 @@ zone control. Do not label the separate blue lighting tint as base paint.
 
 ### Court-colour tool design readiness
 
-The verified court needs three bounded edit types: material RGB for the apron
-and line masks, CLUT RGB for red paint, and vertex RGB for blue lane paint.
-Preserve alpha, positions, topology, descriptors, indices and mip pixels.
-Lane recolouring must cover all eight colour words, with an explicit policy for
-retaining the original corner shading versus making the base vertex RGB uniform.
-One-word probes establish ownership, not a finished whole-zone recolouring.
+The verified court needs three bounded edit types: material RGB, CLUT RGB and
+vertex RGBA. Use **one line colour per court**; separate line-component controls
+are not required. For overwritten plain zone paint, normalize all relevant vertex
+RGBA to **`(128,128,128,128)`**, then apply the requested colour through material
+RGB while preserving material alpha. Packed VIF `V4-5` uses **`0xC210`** for the
+same neutral RGBA; Pistons' `V4-8` uses four bytes per vertex.
+
+Normalizing vertex alpha is intentional: retaining the Pistons' original
+95-versus-128 alpha corners would retain an authored blending gradient even after
+RGB normalization. This removes authored corner colour/opacity variation, not
+lighting, wood grain or reflections. Preserve all other alpha, positions,
+topology, descriptors, texture indices and mip pixels. One-word probes establish
+ownership, not a finished whole-zone recolouring.
 
 Read-only rebuilding experiments changed all eight lane RGB values to green,
 then combined those edits with the apron RGB change. Both round-tripped exactly
@@ -322,17 +334,122 @@ limit using the existing bounded VC-LZ rebuilder; each used 286,660 bytes.
 Only the requested RGB bytes differed after decoding. These are feasibility
 checks, not an ISO patch or proof that every colour combination fits.
 
-Before an all-30-arena tool is ready, inventory and structurally resolve each
-arena's scene/material/mesh/CLUT locations; these names and offsets have only
-been established for `s021.iff`. Complete the remaining curved/short-line
-mask assignments if separate line-category controls are wanted. Recolour every
-relevant paint palette entry, including antialiasing/mip colours, and validate
-combined edits against stored-span/scratch bounds. Finally, confirm a published
-ISO after a fresh boot at both court ends and multiple viewing distances.
-Opacity authoring and geometry/line-shape edits are separate, unimplemented scope;
-RGB-only tools can preserve the existing layered rendering without solving them.
-Do not infer source ownership from the workspace's team labels alone: identical
-white masks were found under multiple dump keys/team labels.
+### All thirty home-arena sources
+
+The completed inventory is [court_sources.csv](../data/texture_map/court_sources.csv)
+(thirty-row overview) and [court_sources.json](../data/texture_map/court_sources.json)
+(source hashes, decoded edit offsets, material uses, logical-to-physical CLUT entry
+offsets, vertex streams, live provenance and compression diagnostics).
+It is tied to pristine Europe ISO SHA256
+`4cdad2339dbe2828b440ca222f869f234b15c0321c8dcdeac016a30b10678fb7`.
+NBA roster slots are **not** a contiguous arena-file sequence:
+
+| Slot | NBA team | Arena | Slot | NBA team | Arena |
+|---|---|---|---|---|---|
+| 0 | 76ers | s000 | 15 | Lakers | s015 |
+| 1 | Blazers | s028 | 16 | Magic | s016 |
+| 2 | Bobcats | s031 | 17 | Mavericks | s017 |
+| 3 | Bucks | s001 | 18 | Nets | s018 |
+| 4 | Bulls | s003 | 19 | Nuggets | s019 |
+| 5 | Cavaliers | s004 | 20 | Pacers | s020 |
+| 6 | Celtics | s005 | 21 | Pistons | s021 |
+| 7 | Clippers | s006 | 22 | Raptors | s022 |
+| 8 | Grizzlies | s008 | 23 | Rockets | s023 |
+| 9 | Hawks | s009 | 24 | Sonics | s024 |
+| 10 | Heat | s010 | 25 | Spurs | s025 |
+| 11 | Hornets | s011 | 26 | Suns | s026 |
+| 12 | Jazz | s012 | 27 | T'Wolves | s027 |
+| 13 | Kings | s013 | 28 | Warriors | s029 |
+| 14 | Knicks | s014 | 29 | Wizards | s002 |
+
+All thirty selections were loaded and matched to original decoded scene streams
+at consistent, independently validated live RAM bases. Slots 0..4 matched 13..15
+complete geometry streams; slots 5..29 additionally matched the **entire video
+buffer**. This stronger guard was added after shared line geometry initially
+produced false-positive candidates for Cavaliers. Team-to-file attribution is
+live-verified; individual colour roles outside Pistons are structurally inferred
+from mesh ownership and decoded mask shapes, not thirty sets of live colour probes.
+The original slot-1 state **and its backup** were restored byte-for-byte, slot 1
+was reloaded to BG away / 76ers home, and fast-forward was switched off.
+
+Each arena has one court `floor` SCNE and meshes named `floor`, `centerlogo`,
+`lines` and `paint`, but their order, materials and paint layers differ.
+Resolve arrays rather than searching shader names:
+
+| Array | Count field | Tagged pointer field | Record stride |
+|---|---|---|---|
+| GS descriptors | `0x54` | `0x58` | `0x38` |
+| Materials | `0x5C` | `0x60` | `0x60` |
+| Meshes | `0x6C` | `0x70` | `0x70` |
+
+A tagged pointer resolves as `field_offset + signed_i32(value) - 1`; the low bit
+must be set. The material pointer addresses **record +0x10**, not record start.
+Mesh `+0x40` points to its name, `+0x68` gives part count and `+0x6C` points to
+the part array. Parts have **`0x18` stride**: stream pointer at `+0`, byte length
+at `+4`, material index at `+8`. Material index 0 can have unused/garbage name
+fields despite valid colour/texture fields; do not require its name to resolve.
+
+Thin masks include coloured palettes: changing only material tint cannot replace
+their baked RGB. Recolour their CLUT RGB and neutralize material RGB, preserving
+alpha and excluding logos/filled masks. Filled paint masks can be full circles
+or half-circle textures mirrored by geometry; both 76ers and Kings need the latter.
+Plain paint predominantly uses packed `V4-5` vertex colours, with Pistons using
+`V4-8`. The JSON separates these from textured paint/lettering overlays.
+
+Two arena-specific implementation cases remain:
+
+- **Hornets (`s011`)**: the apron is a separate 64x64 PSMT4 colour-band texture,
+  not baked hardwood or a plain material RGB field. Its 16-entry CLUT starts at
+  decoded `0x32340`, all original alpha 128. Base logical indices 0/15/7 supply
+  teal/purple/gold bands; index 5 supplies a white stripe. Merge the coloured bands
+  into the apron colour and map the white stripe to the common line colour.
+  Recorded white-border weights reconstruct the mip palette; clamp only within
+  the validated +/-0.01 quantization tolerance and preserve alpha.
+- **Raptors (`s022`)**: material indices 2 (`apron64a`) and 3 (`key2_alphahack`)
+  are shared by floor and paint parts. Independent apron/zone controls need
+  explicit material alias handling; do not blindly edit a shared RGB field.
+
+Combined representative palette/material/flat-vertex edits round-tripped inside
+the original stored span and scratch limit for **29 of 30 courts**. Targeted
+rechecks including the 76ers/Kings half-circles and Hornets apron interpolation
+also passed. **Hawks (`s009`) refused safely**: 278,318 bytes required versus
+278,304 available, a **14-byte overflow**. Scratch is arena-specific: 76ers and
+Grizzlies use 144 bytes, Magic 2,448, and the other courts 16.
+These are feasibility diagnostics, not certification of arbitrary RGB combinations.
+
+At inventory completion, no production court workspace/ISO patcher had been
+implemented and no ISO was modified. The implementation below now supplies safe role-aware
+editing, linked Raptors controls, bounded compression/refusals, with remaining
+fresh-boot published-ISO validation at both ends and multiple viewing distances.
+General opacity authoring and geometry/line-shape edits remain out of scope.
+
+### Implemented approximate team-colour profiles
+
+The [team palettes workspace](../texture_workspace/team_palettes/README.md) now
+combines team jersey/UI colours, all uniform lettering controls, and three court
+colours in one `colours.json` per NBA slot. `lettering_workspace.py check/build`
+prepares both lettering and court patches for a single verified ISO publication.
+Court `mode=original` preserves the original scene; `mode=recolour` applies the
+arena-specific primary/secondary/lines profile.
+
+Raptors uses linked primary (material 2) and secondary (material 3) slots rather
+than splitting materials. Neutral hardwood-overlay materials in other arenas are
+preserved, while additional coloured outer bands share primary. Filled masks share
+secondary, and separate logos/lettering are excluded.
+
+The standard palette-replacement profile passed a representative three-colour
+fixed-span edit on 29 arenas. Hawks instead uses a **reduced material-tint profile**:
+original mask palettes and authored vertex colours/opacity remain unchanged;
+primary/secondary edit material RGB and lines tints the existing line masks.
+Originally coloured line segments retain their source hue influence.
+Two three-colour presets fitted its original 278,304-byte allocation, each using
+278,300 bytes. This is an explicit arena profile, not a silent fallback after a
+failed build. Arbitrary colour combinations can still refuse safely.
+
+The earlier 14-byte Hawks overflow is retained as evidence about full palette
+replacement, not a blocker for this approximate profile. Fresh-boot visual
+acceptance of the newly implemented production profiles remains outstanding.
+Do not infer source ownership from workspace team labels or identical white masks.
 
 Court video contains pre-swizzled GS data and CLUTs inside compressed `SCNE`
 resources. Do not apply the lettering assumption that the final 1,024 bytes are

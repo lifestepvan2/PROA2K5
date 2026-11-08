@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, EXTRA_BYTE_COLS, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
+from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
@@ -415,7 +416,8 @@ def main():
     ap.add_argument("--pids", default=str(ROOT / "data/face_match/proa_pid_map.csv"),
                     help="csv from face_match.py: proa_id, pid (automatic), override_pid (manual, wins) -> player model")
     ap.add_argument("--teams", default=str(ROOT / "data/proa_teams.csv"),
-                    help="combined team metadata: names, jersey/UI colours, arena, verified")
+                    help="team metadata: names, arena, verified")
+    ap.add_argument("--team-palettes", type=Path, default=DEFAULT_WS, help="canonical per-team colour workspace")
     ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
     ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
                     help="csv: sheet,orig_last,first,last (manual name overrides)")
@@ -440,6 +442,7 @@ def main():
     slot_of = {r["sheet"]: int(r["nba_slot"]) for r in csv.DictReader(open(a.slots, encoding="utf-8"))}
     for tr in team_rows:
         tr["nba_slot"] = slot_of[tr["sheet"]]
+        tr.update(team_colours(a.team_palettes, tr["nba_slot"]))
     slots = [tr["nba_slot"] for tr in team_rows]  # team index -> NBA slot
     assert len(set(slots)) == len(slots) and max(slots) < FIRST_FREE_TEAM, "bad data/team_slots.csv"
     overrides = {}

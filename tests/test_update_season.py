@@ -34,12 +34,17 @@ class SeasonIsoTests(unittest.TestCase):
             self.assertEqual(runner.call_args_list[-2].args, ("gen_logo_replacements.py",))
 
     def test_partial_iso_options_fail_before_pipeline(self):
-        for args in (["--iso-source", "clean.iso"], ["--iso-out", "new.iso"],
-                     ["--lettering-workspace", "palettes"]):
+        for args in (["--iso-source", "clean.iso"], ["--iso-out", "new.iso"]):
             with patch.object(season, "run") as runner, contextlib.redirect_stderr(io.StringIO()):
                 with self.assertRaises(SystemExit):
                     self.invoke(args, runner)
                 runner.assert_not_called()
+
+    def test_shared_workspace_is_used_for_both_roster_builds_without_iso(self):
+        with patch.object(season, "run") as runner:
+            self.invoke(["--skip-scrape", "--team-palettes", "palettes"], runner)
+            roster_calls = [call.args for call in runner.call_args_list if call.args[0] == "build_roster.py"]
+            self.assertEqual(roster_calls, [("build_roster.py", "--team-palettes", "palettes")] * 2)
 
     def test_failed_preflight_prevents_roster_and_texture_writes(self):
         with patch.object(season, "run", side_effect=subprocess.CalledProcessError(1, "check")) as runner:

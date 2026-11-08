@@ -1,19 +1,19 @@
-sheet,city,nickname,abbr,colorjersey1,colorjersey2,colorui1,colorui2,arena,verified
-Dragons,Artland,Dragons,ART,#39606c,#39606c,#39606c,#39606c,Artland Arena,no
-Ulm,Ulm,Orange,ULM,#ff6926,#ff6926,#ff6926,#ff6926,Orange Campus,no
-Bayreuth,Bayreuth,BBC,BAY,#000000,#e3e15e,#000000,#e3e15e,Oberfrankenhalle,no
-Gottingen,Goettingen,BG,GOE,#64257d,#cfcecf,#64257d,#cfcecf,Sparkassen Arena,no
-Knights Kirchheim,Kirchheim,Knights,KIR,#fed400,#1a171b,#fed400,#1a171b,Sporthalle Stadtmitte,no
-Bremerhaven,Bremerhaven,Eisbaeren,BRE,#004671,#f29700,#004671,#f29700,Stadthalle Bremerhaven,no
-Koblenz,Koblenz,EPG Baskets,KOB,#187438,#211c1d,#187438,#211c1d,Rhein-Mosel-Halle,no
-46ers,Giessen,46ers,GIE,#e30613,#000000,#e30613,#000000,Sporthalle Giessen-Ost,no
-Crailsheim Merlins,Crailsheim,Merlins,CRA,#0a4483,#1b1936,#0a4483,#1b1936,Arena Hohenlohe,no
-Falcons,Nuernberg,Falcons,NUE,#b51514,#000000,#b51514,#000000,KIA Metropol Arena,yes
-Baskets,Paderborn,Baskets,PAD,#b12426,#ffffff,#b12426,#ffffff,Maspernhalle,no
-Essen,Essen,Miners,ESS,#d2aa6d,#28100f,#d2aa6d,#28100f,Sporthalle am Hallo,no
-LIONS,Karlsruhe,Lions,KAR,#004d9a,#212c53,#004d9a,#212c53,Badnerlandhalle,no
-Koln,Koeln,RheinStars,KOE,#bd242a,#2096d4,#bd242a,#2096d4,Rheinenergie Sporthalle,no
-Wolmirstedt,Wolmirstedt,SBB,WOL,#b32013,#7897a8,#b32013,#7897a8,Hermann-Gieseler-Halle,no
-Tubingen,Tuebingen,Tigers,TUE,#fdc300,#000000,#fdc300,#000000,Paul Horn-Arena,no
-Heidelberg,Heidelberg,Academics,HEI,#043052,#ac9473,#043052,#ac9473,SNP Dome,no
-Stars Bochum,Bochum,VfL,BOC,#105ea6,#f08d00,#105ea6,#f08d00,Rundsporthalle,no
+sheet,city,nickname,abbr,arena,verified
+Dragons,Artland,Dragons,ART,Artland Arena,no
+Ulm,Ulm,Orange,ULM,Orange Campus,no
+Bayreuth,Bayreuth,BBC,BAY,Oberfrankenhalle,no
+Gottingen,Goettingen,BG,GOE,Sparkassen Arena,no
+Knights Kirchheim,Kirchheim,Knights,KIR,Sporthalle Stadtmitte,no
+Bremerhaven,Bremerhaven,Eisbaeren,BRE,Stadthalle Bremerhaven,no
+Koblenz,Koblenz,EPG Baskets,KOB,Rhein-Mosel-Halle,no
+46ers,Giessen,46ers,GIE,Sporthalle Giessen-Ost,no
+Crailsheim Merlins,Crailsheim,Merlins,CRA,Arena Hohenlohe,no
+Falcons,Nuernberg,Falcons,NUE,KIA Metropol Arena,yes
+Baskets,Paderborn,Baskets,PAD,Maspernhalle,no
+Essen,Essen,Miners,ESS,Sporthalle am Hallo,no
+LIONS,Karlsruhe,Lions,KAR,Badnerlandhalle,no
+Koln,Koeln,RheinStars,KOE,Rheinenergie Sporthalle,no
+Wolmirstedt,Wolmirstedt,SBB,WOL,Hermann-Gieseler-Halle,no
+Tubingen,Tuebingen,Tigers,TUE,Paul Horn-Arena,no
+Heidelberg,Heidelberg,Academics,HEI,SNP Dome,no
+Stars Bochum,Bochum,VfL,BOC,Rundsporthalle,no

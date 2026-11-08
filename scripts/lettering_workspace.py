@@ -1,14 +1,15 @@
-"""Editable shared lettering palettes for all 30 NBA slots.
+"""Editable team palettes and combined lettering/court ISO patches for all 30 NBA slots.
 
     python scripts\\lettering_workspace.py export --iso-source PRISTINE.iso
     python scripts\\lettering_workspace.py check --iso-source PRISTINE.iso --iso-out NEW.iso
     python scripts\\lettering_workspace.py build --iso-source PRISTINE.iso --iso-out NEW.iso
     python scripts\\lettering_workspace.py reset --iso-source PRISTINE.iso --slot 20
 
-Edit colours.json for monochrome/outlined colours, or use the legacy 16x16 RGB PNG
+Edit <slot>/colours.json for team, court and uniform colours, or use the legacy 16x16 RGB PNG
 palettes in palette mode. Number edits target both game and preview
 sources; names are independent. Source alpha, indices, descriptors and archive sizes
-are immutable. Existing edits survive export. Originals/previews stay out of Git.
+are immutable for lettering. Court edits normalize authored paint gradients.
+Existing edits survive export. Originals/previews stay out of Git.
 """
 import argparse
 import csv
@@ -22,14 +23,16 @@ from PIL import Image
 
 from inventory_lettering_iso import inventory
 from iso_copy import publish_iso_copy
-from lettering_colours import default_settings, recolour, validate_controls
+from lettering_colours import default_settings, recolour
 from patch_lettering_iso import ISO_SIZE, digest
 from patch_preview_lettering_iso import SOURCE_SHA256
 from txtr_match import SWZ
 from vc_lz import decode, rebuild_tail
+import team_palettes
+import court_colours
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WS = ROOT / "texture_workspace" / "lettering"
+DEFAULT_WS = team_palettes.DEFAULT_WS
 DEFAULT_SLOTS = ROOT / "data" / "team_slots.csv"
 
 
@@ -138,7 +141,7 @@ def save_preview(workspace: Path, row: dict, decoded: bytes, palette: bytes) -> 
 
 
 def colour_relative(row: dict) -> Path:
-    return palette_relative(row).with_name("colours.json")
+    return team_palettes.relative(row["nba_slot"])
 
 
 def colour_defaults(stream: BinaryIO, sources: list[dict]) -> dict[Path, dict]:
@@ -146,9 +149,11 @@ def colour_defaults(stream: BinaryIO, sources: list[dict]) -> dict[Path, dict]:
     for row in sources:
         if row["surface"] == "game":
             _, decoded = read_source(stream, row)
-            config = result.setdefault(colour_relative(row), {"schema": 1})
-            config[row["target"]] = default_settings(decoded, row["width"], row["height"])
-    return result
+            config = result.setdefault(colour_relative(row), {})
+            variant = config.setdefault(row["variant"], {})
+            variant[row["target"]] = default_settings(decoded, row["width"], row["height"])
+    return {path: team_palettes.defaults(int(path.parts[0]), variants)
+            for path, variants in result.items()}
 
 
 def save_controls(path: Path, config: dict, exclusive: bool = False) -> None:
@@ -164,17 +169,21 @@ def load_controls(workspace: Path, defaults: dict[Path, dict], create: bool = Fa
         path = workspace_path(workspace, relative)
         if path.exists():
             try:
-                config = validate_controls(json.loads(path.read_text(encoding="utf-8")))
+                config = team_palettes.validate(json.loads(path.read_text(encoding="utf-8")))
+                if set(config["uniforms"]) != set(defaults[relative]["uniforms"]):
+                    raise ValueError("Uniform variants differ from the source inventory")
             except ValueError as error:
                 raise ValueError(f"{path}: {error}") from error
         elif create:
             save_controls(path, config, exclusive=True)
+        else:
+            raise ValueError(f"{path}: missing team colour document; run export")
         result[relative] = config
     return result
 
 
 def effective_palette(row: dict, decoded: bytes, rgb: bytes, controls: dict[Path, dict]) -> tuple[bytes, dict | None]:
-    settings = controls[colour_relative(row)][row["target"]]
+    settings = controls[colour_relative(row)]["uniforms"][row["variant"]][row["target"]]
     if settings["mode"] == "palette":
         return import_rgb(decoded[-1024:], rgb), None
     palette, diagnostics = recolour(decoded, row["width"], row["height"], settings)
@@ -278,6 +287,9 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path) -> tuple[list[tuple[
         "colour_controls": colour_reports,
         "changes": changes, "restore": "Boot the untouched pristine source ISO, or rebuild from it.",
     }
+    court_patches, court_reports = court_colours.prepare(stream, workspace)
+    patches.extend(court_patches)
+    report["courts"] = court_reports
     return patches, report
 
 
@@ -309,7 +321,9 @@ def reset(source: Path, workspace: Path, slots: Path, selected_slots: list[int])
                 save_swatch(workspace_path(workspace, relative), rgb)
         for relative, config in colour_defaults(stream, expected["sources"]).items():
             if int(relative.parts[0]) in selected_slots:
-                save_controls(workspace_path(workspace, relative), config)
+                current = team_palettes.load(workspace, int(relative.parts[0]))
+                current["uniforms"] = config["uniforms"]
+                save_controls(workspace_path(workspace, relative), current)
         for row in expected["sources"]:
             if row["surface"] == "game" and row["nba_slot"] in selected_slots:
                 _, decoded = read_source(stream, row)
@@ -344,7 +358,10 @@ def main() -> None:
             report = (build(args.iso_source, args.iso_out, args.workspace, args.slots)
                       if args.command == "build" else check(args.iso_source, args.workspace, args.slots, args.iso_out))
             print(f"Verified 30 slots, {report['uniforms']} uniforms, {report['sources']} sources; "
-                  f"{len(report['changes'])} source patches.")
+                  f"{len(report['changes'])} lettering patches, {len(report['courts'])} court patches.")
+            for court in report["courts"]:
+                print(f"Court {court['nba_slot']:03} {court['asset']}: "
+                      f"{court['used']}/{court['stored']} bytes, profile {court['profile']}")
             colours = report["colour_controls"]
             if colours:
                 modes = {mode: sum(row["mode"] == mode for row in colours) for mode in ("monochrome", "outlined")}

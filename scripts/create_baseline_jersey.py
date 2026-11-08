@@ -8,7 +8,7 @@ trouser legs come from the logo-less templates cloth_top_tmpl / cloth_shorts_tmp
     python scripts/create_baseline_jersey.py [--team Falcons ...] [--dry-run] [--overwrite] [--restore]
     then:  python scripts/texture_workspace.py sync        (rebuilds the duplicates + LODs from the new MASTERs)
 
-* colours:  data/proa_teams.csv columns colorjersey1 / colorjersey2 (hex).
+* colours:  texture_workspace/team_palettes/<slot>/colours.json team.colorjersey1 / colorjersey2 (hex).
             Home = white body + primary trim/stripes, away = primary body + secondary trim/stripes
             (white when colorjersey2 is empty). UI colours are independent.
 * fabric:   each template region is divided by its own median luminance -> a 'shade' map (folds, perforations),
@@ -73,20 +73,18 @@ def smoothstep(a, b, x):
 
 
 def load_teams():
+    from team_palettes import DEFAULT_WS, team_colours
     with open(ROOT / "data/proa_teams.csv", encoding="utf-8") as file:
         teams = list(csv.DictReader(file))
     with open(ROOT / "data/team_slots.csv", encoding="utf-8") as file:
-        slots = {r["sheet"]: r["nba_team"] for r in csv.DictReader(file)}
+        slots = {r["sheet"]: r for r in csv.DictReader(file)}
     out = []
     for i, t in enumerate(teams):
         if t["sheet"] not in slots:
             continue
-        c1 = hex_rgb(t.get("colorjersey1"), None)
-        if c1 is None:
-            print(f"  {t['sheet']}: no colorjersey1 in proa_teams.csv - skipped")
-            continue
-        out.append(dict(sheet=t["sheet"], nba=slots[t["sheet"]], logo=ROOT / f"nba2k_editor/assets/{LOGO_ID0 + i}.png",
-                        c1=c1, c2=hex_rgb(t.get("colorjersey2"), WHITE)))
+        colours = team_colours(DEFAULT_WS, int(slots[t["sheet"]]["nba_slot"]))
+        out.append(dict(sheet=t["sheet"], nba=slots[t["sheet"]]["nba_team"], logo=ROOT / f"nba2k_editor/assets/{LOGO_ID0 + i}.png",
+                        c1=hex_rgb(colours["colorjersey1"], None), c2=hex_rgb(colours["colorjersey2"], WHITE)))
     return out
 
 

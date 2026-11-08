@@ -66,8 +66,9 @@ triplets**, unchanged across all 30 NBA slots:
 
 These are six consecutive bytes, **not two aligned RGBA words**. Examples:
 
-`build_roster.py` now writes them from `colorui1` / `colorui2` in the combined
-`data/proa_teams.csv`. The independent `colorjersey1` / `colorjersey2` columns retain
+`build_roster.py` writes them from `team.colorui1` / `team.colorui2` in
+`texture_workspace/team_palettes/<slot>/colours.json`. The independent
+`team.colorjersey1` / `team.colorjersey2` settings retain
 the old baseline jersey-generator colours. UI defaults were copied exactly, not
 darkened: review bright secondary colours for white-text contrast.
 

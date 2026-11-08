@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "team": {
+    "colorjersey1": "#004671",
+    "colorjersey2": "#f29700",
+    "colorui1": "#004671",
+    "colorui2": "#f29700"
+  },
+  "uniforms": {
+    "alt": {
+      "names": {
+        "mode": "palette",
+        "fill": "#FFFFFF",
+        "outline1": "#FFFFFF",
+        "outline2": "#F9F9F9"
+      },
+      "numbers": {
+        "mode": "palette",
+        "fill": "#2E60A8",
+        "outline1": "#FFFFFF",
+        "outline2": "#8295BF"
+      }
+    },
+    "away": {
+      "names": {
+        "mode": "palette",
+        "fill": "#FFFFFF",
+        "outline1": "#FFFFFF",
+        "outline2": "#F9F9F9"
+      },
+      "numbers": {
+        "mode": "palette",
+        "fill": "#BBBBB6",
+        "outline1": "#F3F3F2",
+        "outline2": "#FFFFFF"
+      }
+    },
+    "home": {
+      "names": {
+        "mode": "palette",
+        "fill": "#232E50",
+        "outline1": "#9096A8",
+        "outline2": "#FAFAFA"
+      },
+      "numbers": {
+        "mode": "palette",
+        "fill": "#2C65B9",
+        "outline1": "#537EBB",
+        "outline2": "#FBFBFB"
+      }
+    }
+  },
+  "court": {
+    "mode": "original",
+    "primary": "#003D93",
+    "secondary": "#000F9A",
+    "lines": "#FFFFFF"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "team": {
+    "colorjersey1": "#d2aa6d",
+    "colorjersey2": "#28100f",
+    "colorui1": "#d2aa6d",
+    "colorui2": "#28100f"
+  },
+  "uniforms": {
+    "away": {
+      "names": {
+        "mode": "palette",
+        "fill": "#FFFFFF",
+        "outline1": "#FFFFFF",
+        "outline2": "#F9F9F9"
+      },
+      "numbers": {
+        "mode": "palette",
+        "fill": "#FFFFFF",
+        "outline1": "#C2C8CA",
+        "outline2": "#FFFFFF"
+      }
+    },
+    "home": {
+      "names": {
+        "mode": "palette",
+        "fill": "#C20033",
+        "outline1": "#C20033",
+        "outline2": "#E4E2E3"
+      },
+      "numbers": {
+        "mode": "palette",
+        "fill": "#C20033",
+        "outline1": "#000000",
+        "outline2": "#F7F6F6"
+      }
+    }
+  },
+  "court": {
+    "mode": "original",
+    "primary": "#89001B",
+    "secondary": "#990009",
+    "lines": "#FFFFFF"
+  }
+}

@@ -45,7 +45,7 @@ def sid(key):
 
 def skipped(dirs):
     """Ignore ISO lettering, retired folders and visual sorting copies."""
-    return "lettering" in dirs or "visual_sort" in dirs or bool(dirs) and dirs[0].startswith("_")
+    return "lettering" in dirs or "team_palettes" in dirs or "visual_sort" in dirs or bool(dirs) and dirs[0].startswith("_")
 
 
 def workspace_state():

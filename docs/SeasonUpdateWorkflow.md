@@ -17,7 +17,7 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
 
-With ISO options, a read-only lettering preflight runs before step 1 and ISO
+With ISO options, a read-only lettering/court preflight runs before step 1 and ISO
 publication runs after all replacements (the final script is `gen_logo_replacements.py`).
 Neither stage runs without explicit ISO options.
 
@@ -32,21 +32,22 @@ python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\E
 ```
 
 Add `--card "<Mcd001.ps2>"` to write the roster as usual (PCSX2 must be closed).
-`--lettering-workspace PATH` overrides `texture_workspace/lettering` and requires
-both ISO flags. A missing/mismatched workspace, invalid palette, compressed edit
+`--team-palettes PATH` overrides `texture_workspace/team_palettes` for both roster
+and ISO stages (`--lettering-workspace` remains an alias). It also works without ISO
+flags for roster-only runs. A missing/mismatched workspace, invalid palette, compressed edit
 that does not fit, or existing output fails preflight before pipeline side effects.
 
 New assignments require a new workspace and explicit palette migration.
 
-Set each uniform's `colours.json` to `monochrome` and choose `fill` for simple solid
+Set `uniforms.<variant>.numbers/names.mode` in each team's `colours.json` to `monochrome` and choose `fill` for simple solid
 lettering, or use `outlined` with three base colours. `palette` retains legacy
 swatch editing. Export refreshes previews; the pipeline derives palettes in memory
 from these controls without rewriting them.
 
-The ISO stage patches shared number/name RGB only; it does **not** embed the roster
+The ISO stage patches shared number/name RGB and courts with `court.mode=recolour`; it does **not** embed the roster
 or PCSX2 replacement textures into the ISO. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
-derived automatically from the jersey/UI colour CSV. Existing output ISOs are refused.
+derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
 The source remains untouched and an adjacent `.lettering.json` records verified
 patches and source/output hashes. Boot the new ISO **fresh**; F10 reloads replacements,
 not ISO lettering. Omit both ISO flags to preserve the original roster-only workflow.
@@ -75,10 +76,12 @@ press F10 in PCSX2 (textures) and start a new game from the card (roster).
 
 1. `TEAM_MAP` in `scrape_proa_roster.py`: site team id -> (display name, sheet name). New ids are listed by
    `scrape_proa_roster.py --teams-only --season S` (marked "NOT IN TEAM_MAP").
-2. `data/proa_teams.csv`: team names, jersey/UI colours, and home arena (see schema below).
+2. `data/proa_teams.csv`: team names and home arena (see schema below).
    Row order = logo asset index (`nba2k_editor/assets/<38+row>.png`), so a new club takes the row of the club it replaces.
 3. `data/team_slots.csv`: sheet -> NBA slot. The new club inherits the slot of the replaced club (textures are keyed by NBA slot);
    keep the default-matchup club (Falcons, slot 21) where it is.
+   Edit the corresponding `texture_workspace/team_palettes/<slot>/colours.json`
+   for jersey/UI, uniform lettering and approximate court colours.
 4. `python scripts/fetch_team_logos.py --sheets <new sheets>`: downloads the club logo. The site only has ~100 px logos
    (upscaled): replace `nba2k_editor/assets/<38+row>.png` with a high-res logo when available.
 
@@ -90,24 +93,25 @@ no longer maintained in a separate CSV. Text written into the game should be ASC
 | Columns | Consumer / meaning |
 |---|---|
 | `sheet,city,nickname,abbr` | Workbook identity and roster team names |
-| `colorjersey1,colorjersey2` | Existing baseline jersey/warm-up generator's primary and secondary hex colours |
-| `colorui1` | Roster team RGB at `+0x62`: general UI and accessories such as armbands |
-| `colorui2` | Roster team RGB at `+0x65`: secondary UI, sometimes behind white text |
 | `arena,verified` | Home arena name; `verified=yes` only when that name has been checked in-game |
 
+Colour fields have moved to the `team` section of each
+[team palette document](../texture_workspace/team_palettes/README.md).
+`colorjersey1/2` feed the baseline cloth generator; `colorui1/2` feed roster RGB
+triplets at `+0x62` / `+0x65` (UI/accessories and secondary backgrounds).
 The UI colours were initially copied exactly from the jersey colours, but can now be
 edited independently. Review light `colorui2` defaults (especially white) for text
 contrast; no automatic darkening is applied. These are **not lettering colours**.
-`build_roster.py --teams PATH` reads the combined schema, writes both UI triplets and
+`build_roster.py --teams PATH --team-palettes PATH` reads metadata and palette documents, writes both UI triplets and
 arena names, and reports UI colours in `team_map.csv`. The separate `--arenas` option
 has been removed. Hex UI values must have exactly six digits, optionally prefixed by `#`.
 
-Shared lettering uses the independent editable palette workspace and the
-[opt-in ISO stage](#optional-lettering-iso-stage), not these jersey/UI CSV colours.
+Shared lettering and court settings live in the same documents but are independent
+of jersey/UI values, and use the [opt-in ISO stage](#optional-lettering-iso-stage).
 
 ## Not automated
 
-- New clubs' **jerseys** (and court/arena textures): the replaced club's slot still carries the old club's uniform and court.
+- New clubs' **jerseys** (and court/arena artwork): court colours can now be approximated via team palettes, but logos/layout still come from the original slot.
   Needs texture dumps + the LOD pipeline, see `JerseyTextureWorkflow.md`.
 - **Arena names** of new clubs (unverified guesses).
 - **Name tweaks** (`data/overrides.csv`) for names that get truncated by the 2K string limits (see "Name adjustments" in `report.md`).

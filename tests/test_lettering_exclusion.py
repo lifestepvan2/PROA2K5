@@ -14,6 +14,7 @@ from uniform_lods import skipped
 class LetteringExclusionTests(unittest.TestCase):
     def test_shared_scan_guard_preserves_existing_exclusions(self):
         self.assertTrue(skipped(("lettering", "020", "home")))
+        self.assertTrue(skipped(("team_palettes", "020", "home")))
         self.assertTrue(skipped(("uniforms", "lettering")))
         self.assertTrue(skipped(("_retired_1",)))
         self.assertTrue(skipped(("visual_sort",)))
@@ -23,6 +24,7 @@ class LetteringExclusionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for relative in (Path("lettering") / "020" / "home" / "numbers__12345678.png",
+                             Path("team_palettes") / "020" / "home" / "numbers__87654321.png",
                              Path("uniforms") / "lettering" / "MASTER__Bad__16x16__23456789.png",
                              Path("uniforms") / "MASTER__Good__16x16__34567890.png"):
                 path = root / relative

@@ -73,7 +73,7 @@ Warnings you can get: *several MASTERs with label X* (demote one to COPY or rela
 and writes the result over **every MASTER** whose label is `<Team><Item><Variant>`, then
 `python scripts/texture_workspace.py sync` rebuilds COPYs and LODs, then F10 in PCSX2.
 
-- Colours: `colorjersey1` / `colorjersey2` (hex) in `data/proa_teams.csv`. Home (and numbered variants) = white body, primary trim and short stripes. Away = primary body, secondary trim/stripes. Alt variants are skipped. Teams without a MASTER of an item print "no MASTER found - skipped". `colorui1` / `colorui2` are separate roster/UI controls and do not colour jersey cloth or lettering.
+- Colours: `team.colorjersey1` / `team.colorjersey2` (hex) in `texture_workspace/team_palettes/<slot>/colours.json`. Home (and numbered variants) = white body, primary trim and short stripes. Away = primary body, secondary trim/stripes. Alt variants are skipped. Teams without a MASTER of an item print "no MASTER found - skipped". `colorui1` / `colorui2` are separate roster/UI controls and do not colour jersey cloth or lettering.
 - Cloth structure (folds, perforations) is kept: every template region is divided by its median brightness and that shade map is applied on the target colour (`HIGHLIGHT` in the script tames the bright side).
 - **Fabric layers for manual editing:** `python scripts/create_baseline_jersey.py --fabric` exports that shade map to `texture_workspace/uniforms/templates/fabric/` for jersey, shorts, warm-up and the 256x256 cloth (`<kind>_fabric_overlay.png`, `<kind>_fabric_shadow_light.png`, `warmup_sleeves_fabric_*`, `warmup_legs_fabric_*`). Existing files are kept (`--fabric --overwrite` regenerates).
   - `*_overlay.png`: grey, 128 = neutral. Blend mode Overlay / Soft Light / Linear Light.
@@ -132,14 +132,14 @@ The following checks remain the rollout procedure for other presentation surface
 Implemented layout, separate from ordinary dump/replacement sync:
 
 ```text
-texture_workspace/lettering/
+texture_workspace/team_palettes/
   manifest.json
   _originals/
     020/home/numbers.palette.png
     ...
   020/
+    colours.json
     home/
-      colours.json
       numbers.palette.png
       names.palette.png
       numbers.preview.png
@@ -151,7 +151,7 @@ texture_workspace/lettering/
 ```
 
 All 30 slot folders exist; `alt/` exists for the 19 mapped alternate uniforms.
-There are 79 colour-control files, 158 legacy editable palettes, 158 original
+There are 30 combined team colour-control files, 158 legacy editable palettes, 158 original
 backups and 158 generated previews.
 
 ```powershell
@@ -167,19 +167,20 @@ python scripts\lettering_workspace.py build --iso-source "C:\Tools\isos\ESPN NBA
 python scripts\lettering_workspace.py reset --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --slot 20
 ```
 
-The default workspace is `texture_workspace/lettering`; `--workspace PATH` selects
+The default workspace is `texture_workspace/team_palettes`; `--workspace PATH` selects
 another workspace. Keep alternate workspaces outside ordinary replacement folders.
 `--slots PATH` selects another assignment CSV. A changed assignment/source manifest
 is rejected: export a new workspace and migrate the desired RGB swatches explicitly.
 
 #### Simple colour controls (recommended)
 
-Edit the uniform's `colours.json`, not individual swatch pixels. For monochrome
-white numbers and names, use:
+Edit `uniforms.<variant>` in the team's `colours.json`, not individual swatch pixels.
+The complete team/court/lettering schema is in the dedicated
+[team palettes README](../texture_workspace/team_palettes/README.md).
+For monochrome white numbers and names, use this **uniform-variant section**:
 
 ```json
 {
-  "schema": 1,
   "numbers": {
     "mode": "monochrome",
     "fill": "#FFFFFF",
@@ -208,8 +209,8 @@ white numbers and names, use:
   The two outline controls are approximate colour roles, not a guaranteed
   inner/outer-border assignment for every font. Inspect the generated previews.
 * `palette`: use the legacy `*.palette.png` inputs instead. This is the default
-  on export, preserving original appearance and existing artist edits. Old workspaces
-  without colour-control files also retain this behaviour.
+  on export, preserving original appearance and existing artist edits. Missing team
+  documents require export; migrate older per-uniform JSONs explicitly.
 
 Source number rasters are not identical: the inventory includes two widths and
 59 distinct full-size silhouettes across 79 uniforms. A universal palette-index
@@ -251,10 +252,10 @@ broader in-emulator acceptance still remains.
   It refreshes generated previews using current edits. `check` and `build` do not refresh
   previews or change the workspace. Backups and metadata are validated; RGB PNG mode
   and 16 x 16 dimensions are required (RGBA, indexed PNGs and other formats are rejected).
-  `reset` restores selected editable palettes, colour controls and previews from
-  the verified source, returning those controls to palette mode.
+  `reset` restores selected editable palettes, uniform controls and previews from
+  the verified source, returning those controls to palette mode; team/court colours stay intact.
   Keep extracted copyrighted atlas previews/workspace files out of Git; compact
-  user palette overrides and mapping metadata can later be tracked separately.
+  the 30 combined JSON controls and dedicated README are tracked separately.
 * This folder is excluded from the existing `texture_workspace.py` export,
   sync and uniform-label/LOD scans. It targets the ISO, not PCSX2's replacements.
 
@@ -279,7 +280,7 @@ broader in-emulator acceptance still remains.
    mode; nothing is seeded from `colorjersey1/2`.
    `colorui1/2` remain exclusively roster controls.
 3. `update_season.py` accepts paired `--iso-source` / `--iso-out` options and optional
-   `--lettering-workspace`. It runs read-only lettering preflight before scraping,
+   `--team-palettes` (`--lettering-workspace` remains an alias). It runs read-only lettering/court preflight before scraping,
    roster/card writes or replacement generation, then builds the ISO after the last
    logo-generation step. Normal runs neither require an ISO nor invoke this stage.
    See [season commands](SeasonUpdateWorkflow.md#optional-lettering-iso-stage).

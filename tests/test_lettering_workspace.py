@@ -81,6 +81,7 @@ class WorkspaceTests(unittest.TestCase):
         patch.object(ws, "inventory", return_value=rows).start()
         patch.object(ws, "SOURCE_SHA256", ws.digest(self.initial)).start()
         patch.object(ws, "ISO_SIZE", len(self.initial)).start()
+        patch.object(ws.court_colours, "prepare", return_value=([], [])).start()
         ws.export(self.source, self.workspace, self.slots)
 
     def edit(self, slot=20, target="numbers"):
@@ -91,9 +92,9 @@ class WorkspaceTests(unittest.TestCase):
         return path, bytes(rgb)
 
     def set_colours(self, slot=20, target="numbers", mode="monochrome", fill="#123456"):
-        path = self.workspace / f"{slot:03}" / "home" / "colours.json"
+        path = self.workspace / f"{slot:03}" / "colours.json"
         config = json.loads(path.read_text())
-        config[target].update(mode=mode, fill=fill)
+        config["uniforms"]["home"][target].update(mode=mode, fill=fill)
         path.write_text(json.dumps(config))
         return path
 
@@ -131,7 +132,7 @@ class WorkspaceTests(unittest.TestCase):
         other = self.set_colours(slot=21)
         before = other.read_bytes()
         ws.reset(self.source, self.workspace, self.slots, [20])
-        self.assertEqual(json.loads(selected.read_text())["numbers"]["mode"], "palette")
+        self.assertEqual(json.loads(selected.read_text())["uniforms"]["home"]["numbers"]["mode"], "palette")
         self.assertEqual(other.read_bytes(), before)
 
     def test_invalid_colour_controls_fail_before_iso_publication(self):
@@ -144,11 +145,12 @@ class WorkspaceTests(unittest.TestCase):
             ws.check(self.source, self.workspace, self.slots)
         self.assertEqual(self.source.read_bytes(), self.initial)
 
-    def test_legacy_workspaces_without_colour_controls_remain_supported(self):
+    def test_missing_team_documents_require_explicit_export(self):
         for path in self.workspace.rglob("colours.json"):
             path.unlink()
         self.edit()
-        self.assertEqual(len(ws.check(self.source, self.workspace, self.slots)["changes"]), 2)
+        with self.assertRaisesRegex(ValueError, "missing team colour document"):
+            ws.check(self.source, self.workspace, self.slots)
         self.assertEqual(list(self.workspace.rglob("colours.json")), [])
 
     def test_export_preserves_edits_backups_and_manifest(self):
