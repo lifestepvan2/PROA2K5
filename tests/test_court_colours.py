@@ -49,7 +49,12 @@ class CourtColourTests(unittest.TestCase):
         self.assertEqual(after[80:88], bytes((128, 128, 128, 128)) * 2)
         self.assertEqual(after[88:92], struct.pack("<H", 0xC210) * 2)
         self.assertEqual(profile["linked_regions"], [2, 3])
-        allowed = set(range(16, 19)) | set(range(20, 23)) | set(range(24, 27)) | set(range(28, 31))
+        self.assertEqual(after[27], 255)
+        self.assertEqual(after[31], 255)
+        self.assertEqual(after[19], before[19])
+        self.assertEqual(after[23], before[23])
+        self.assertEqual(after[67:76:4], before[67:76:4])
+        allowed = set(range(16, 19)) | set(range(20, 23)) | set(range(24, 32))
         allowed |= set(range(64, 67)) | set(range(72, 75)) | set(range(80, 92))
         self.assertTrue(all(a == b or i in allowed for i, (a, b) in enumerate(zip(before, after))))
 
@@ -68,6 +73,18 @@ class CourtColourTests(unittest.TestCase):
         self.assertEqual(after[16:19], bytes.fromhex("abcdef"))
         self.assertEqual(after[24:27], bytes.fromhex("123456"))
         self.assertEqual(after[28:31], bytes.fromhex("987654"))
+        self.assertEqual(after[27], source()[27])
+        self.assertEqual(after[31], source()[31])
+
+    def test_pistons_zone_modulation_reaches_full_gs_alpha(self):
+        value = arena()
+        value["slot"] = 21
+        before = bytearray(source())
+        before[27] = 191
+        after, profile = courts.recolour(bytes(before), value, CONTROL)
+        self.assertEqual(128 * before[27] // 255, 95)
+        self.assertEqual(after[83] * after[27] // 255, 128)
+        self.assertEqual(profile["opaque_zone_materials"], [2, 3])
 
     def test_hornets_apron_interpolation_keeps_alpha(self):
         value = arena()

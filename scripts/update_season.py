@@ -40,6 +40,10 @@ def main():
     ap.add_argument("--team-palettes", "--lettering-workspace", dest="team_palettes",
                     help="shared team palette workspace (default: texture_workspace/team_palettes)")
     a = ap.parse_args()
+    parts = a.season.split("_")
+    if (len(parts) != 2 or not all(len(p) == 4 and p.isdecimal() for p in parts)
+            or int(parts[1]) != int(parts[0]) + 1):
+        ap.error("--season must be consecutive YYYY_YYYY years")
     if bool(a.iso_source) != bool(a.iso_out):
         ap.error("--iso-source and --iso-out must be supplied together")
     if a.card and pcsx2_running():
@@ -48,12 +52,15 @@ def main():
     iso_args = []
     if a.iso_source:
         workspace = a.team_palettes or str(ROOT / "texture_workspace" / "team_palettes")
-        iso_args = ["--iso-source", a.iso_source, "--iso-out", a.iso_out, "--workspace", workspace]
+        iso_args = ["--iso-source", a.iso_source, "--iso-out", a.iso_out, "--workspace", workspace,
+                    "--stats-year", a.season.split("_")[0]]
         run("lettering_workspace.py", "check", *iso_args)
     if not a.skip_scrape:
         run("scrape_proa_roster.py", "--season", a.season, *(["--refresh"] if a.refresh else []))
     run("crop_headshots.py", "--season", a.season)
-    roster_args = ["--team-palettes", a.team_palettes] if a.team_palettes else []
+    roster_args = ["--season", a.season]
+    if a.team_palettes:
+        roster_args.extend(["--team-palettes", a.team_palettes])
     run("build_roster.py", *roster_args)  # writes player_map.csv, which the face steps read
     run("face_embed.py")
     run("face_match.py", *(["--rematch"] if a.rematch_faces else []))

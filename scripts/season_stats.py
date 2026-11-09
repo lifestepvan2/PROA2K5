@@ -4,6 +4,7 @@ parse_season_totals(html)  raw counting stats of the season shown on a player pa
 pool_seasons(seasons, current_year)  one set of stats from all available seasons: recent seasons count more, and seasons
                                      with few games count less. The result feeds PlayerContext (proa_attr_model.py).
 """
+import math
 import re
 
 from bs4 import BeautifulSoup
@@ -25,14 +26,20 @@ def _seconds(txt):
     return int(m.group(1)) * 60 + int(m.group(2)) if m else 0
 
 
-def _row_totals(header, cells):
+def _row_totals(header, cells, *, strict=False):
     """Counting stats from one summary row. Cells hold 'total average' pairs, shooting cells 'made - att average - ... pct'."""
     c = dict(zip(header, cells))
+    if strict and len(cells) != len(header):
+        raise ValueError("Season summary row/header length differs")
 
     def first(name, k=1):
         n = _nums(c.get(name, ""))
+        if strict and len(n) < k:
+            raise ValueError(f"Missing counting values in season column {name!r}")
         return n[:k] + [0.0] * (k - len(n))
 
+    if strict and not re.match(r"\s*\d+:[0-5]\d", c.get("Min", "")):
+        raise ValueError(f"Invalid season minutes: {c.get('Min')!r}")
     reb = first("R: O-D-T", 3)
     out = {
         "g": int(first("G")[0]), "sec": _seconds(c.get("Min", "")),
@@ -42,18 +49,20 @@ def _row_totals(header, cells):
         "pts": first("P")[0], "ast": first("A")[0],
         "oreb": reb[0], "dreb": reb[1], "reb": reb[2],
         "blk": first("BL")[0], "stl": first("ST")[0], "tov": first("TO")[0],
+        "fls": int(first("F")[0]) if _nums(c.get("F", "")) else None,
+        "gs": None,
     }
     return out
 
 
-def parse_season_totals(html):
+def parse_season_totals(html, *, proa_only=False):
     """Regular-season totals of the season selected on a player page, or None if the page has no season table.
 
     A page lists game logs, one summary table per team and, for players with several teams, a combined summary
     (header without 'Team'). The combined table wins; otherwise the team tables are added up.
     """
     soup = BeautifulSoup(html, "html.parser")
-    totals, teams = [], []
+    totals, teams, leagues = [], [], set()
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
         if len(rows) < 2:
@@ -61,16 +70,108 @@ def parse_season_totals(html):
         header = [c.get_text(" ", strip=True) for c in rows[0].find_all(["th", "td"])]
         if "Min" not in header or "G" not in header:  # game logs have 'Datum' instead of 'G'
             continue
+        heading = table.find_previous(["h2", "h3", "h4", "h5"])
+        title = heading.get_text(" ", strip=True) if heading else ""
+        league = re.match(r"^(ProA|ProB|BBL)\b", title)
+        if league:
+            leagues.add(league[1])
+        if proa_only:
+            required = {"G", "Min", "2P-A-R", "3P-A-R", "FT-A-R", "P", "A", "R: O-D-T", "BL", "ST", "TO"}
+            if missing := required - set(header):
+                raise ValueError(f"Incomplete season summary header: {sorted(missing)}")
+            if league and league[1] != "ProA":
+                continue
+            if "Team" in header and not league:
+                raise ValueError(f"Cannot classify season summary league: {title!r}")
+            if "Team" not in header and not league and not title.startswith("Gesamt"):
+                raise ValueError(f"Cannot classify combined season summary: {title!r}")
         data = [[c.get_text(" ", strip=True) for c in r.find_all(["th", "td"])] for r in rows[1:]]
         hr = [r for r in data if r and r[0] == "HR"] or [r for r in data if r and r[0] == ""]
         if not hr:
             continue
-        (teams if "Team" in header else totals).append(_row_totals(header, hr[0]))
-    rows = totals[:1] or teams
+        (teams if "Team" in header else totals).append(_row_totals(header, hr[0], strict=proa_only))
+    # A global combined summary may include ProB appearances; only ProA team rows
+    # are usable in that case.
+    rows = (totals[:1] if not proa_only or leagues <= {"ProA"} else []) or teams
     if not rows:
         return None
     out = {k: sum(r[k] for r in rows) for k in COUNT_KEYS}
+    for k in ("fls", "gs"):
+        out[k] = sum(r[k] for r in rows) if all(r[k] is not None for r in rows) else None
     return out if out["g"] > 0 else None
+
+
+def available_seasons(html):
+    """Actual selectable start years, not a guessed backwards request range."""
+    soup = BeautifulSoup(html, "html.parser")
+    selector = soup.find("select", attrs={"name": "season"})
+    if selector is None:
+        raise ValueError("Player page has no season selector")
+    years = set()
+    for option in selector.find_all("option"):
+        value = option.get("value", "")
+        match = re.fullmatch(r"(\d{4})/(\d{4})", value)
+        if not match or int(match[2]) != int(match[1]) + 1:
+            raise ValueError(f"Invalid season option: {value!r}")
+        years.add(int(match[1]))
+    if not years:
+        raise ValueError("Player season selector is empty")
+    return sorted(years, reverse=True)
+
+
+def history_stats(totals):
+    """Unweighted counts, per-game rates and percentages (0..100). MIN retains fractions."""
+    def count(key):
+        value = totals.get(key)
+        if value is None:
+            if key not in ("fls", "gs"):
+                raise ValueError(f"Missing counting stat {key}")
+            return None
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value < 0 or int(value) != value):
+            raise ValueError(f"Invalid counting stat {key}: {value!r}")
+        return int(value)
+
+    counts = {name: count(key) for name, key in {
+        "GP": "g", "GS": "gs", "PTS": "pts", "OREB": "oreb", "DREB": "dreb",
+        "REB": "reb", "AST": "ast", "STL": "stl", "BLK": "blk", "TO": "tov",
+        "3PM": "p3m", "3PA": "p3a", "FTM": "ftm", "FTA": "fta", "FLS": "fls",
+    }.items()}
+    counts["FGM"] = count("p2m") + count("p3m")
+    counts["FGA"] = count("p2a") + count("p3a")
+    counts["SEC"] = count("sec")
+    counts["MIN"] = counts["SEC"] / 60
+    warnings = []
+    if counts["REB"] != counts["OREB"] + counts["DREB"]:
+        warnings.append(f"Published REB={counts['REB']} differs from OREB+DREB="
+                        f"{counts['OREB'] + counts['DREB']}; source figures preserved")
+    for made, attempts in (("FGM", "FGA"), ("3PM", "3PA"), ("FTM", "FTA")):
+        if counts[made] > counts[attempts]:
+            raise ValueError(f"{made} exceeds {attempts}")
+    rates = {name: (round(counts[key] / counts["GP"], 3) if counts["GP"] else 0.0)
+             if counts[key] is not None else None
+             for name, key in {
+                 "PPG": "PTS", "ORPG": "OREB", "RPG": "REB", "APG": "AST",
+                 "SPG": "STL", "BPG": "BLK", "TOPG": "TO", "MPG": "MIN", "FPG": "FLS",
+             }.items()}
+    rates.update({name: round(100 * counts[made] / counts[attempts], 3) if counts[attempts] else 0.0
+                  for name, made, attempts in [
+                      ("FG%", "FGM", "FGA"), ("3P%", "3PM", "3PA"), ("FT%", "FTM", "FTA"),
+                  ]})
+    return {"totals": counts, "averages": rates, **({"warnings": warnings} if warnings else {})}
+
+
+def player_history(seasons):
+    played = {year: totals for year, totals in sorted(seasons.items()) if totals}
+    career = {key: sum(t[key] for t in played.values()) for key in COUNT_KEYS}
+    for key in ("fls", "gs"):
+        career[key] = (sum(t[key] for t in played.values())
+                       if played and all(t.get(key) is not None for t in played.values()) else None)
+    return {
+        "seasons": {f"{year}_{year + 1}": history_stats(t) for year, t in played.items()},
+        "career": history_stats(career),
+        "checked_seasons": [f"{year}_{year + 1}" for year in sorted(seasons)],
+    }
 
 
 def season_weight(age, games):

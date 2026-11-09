@@ -65,8 +65,11 @@ still intentionally uses the editable PNGs.
 Court mode: `original` leaves the entire court untouched (default); `recolour`
 applies all three slots. Original-mode values are representative source colours,
 not a promise to reproduce the original court when switched to recolour.
-Overwritten plain paint loses authored vertex RGB/opacity gradients; original
-material alpha, mask alpha, hardwood, lighting, reflections and geometry remain.
+Overwritten plain paint loses authored vertex RGB/opacity gradients and uses
+material alpha 255: with neutral vertex alpha 128 this produces full GS opacity
+128, like the solid filled-circle interior. Mask alpha and non-zone material
+alpha remain unchanged, as do hardwood, lighting, reflections and geometry.
+Raptors' shared floor/paint materials also share this opacity increase.
 Logos/lettering textures are not recoloured. Neutral hardwood-overlay materials
 are left alone.
 
@@ -81,7 +84,7 @@ no separate plain zone layer; the tool does not invent one.
 compression allocation: primary/secondary recolour the existing materials; lines
 tints the original masks without replacing their palettes. Originally coloured
 segments therefore retain their source hue influence rather than becoming an exact
-requested RGB. Authored vertex colour/opacity is retained in this profile.
+requested RGB. Authored vertex colour/opacity and material alpha are retained in this profile.
 Two distinct three-colour presets passed the fixed-span checks.
 Every build still verifies its exact requested profile and refuses overflow
 without publishing an ISO; no controls are silently ignored or downgraded.

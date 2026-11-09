@@ -28,7 +28,8 @@ class SeasonIsoTests(unittest.TestCase):
                 "--lettering-workspace", "palettes"]
         with patch.object(season, "run") as runner:
             self.invoke(args, runner)
-            expected = ("--iso-source", "clean.iso", "--iso-out", "new.iso", "--workspace", "palettes")
+            expected = ("--iso-source", "clean.iso", "--iso-out", "new.iso", "--workspace", "palettes",
+                        "--stats-year", "2026")
             self.assertEqual(runner.call_args_list[0].args, ("lettering_workspace.py", "check", *expected))
             self.assertEqual(runner.call_args_list[-1].args, ("lettering_workspace.py", "build", *expected))
             self.assertEqual(runner.call_args_list[-2].args, ("gen_logo_replacements.py",))
@@ -44,7 +45,15 @@ class SeasonIsoTests(unittest.TestCase):
         with patch.object(season, "run") as runner:
             self.invoke(["--skip-scrape", "--team-palettes", "palettes"], runner)
             roster_calls = [call.args for call in runner.call_args_list if call.args[0] == "build_roster.py"]
-            self.assertEqual(roster_calls, [("build_roster.py", "--team-palettes", "palettes")] * 2)
+            self.assertEqual(roster_calls, [("build_roster.py", "--season", "2026_2027",
+                                            "--team-palettes", "palettes")] * 2)
+
+    def test_invalid_season_is_rejected_before_side_effects(self):
+        for value in ("2026", "2026_2028", "abc_def"):
+            with patch.object(season, "run") as runner, contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit):
+                    self.invoke(["--season", value], runner)
+                runner.assert_not_called()
 
     def test_failed_preflight_prevents_roster_and_texture_writes(self):
         with patch.object(season, "run", side_effect=subprocess.CalledProcessError(1, "check")) as runner:

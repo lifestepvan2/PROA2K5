@@ -9,14 +9,14 @@
   "uniforms": {
     "away": {
       "names": {
-        "mode": "palette",
-        "fill": "#FFFFFF",
+        "mode": "monochrome",
+        "fill": "#eaeaea",
         "outline1": "#FFFFFF",
         "outline2": "#F9F9F9"
       },
       "numbers": {
-        "mode": "palette",
-        "fill": "#AC001C",
+        "mode": "monochrome",
+        "fill": "#eaeaea",
         "outline1": "#B5A9AB",
         "outline2": "#B9BEBD"
       }
@@ -37,9 +37,9 @@
     }
   },
   "court": {
-    "mode": "original",
-    "primary": "#7E3428",
-    "secondary": "#1A64CE",
-    "lines": "#FFFFFF"
+    "mode": "recolour",
+    "primary": "#242424",
+    "secondary": "#242424",
+    "lines": "#eaeaea"
   }
 }
