@@ -26,7 +26,7 @@
   },
   "overwrite_policy": {
     "lines": "One colour for thin line masks; replace CLUT RGB except Hawks' material-tint profile, which preserves source palette hue influence",
-    "zone": "Normalize authored vertex RGBA to (128,128,128,128), including V4-5 encoding 0xC210, except Hawks' reduced profile; apply material RGB and preserve material alpha",
+    "zone": "Normalize authored vertex RGBA to (128,128,128,128), including V4-5 encoding 0xC210, and set plain-paint material alpha to 255 for full GS opacity; Hawks' reduced profile retains original alpha",
     "gradient_scope": "Remove authored corner colour/opacity gradients, not wood, reflections or scene lighting",
     "preserve": "All geometry, indices, mip texels, descriptors and non-zone alpha"
   },

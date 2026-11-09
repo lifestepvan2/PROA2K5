@@ -15,6 +15,7 @@ Payload layout: see docs/roster_payload_format.md
 import argparse
 import collections
 import csv
+import json
 import re
 import struct
 import sys
@@ -30,6 +31,7 @@ from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, EXTRA_BYTE_COLS, NEUTRAL_BYT
 from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
+from roster_stats import encode_history, repack as repack_stats  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
@@ -424,6 +426,10 @@ def main():
     ap.add_argument("--accessories", default=str(ROOT / "data/accessories.csv"),
                     help="csv: proa_id, headband, wrist_l/r, arm_l/r, knee_l/r (hand-edited; new players are appended)")
     ap.add_argument("--out", default=str(ROOT / "data/roster_build"))
+    ap.add_argument("--stats", type=Path, default=ROOT / "data" / "proa_stats.json",
+                    help="schema-v2 stats source (default: data/proa_stats.json)")
+    ap.add_argument("--no-stats", action="store_true", help="keep inherited NBA histories (legacy roster-only build)")
+    ap.add_argument("--season", help="require the stats archive to match this YYYY_YYYY season")
     ap.add_argument("--card", help="write result into this memory card (PCSX2 closed!)")
     ap.add_argument("--keep-umlauts", action="store_true")
     ap.add_argument("--max-first", type=int, default=12)
@@ -433,6 +439,14 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     pl = Payload(Path(a.base).read_bytes())
+    stats_source = None
+    if not a.no_stats:
+        stats_source = json.loads(a.stats.read_text(encoding="utf-8"))
+        if stats_source.get("schema_version") != 2:
+            raise SystemExit("Stats history requires schema_version 2; rerun scrape_proa_roster.py")
+        if a.season is not None and stats_source["season"] != a.season:
+            raise SystemExit(f"Stats archive season {stats_source['season']} does not match requested {a.season}; rerun scraping")
+        stats_anchor = int(stats_source["season"].split("_")[0])
     base_snapshot = pl.snapshot()
     proa = load_proa(a.proa)
     allp = sorted((p for t in proa.values() for p in t), key=lambda p: p["ovr"])
@@ -456,6 +470,7 @@ def main():
     acc_seen = []
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
+    stats_replacements = {}
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
 
     team_players = [order_roster(proa[tr["sheet"]][:ROSTER_SLOTS]) for tr in team_rows]
@@ -498,6 +513,13 @@ def main():
             assignments.append((rec_off(r) + P_NICK, ""))
             assignments.append((rec_off(r) + P_BDAY, birthday_text(p["rowd"])))
             write_record_fields(pl.d, rec_off(r), p)
+            if stats_source is not None:
+                source = stats_source["players"].get(str(p["proa_id"]))
+                if source is None or "history" not in source:
+                    raise SystemExit(f"Missing scraped history for {p['first']} {p['last']} ({p['proa_id']})")
+                encoded, span, unavailable = encode_history(source["history"], stats_anchor)
+                stats_replacements[r] = (encoded, span)
+                notes.extend(f"{p['first']} {p['last']}: {note}" for note in unavailable)
             apply_accessories(pl.d, rec_off(r), acc_of.get(str(p["proa_id"])))
             acc_seen.append((p["proa_id"], tr["sheet"], p["first"], p["last"]))
             pid = pid_of.get(str(p["proa_id"]))
@@ -574,6 +596,13 @@ def main():
         assert pl.str_at(o + P_LAST) == p["last"] and pl.str_at(o + P_FIRST) == p["first"]
     assert len(pl.d) == Path(a.base).stat().st_size
 
+    stats_report = None
+    if stats_source is not None:
+        pl.d, stats_report = repack_stats(pl.d, stats_replacements)
+        (out / "stats_report.json").write_text(json.dumps({
+            **stats_report, "season": stats_source["season"], "label_anchor": stats_anchor,
+            "requires_iso_year_patch": stats_anchor != 2004,
+        }, indent=2) + "\n", encoding="utf-8")
     data = bytes(pl.d)
     crc = struct.pack("<I", zlib.crc32(data) & 0xFFFFFFFF)
     (out / "payload_proa.bin").write_bytes(data)
@@ -594,11 +623,14 @@ def main():
         f"- string pool: free before {free_before} B, freed {freed} B, free after {pl.free_bytes()} B",
         f"- records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: {FIRST_FREE_TEAM - len(team_rows)}",
         f"- longest last names: {long_last}", "",
-        "## Name adjustments", *[f"- {n}" for n in notes],
+        "## Notes (names, models and unavailable statistics)", *[f"- {n}" for n in notes],
     ]
+    if stats_report is not None:
+        rep.insert(5, f"- stats: {stats_report['players']} players, {stats_report['used_bytes']}/{stats_report['capacity_bytes']} B; "
+                   f"season labels require ISO anchor {stats_anchor}")
     (out / "report.md").write_text("\n".join(rep) + "\n", encoding="utf-8")
     print("\n".join(rep[:6]))
-    print(f"{len(notes)} name adjustments (see report.md)")
+    print(f"{len(notes)} notes (see report.md)")
 
     if a.card:
         from mc_write import write_file, verify_card

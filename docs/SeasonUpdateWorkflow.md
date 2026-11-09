@@ -7,7 +7,7 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 
 | # | Step | Script | Output |
 |---|------|--------|--------|
-| 1 | Scrape rosters, stats (pooled over 6 seasons), portraits; compute the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `cache/proa_S/` |
+| 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
 | 3 | Build payload, pass 1 (writes the player list the face steps need) | `build_roster.py` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
@@ -20,6 +20,51 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 With ISO options, a read-only lettering/court preflight runs before step 1 and ISO
 publication runs after all replacements (the final script is `gen_logo_replacements.py`).
 Neither stage runs without explicit ISO options.
+
+### Season and career statistics
+
+The scraper archives every selectable season through the requested season,
+including older pages beyond the rating window. `--history-seasons` only controls
+the rating window; its existing recency/low-games weights are unchanged.
+Historical BBL/ProB appearances and playoff rows are excluded. League headings
+are checked explicitly; unknown layouts or a server returning the wrong
+selected season fail instead of publishing an apparently complete history.
+Existing HTML caches are reused and reparsed; old parsed JSON cannot hide
+newly collected personal fouls. An uncached request failure aborts publication
+and can be retried without losing already fetched HTML.
+
+In schema-v2 `data/proa_stats.json`, existing pooled site fields remain at the
+same paths. Each player's `history` additionally contains:
+
+- `seasons`: keyed by `YYYY_YYYY`, each with `totals` and `averages`;
+- `career`: unweighted summed totals and ratios derived from those sums;
+- `checked_seasons`: all successfully inspected options, including seasons
+  with no ProA regular-season games (absent from `seasons`).
+
+Totals contain PTS, OREB, DREB, REB, AST, STL, BLK, TO, FGM, FGA, 3PM, 3PA,
+FTM, FTA, SEC, MIN, FLS, GP and GS. Averages contain PPG, ORPG, RPG, APG,
+SPG, BPG, TOPG, MPG, FPG, FG%, 3P% and FT%. Percentages use 0..100;
+MIN retains fractions and SEC is exact. Unavailable GS (and FLS, if a source
+omits it) is JSON `null`, including the career result if any constituent is
+unknown. Career ratios are not means of season averages.
+If published REB differs from OREB+DREB, the archive preserves the published
+figures and adds explicit `warnings`. By user choice, the game keeps the original
+OREB/DREB components and derives their sum; the build report records the resulting
+small REB/RPG difference instead of silently changing either component.
+
+`build_roster.py` embeds these histories in the payload by default, preserves
+untouched NBA/legend histories, checks fixed-pool capacity and reports missing
+GS/FLS. `--stats PATH` selects another archive; `--no-stats` explicitly retains
+the old inherited-statistics behavior. `--skip-scrape` therefore requires an
+already-updated schema-v2 archive. The built payload is not automatically
+copied to `data/roster.bin` or the card; use the existing `card_patch.py`
+workflow with PCSX2 closed.
+
+Labels use season start years: 2026/2027 displays 2026. Years Pro becomes the
+contiguous history span, including gaps; zero-game gaps are hidden by the
+game. The ISO stage automatically adds the matching season-label anchor.
+Without ISO options, counts are embedded but labels still require a separately
+patched ISO. See the [verified format and rounding limits](roster_payload_format.md#historical-player-statistics).
 
 ### Optional lettering ISO stage
 
@@ -44,7 +89,8 @@ lettering, or use `outlined` with three base colours. `palette` retains legacy
 swatch editing. Export refreshes previews; the pipeline derives palettes in memory
 from these controls without rewriting them.
 
-The ISO stage patches shared number/name RGB and courts with `court.mode=recolour`; it does **not** embed the roster
+The ISO stage patches shared number/name RGB, courts with `court.mode=recolour`,
+and the player-card season-label anchor matching `--season`. It does **not** embed the roster
 or PCSX2 replacement textures into the ISO. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.

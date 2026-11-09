@@ -446,6 +446,16 @@ Two three-colour presets fitted its original 278,304-byte allocation, each using
 278,300 bytes. This is an explicit arena profile, not a silent fallback after a
 failed build. Arbitrary colour combinations can still refuse safely.
 
+Recoloured plain zones now additionally use **material alpha 255**, rather than
+retaining the original material opacity. In Pistons, neutral vertex alpha 128
+modulated by the original material alpha 191 produced GS alpha 95 (about 74% of
+full opacity), explaining the lighter zone versus the filled circle with identical
+RGB. Material alpha 255 gives GS alpha 128, matching the solid-circle interior's
+opacity. Non-zone material alpha and all mask antialiasing alpha remain unchanged.
+Raptors' shared floor/paint materials share this intentional opacity change.
+Hawks' reduced profile continues preserving its original vertex/material alpha.
+Wood/reflection/light passes can still prevent exact screen-colour equality.
+
 The earlier 14-byte Hawks overflow is retained as evidence about full palette
 replacement, not a blocker for this approximate profile. Fresh-boot visual
 acceptance of the newly implemented production profiles remains outstanding.

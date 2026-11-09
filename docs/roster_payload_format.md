@@ -25,6 +25,102 @@ Self-relative with a tag: `target = field_offset + signed_i32(value) - 1` (low b
 Always use signed `<i`. Only pointer fields below `POOL_MIN` (0x675DC) are rewritten; "pointers"
 inside the string pool are false positives.
 
+## Historical player statistics
+
+Verified against the original NBA payload, live player-card screenshots and
+reversible RAM probes (all modified words independently checked after restoration):
+
+- Player `+0x90` is a tagged, self-relative history pointer on card and an absolute
+  pointer in RAM. Zero means no history.
+- The baseline's 480 nonempty histories occupy exactly `0x26174..0x50DC4`
+  (175,184 bytes), without gaps or shared streams. The other 312 player pointers
+  are zero. This pool is independent of the string allocator.
+- Payload `+0xA0` is the global count of four-byte entries (`0xAB14` in
+  the baseline); `+0xA4` points to the pool base. Live relocation confirms these
+  as the roster object's `+0x60/+0x64` count/base, used by the history mutation
+  code at EE `0x237D98`. Repacking updates the entry count as well as every player
+  pointer, leaves the fixed base unchanged and zeroes unused trailing capacity.
+- An entry is little-endian `u16 value, u16 key`. `key & 0x7F` identifies a
+  counting stat; bits 7 upward identify the season ordinal, oldest first,
+  starting at 1. Bit 15 marks the final entry in the player's entire stream.
+  Missing fields read as zero. Bit 14 is reserved by our encoder.
+
+| Field | Value | Field | Value |
+|---|---|---|---|
+| 0 | GP | 9 | Offensive rebounds |
+| 1 | GS | 10 | Defensive rebounds |
+| 2 | Whole minutes | 11 | STL |
+| 3 | FGM (including threes) | 12 | BLK |
+| 4 | FGA (including threes) | 13 | Personal fouls |
+| 5 | 3PM | 14 | AST |
+| 6 | 3PA | 15 | TO |
+| 7 | FTM | 16 | PTS |
+| 8 | FTA | | |
+
+The original streams also contain fields 17, 18 and 22 whose meanings are not
+verified. Repacking preserves every byte of untouched players' histories,
+including those fields. Reassigned ProA players receive only the verified fields.
+The game derives averages, percentages, REB and career totals from counts.
+For example, the original Tayshaun Prince/Pildner stream at payload `0x4E080`
+has seasons of 137 points/42 games and 841 points/82 games: career 978 points,
+124 games and 7.9 PPG. Changing `+0x41` from 1 to 2 exposes both rows without
+changing the career total.
+
+### Season labels and gaps
+
+There is no explicit calendar year in a season entry. Player `+0x41` ("Years
+Pro") controls the displayed ordinal span. Labels count backward from
+`2004 + shared season offset`; the live Quick Game offset at EE `0x85FAF0` is 0.
+An all-zero season (GP=0) is **omitted**, not printed with zero averages.
+Its ordinal still preserves the correct labels of later seasons. A live probe
+with offset 22 confirmed a 2026 label and safe omission of a gap season; it also
+confirmed that career totals exclude that zeroed season. All probe bytes were restored,
+and no card or save slot was written.
+
+The player-card label calculation at EE `0x2F4E18` is
+`addiu v1,s0,-2014` (`0x2603F822`). In the verified European `SLES_530.22`,
+it maps to ISO offset `0x284F18`. Replacing only this instruction's immediate
+with `-(anchor + 10)` shifts the label anchor; 2026 uses `0x2603F80C`.
+This does not change birth dates or the global game calendar. The existing
+shared offset still advances labels in season/franchise modes; those modes
+have not been live-tested.
+
+PCSX2's game CRC is the XOR of the ELF's 32-bit words, so a code change alone
+would change `CA37B42E` to `CA37B400` and disconnect the existing texture/settings
+folders. A second four-byte patch at ISO `0x900FC` compensates that XOR in verified,
+nonloaded ELF header padding (after all six program headers, before the first
+load segment). The original padding is zero; the 2026 compensation is `2E000000`.
+The patcher checks the header, load-segment boundaries and zero padding before
+using it. The game CRC remains `CA37B42E`. Algorithm reference:
+[PCSX2 ElfObject::GetCRC](https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Elfheader.cpp).
+
+```powershell
+python scripts\build_roster.py --stats data\proa_stats.json
+python scripts\lettering_workspace.py check --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --stats-year 2026
+python scripts\lettering_workspace.py build --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<new ISO path>" --stats-year 2026
+```
+
+`build_roster.py` now reads schema-v2 `data/proa_stats.json` by default.
+`--no-stats` explicitly retains the legacy inherited NBA histories.
+Each history's season **start year** determines its label (2026/2027 displays
+2026). The builder sets "Years Pro" to the contiguous span through that anchor,
+not a birth-year estimate, and inserts GP=0 entries for missing seasons.
+No-games players receive a null history pointer.
+The game has no verified unknown-value representation: unavailable GS/FLS
+fields are omitted, read as zero in game, and are reported explicitly rather
+than fabricated as known zeroes in the scraped archive.
+For inconsistent published rebound figures, OREB/DREB are preserved and their
+sum is the in-game REB (user-selected policy). The archive retains the original
+published REB as well and both archive/build reports expose the discrepancy.
+
+The archive retains exact seconds and fractional total MIN. In the game,
+season seconds round to the nearest whole minute, half up (at most 30 seconds
+loss per season). UInt16 overflows, malformed pointers, unterminated streams,
+unowned nonzero pool bytes and insufficient capacity fail before publishing a
+payload. `stats_report.json` reports pool capacity and the required ISO anchor.
+Without the matching ISO patch, the counts are correct but season labels still
+use the original 2004 anchor. Boot a generated ISO fresh, not from a saved state.
+
 ## Tables
 
 | Table | Offset | Stride | Count | Notes |

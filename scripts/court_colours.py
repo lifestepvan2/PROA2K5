@@ -37,6 +37,8 @@ def profile(arena: dict) -> dict:
             "secondary_role": "Dark floor/key regions" if arena["slot"] == 22 else "Zone and filled circles",
             "line_mode": "material_tint" if arena["slot"] == 9 else "palette_replace",
             "flatten_zone_vertices": arena["slot"] != 9,
+            "opaque_zone_materials": sorted({part["material_index"] for part in arena["plain_paint_parts"]})
+            if arena["slot"] != 9 else [],
             "compression": "Fixed span; choose another colour combination if refused"}
 
 
@@ -109,9 +111,12 @@ def recolour(source: bytes, arena: dict, controls: dict) -> tuple[bytes, dict]:
         material(apron["material_index"], b"\xff\xff\xff")
     for index, colour in material_colours.items():
         change(arena["materials"][index]["rgba_offset"], colour)
+    for index in roles["opaque_zone_materials"]:
+        change(arena["materials"][index]["rgba_offset"] + 3, b"\xff")
     for entry in arena["materials"]:
         offset = entry["rgba_offset"] + 3
-        if source[offset] != target[offset]:
+        expected_alpha = 255 if entry["index"] in roles["opaque_zone_materials"] else source[offset]
+        if target[offset] != expected_alpha:
             raise ValueError("Court material alpha changed")
     for texture in masks:
         if any(source[offset + 3] != target[offset + 3] for offset in texture["palette_logical_entry_offsets"]):

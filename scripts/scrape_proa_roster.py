@@ -17,11 +17,11 @@ Options
     --history-seasons INT
                     Previous seasons pooled into each player's stats (default: 5, 0 = current season only).
                     Weights per season: current 1, last 1, then 0.8 / 0.6 / 0.4 / 0.2; x0.5 for seasons under
-                    10 games (season_stats.py)
+                    10 games (season_stats.py). All selectable ProA seasons are archived regardless of this limit.
     --top INT       Max players per team written to Excel (default: 15)
     --teams-only    Print discovered team IDs and exit
     --stats-json-only
-                    Rebuild data/proa_stats.json (pooled stats for the GitHub Pages site) from the cache and exit
+                    Rebuild data/proa_stats.json (pooled site stats plus full season/career histories) and exit
 
 Cache location : cache/proa_{season}/   (HTML + parsed JSON)
 Output default : proa_scraped.xlsx  in project root; data/proa_stats.json is written on every run
@@ -63,13 +63,13 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
     from scripts.proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings
-    from scripts.season_stats import parse_season_totals, pool_seasons
+    from scripts.season_stats import available_seasons, parse_season_totals, player_history, pool_seasons
 except ImportError:
     # Allow the scraper to run stand-alone (e.g. from project root via
     # 'python scripts/scrape_proa_roster.py') where the package import
     # path resolves differently.
     from proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings  # type: ignore[no-redef]
-    from season_stats import parse_season_totals, pool_seasons  # type: ignore[no-redef]
+    from season_stats import available_seasons, parse_season_totals, player_history, pool_seasons  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -312,26 +312,40 @@ def parse_kader_page(html: str) -> list[dict]:
     return players
 
 
-def collect_player_seasons(pid: int, season: str, history: int, *, refresh: bool = False) -> dict[int, dict | None]:
-    """Season totals {start_year: totals or None} for the current season and *history* seasons before it.
-
-    The current season is parsed from the cached player page; every earlier one is a POST of the page's season
-    selector. Pages are cached as player_{id}__{season}.html and parsed totals in player_{id}_seasons.json
-    (a finished season never changes, so it is only fetched once)."""
+def collect_player_seasons(pid: int, season: str, history: int, *, refresh: bool = False,
+                           rating_seasons: dict[int, dict | None] | None = None) -> dict[int, dict | None]:
+    """All selectable ProA regular seasons. *history* limits rating pooling, not archived history."""
     year = int(season.split("_")[0])
     url = PLAYER_URL_TPL.format(player_id=pid)
-    out = {year: parse_season_totals(fetch_html(url, season, f"player_{pid}", refresh=refresh))}
-    parsed = {} if refresh else (load_json_cache(season, f"player_{pid}_seasons") or {})
-    for y in range(year - 1, year - 1 - history, -1):
+    current = fetch_html(url, season, f"player_{pid}", refresh=refresh)
+    years = [y for y in available_seasons(current) if y <= year]
+    if year not in years:
+        raise ValueError(f"{pid}: requested season {season} not offered by player selector")
+    selected = BeautifulSoup(current, "html.parser").select_one('select[name="season"] option[selected]')
+    if selected is None or selected.get("value") != f"{year}/{year + 1}":
+        current = fetch_html(url, season, f"player_{pid}__{year}_{year + 1}", refresh=refresh,
+                             post_data={"season": f"{year}/{year + 1}"})
+        selected = BeautifulSoup(current, "html.parser").select_one('select[name="season"] option[selected]')
+        if selected is None or selected.get("value") != f"{year}/{year + 1}":
+            raise ValueError(f"{pid}: server did not return requested season {season}")
+    out = {year: parse_season_totals(current, proa_only=True)}
+    if rating_seasons is not None:
+        rating_seasons[year] = parse_season_totals(current)
+    # Reparse cached HTML so old parsed caches cannot hide newly collected fouls
+    # or silently include ProB games.
+    parsed = {}
+    for y in years:
+        if y == year:
+            continue
         label = f"{y}/{y + 1}"
-        if label not in parsed:
-            try:
-                html = fetch_html(url, season, f"player_{pid}__{y}_{y + 1}", refresh=refresh,
-                                  post_data={"season": label})
-            except requests.RequestException as exc:
-                print(f"        {pid}: season {label} not fetched ({exc})")
-                continue
-            parsed[label] = parse_season_totals(html)
+        html = fetch_html(url, season, f"player_{pid}__{y}_{y + 1}", refresh=refresh,
+                          post_data={"season": label})
+        selected = BeautifulSoup(html, "html.parser").select_one('select[name="season"] option[selected]')
+        if selected is None or selected.get("value") != label:
+            raise ValueError(f"{pid}: server did not return requested season {label}")
+        parsed[label] = parse_season_totals(html, proa_only=True)
+        if rating_seasons is not None and y >= year - history:
+            rating_seasons[y] = parse_season_totals(html)
         out[y] = parsed[label]
     save_json_cache(season, f"player_{pid}_seasons", parsed)
     return out
@@ -548,9 +562,16 @@ def scrape_all(
         if not no_stats:
             for p in players:
                 pid = p["proa_id"]
-                seasons = collect_player_seasons(pid, season, history, refresh=refresh)
-                stats = pool_seasons(seasons, int(season.split("_")[0]))
+                rating_seasons = {}
+                seasons = collect_player_seasons(pid, season, history, refresh=refresh,
+                                                 rating_seasons=rating_seasons)
+                year = int(season.split("_")[0])
+                stats = pool_seasons(rating_seasons, year)
                 p.update(stats)
+                p["history"] = player_history(seasons)
+                for label, row in p["history"]["seasons"].items():
+                    for warning in row.get("warnings", []):
+                        print(f"        WARNING {pid} {label}: {warning}")
                 print(f"        {pid}  {p['last_name']:<22}  {stats['games']:>5.1f} wG  {stats['minutes_avg_str']} mpg  "
                       f"{', '.join(stats['seasons_used']) or 'no games'}")
 
@@ -690,9 +711,10 @@ def write_stats_json(rosters: dict[int, list[dict]], season: str, path: Path = S
             players[str(p["proa_id"])] = {
                 **{k: p.get(k) for k in STATS_FIELDS},
                 "seasons_used": p.get("seasons_used", []),
+                **({"history": p["history"]} if "history" in p else {}),
             }
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"season": season, "teams": teams, "players": players},
+    path.write_text(json.dumps({"schema_version": 2, "season": season, "teams": teams, "players": players},
                                ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     print(f"Stats for the site -> {path} ({len(players)} players)")
 
@@ -720,7 +742,7 @@ def main() -> None:
                     help="Season string used in URLs/cache dir (default: 2026_2027)")
     ap.add_argument("--history-seasons", type=int, default=HISTORY_SEASONS,
                     help="Previous seasons pooled into the stats, 0 = current season only "
-                         f"(default: {HISTORY_SEASONS}; one extra page request per player and season, cached)")
+                         f"(default: {HISTORY_SEASONS}; all selectable ProA histories are archived independently)")
     ap.add_argument("--top",        type=int, default=MAX_PLAYERS,
                     help=f"Max players per team written to Excel (default: {MAX_PLAYERS})")
     ap.add_argument("--teams-only", action="store_true",
@@ -730,6 +752,8 @@ def main() -> None:
     ap.add_argument("--stats-json-only", action="store_true",
                     help="Rebuild data/proa_stats.json from the cache and exit (leaves the workbook untouched)")
     args = ap.parse_args()
+    if args.history_seasons < 0:
+        ap.error("--history-seasons must be non-negative")
 
     print(f"\nProA Roster Scraper")
     print(f"  Season  : {args.season}")
