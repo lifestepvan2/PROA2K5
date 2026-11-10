@@ -141,6 +141,21 @@ class WorkspaceTests(unittest.TestCase):
                 ws.prepare(stream, self.workspace, self.slots, skin_plan=skin_plan, repack_archive=True)
         self.assertEqual(prepare_skin.call_args.kwargs, {"repack_archive": True})
 
+    def test_decoded_lettering_intents_do_not_compress_or_publish_overlapping_patches(self):
+        self.set_colours()
+        edits = []
+        with patch.object(ws, "rebuild_tail", side_effect=AssertionError("Composer compresses once")):
+            with self.source.open("rb") as stream:
+                patches, report = ws.prepare(stream, self.workspace, self.slots, texture_edits=edits)
+        self.assertEqual(patches, [])
+        self.assertEqual(len(edits), 2)
+        self.assertEqual(len(report["changes"]), 2)
+        self.assertEqual({edit[5]["compressed"] for edit in edits}, {True, False})
+        for offset, body, original, target, scratch, context in edits:
+            self.assertEqual(original[:-1024], target[:-1024])
+            self.assertEqual(original[-1021::4], target[-1021::4])
+            self.assertNotEqual(original[-1024:], target[-1024:])
+
     def test_failed_skin_plan_never_publishes_iso(self):
         with patch("skin_tones.load_patches", side_effect=ValueError("stale skin recipe")):
             with self.assertRaisesRegex(ValueError, "stale skin recipe"):

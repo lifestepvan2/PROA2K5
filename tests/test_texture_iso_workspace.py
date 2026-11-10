@@ -119,6 +119,15 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(patches[0][2][4], 123)
         self.assertEqual(len(report["courts"]), 1)
 
+    def test_lettering_controls_cannot_silently_recolour_reindexed_master_art(self):
+        self.edit()
+        painted = bytearray(self.data)
+        painted[-4:-1] = b"\x20\x40\x60"
+        edits = [(32, self.data, self.data, bytes(painted), 0,
+                  {"asset": "uh021.iff", "compressed": False})]
+        with self.assertRaisesRegex(ValueError, "Lettering master and colour controls"):
+            self.prepare(texture_edits=edits)
+
     def test_explicit_palette_policy_and_invalid_policy(self):
         self.edit()
         path = self.workspace / "_iso_encoding.json"

@@ -114,6 +114,27 @@ class SkinToneTests(unittest.TestCase):
             patches, reports = skin.load_patches(None, path, self.rows, repack_archive=True)
         self.assertEqual((len(patches), len(reports)), (2, 2))
 
+    def test_decoded_intents_match_whole_asset_pixels_at_original_coordinates(self):
+        plan = self.create(repack_archive=True)
+        assets = FixtureAssets()
+        patches, _ = skin.compile_plan(None, plan, self.rows, assets, repack_archive=True)
+        edits = []
+        direct, reports = skin.compile_plan(None, plan, self.rows, assets, repack_archive=True,
+                                            texture_edits=edits)
+        self.assertEqual(direct, [])
+        self.assertTrue(edits)
+        expected = {offset: after for offset, _, after in patches}
+        for offset, body, original, target, scratch, context in edits:
+            side = context["asset"][-5]
+            asset_offset, before = assets.asset(10, side)
+            part = context["part"]
+            chunk, original_body, decoded, _, _ = assets.resource(10, side, part)
+            self.assertEqual(offset, asset_offset + chunk + 32)
+            self.assertEqual((body, original), (original_body, decoded))
+            compiled = texture_resource(expected[asset_offset], part)[2]
+            self.assertEqual(target, compiled)
+        self.assertTrue(all(r["composition"] == "decoded-resource-intents" for r in reports))
+
     def test_schema_zero_and_bounds(self):
         for value in (0, "0", 1, 6, "6"):
             self.assertEqual(db.field_value("Skin Tone", value), int(value))

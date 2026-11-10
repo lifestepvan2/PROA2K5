@@ -1,4 +1,5 @@
 import sys
+import struct
 import unittest
 from pathlib import Path
 
@@ -11,9 +12,79 @@ from test_gs_texture import fixture
 from test_texture_catalogue import texture
 from texture_catalogue import texture_images
 import texture_iso_workspace as workspace
+import numpy as np
+import gs_texture as gs
+
+
+def shared_fixture():
+    system, width, height = 160, 8, 4
+    size = width * height
+    video = size + 2048
+    data = bytearray(system + video)
+    for index, descriptor in enumerate((48, 104)):
+        struct.pack_into("<3Q", data, descriptor, 19 << 20 | 3 << 26 | 2 << 30, 1 << 63, 0)
+        struct.pack_into("<I", data, descriptor + 40, size + index * 1024 if index else 0)
+        struct.pack_into("<HH", data, descriptor + 44, width, height)
+        palette = np.zeros((256, 4), dtype=np.uint8)
+        palette[:, index] = np.arange(256)
+        palette[:, 3] = 128
+        data[system + size + index * 1024:system + size + (index + 1) * 1024] = palette.tobytes()
+    data[system:system + size] = bytes(range(size))
+    return bytes(data), system, video, [48, 104]
 
 
 class NativeTextureTests(unittest.TestCase):
+    def test_true_color_mips_preserve_system_and_regenerate_native_alpha(self):
+        data, system, video = texture(0, 8, 8, 3)
+        target, report, preview = native.encode(
+            data, system, video, 48, [48], Image.new("RGBA", (16, 16), (21, 33, 99, 128)))
+        images = texture_images(target, system, video, 48, [48])[0]
+        self.assertEqual(target[:system], data[:system])
+        self.assertEqual(report["mips"], 3)
+        self.assertTrue(all(im["rgba"] == bytes((21, 33, 99, 64)) * im["width"] * im["height"]
+                            for im in images))
+        self.assertEqual(preview.getpixel((0, 0)), (21, 33, 99, 127))
+
+    def test_packed_four_bit_encoding_preserves_the_unused_sibling_nibble(self):
+        system, video = 112, 8192
+        data = bytearray(bytes(system) + b"\xaa" * video)
+        struct.pack_into("<3Q", data, 48, (2 << 14) | (20 << 20) | (1 << 37), 0, 0)
+        struct.pack_into("<HH", data, 92, 1, 1)
+        before = bytes(data)
+        target, report, preview = native.encode(
+            before, system, video, 48, [48], Image.new("RGBA", (1, 1), (12, 34, 56, 255)))
+        pixel = system + int(gs.host_offsets(np.array([0]), video)[0])
+        self.assertEqual(target[pixel] & 0xF0, before[pixel] & 0xF0)
+        self.assertEqual(target[:system], before[:system])
+        self.assertEqual(preview.getpixel((0, 0)), (12, 34, 56, 255))
+        self.assertEqual(report["palette_colors"], 16)
+
+    def test_shared_fan_indices_encode_jointly_without_changing_other_variant(self):
+        data, system, video, offsets = shared_fixture()
+        original = texture_images(data, system, video, 104, offsets)[0][0]
+        master = Image.new("RGBA", (8, 4), (30, 70, 120, 255))
+        target, reports, previews = native.encode_shared(data, system, video, offsets, {48: master})
+        first, layout, _, _ = texture_images(target, system, video, 48, offsets)
+        second = texture_images(target, system, video, 104, offsets)[0][0]
+        self.assertEqual(layout, "linear-shared-indices")
+        self.assertEqual(second["rgba"], original["rgba"])
+        self.assertEqual(first[0]["rgba"], bytes((30, 70, 120, 128)) * 32)
+        self.assertEqual(target[:system], data[:system])
+        self.assertEqual(previews[48].getpixel((0, 0)), (30, 70, 120, 255))
+        self.assertTrue(all(row["shared_index_cohort"] == 2 for row in reports))
+        with self.assertRaisesRegex(ValueError, "encoded together"):
+            native.encode(data, system, video, 48, offsets, master)
+
+    def test_shared_fan_quantization_respects_joint_palette_budget_and_rejects_bad_offsets(self):
+        data, system, video, offsets = shared_fixture()
+        master = native.display(texture_images(data, system, video, 48, offsets)[0][0])
+        _, reports, _ = native.encode_shared(data, system, video, offsets, {48: master}, palette_colors=16)
+        self.assertTrue(all(row["palette_colors"] <= 16 for row in reports))
+        bad = bytearray(data)
+        struct.pack_into("<I", bad, 104 + 40, 100)
+        with self.assertRaisesRegex(ValueError, "invalid palette offsets"):
+            texture_images(bytes(bad), system, video, 48, offsets)
+
     def test_gs_master_updates_all_mips_with_one_palette_and_preserves_system(self):
         data, _ = fixture()
         master = Image.new("RGBA", (1024, 512), (24, 90, 180, 255))

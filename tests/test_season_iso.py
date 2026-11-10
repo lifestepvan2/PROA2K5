@@ -76,6 +76,34 @@ class SeasonCompositionTests(unittest.TestCase):
                 season.check(self.source, self.output, self.workspace, roster=self.roster)
         self.assertFalse(self.output.exists())
 
+    def test_uniform_workspace_routes_lettering_through_single_resource_composer(self):
+        native = self.root / "native"
+        native.mkdir()
+        (native / "_iso_uniforms.json").write_text("{}")
+        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})) as letters, \
+                patch.object(season.court_colours, "decoded_edits", return_value=[]), \
+                patch.object(season.archive_iso, "plan", return_value=([], [], {})), \
+                patch.object(season.texture_iso_workspace, "prepare", return_value=([], {"courts": []})) as textures:
+            season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv",
+                           texture_workspace=native, repack_archive=True)
+        self.assertIs(letters.call_args.kwargs["texture_edits"], textures.call_args.kwargs["texture_edits"])
+        self.assertTrue(textures.call_args.kwargs["repack_archive"])
+
+    def test_generic_workspace_routes_skin_explicitly_even_with_unrelated_palette_path(self):
+        native = self.root / "native"
+        native.mkdir()
+        (native / "_iso_textures.json").write_text("{}")
+        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})) as letters, \
+                patch.object(season.court_colours, "decoded_edits", return_value=[]), \
+                patch.object(season.archive_iso, "plan", return_value=([], [], {})), \
+                patch.object(season.texture_iso_workspace, "prepare", return_value=([], {"courts": []})) as textures:
+            season.prepare(io.BytesIO(), self.root / "separate-palettes", self.root / "slots.csv",
+                           texture_workspace=native, skin_plan=self.plan, repack_archive=True)
+        self.assertTrue(letters.call_args.kwargs["compose_skin"])
+        self.assertIs(letters.call_args.kwargs["texture_edits"], textures.call_args.kwargs["texture_edits"])
+
     def test_repack_absorbs_all_archive_edits_and_preserves_outside_patches(self):
         logo_patch = (16, b"AA", b"LLL")
         rendered = b"A" * 16 + b"LLL" + b"A" * 13

@@ -7,7 +7,7 @@
 Manual prerequisites (see docs/SeasonUpdateWorkflow.md): when the league's team set changed, edit TEAM_MAP in
 scrape_proa_roster.py, data/proa_teams.csv (including arenas), data/team_slots.csv and run fetch_team_logos.py once for
 the new clubs. Without --card the card is left alone (writing needs PCSX2 closed).
-The default roster is embedded alongside lettering/court/year/skin patches in one verified new ISO.
+The default roster is embedded alongside lettering/court/year/skin patches and exported native texture masters.
 Export/edit texture_workspace_ISO first. Portrait/legacy skin replacements remain external.
 Card-only/build-only modes are explicit alternatives; nonzero Skin Tone requires an ISO output.
 """
@@ -49,7 +49,7 @@ def main():
     ap.add_argument("--team-palettes", "--lettering-workspace", dest="team_palettes",
                     help="ISO team palette workspace (default: texture_workspace_ISO/team_palettes)")
     ap.add_argument("--texture-workspace", default=str(texture_iso_workspace.DEFAULT_WS),
-                    help="native ISO logo masters (default: texture_workspace_ISO)")
+                    help="native ISO logo/uniform masters (default: texture_workspace_ISO)")
     ap.add_argument("--legacy-logo-replacements", action="store_true",
                     help="also generate legacy PCSX2 logo PNGs when building an ISO")
     ap.add_argument("--repack-archive", action="store_true",
@@ -114,8 +114,8 @@ def main():
         run("card_patch.py", "--bin", str(ROOT / "data" / "roster_build" / "payload_proa.bin"), "--card", a.card)
     print("\nDone. Review data/roster_build/report.md and docs/_face_sheets/, press F10 in PCSX2 to reload textures.")
     if a.iso_out:
-        print(f"Portable roster/logo ISO written to {a.iso_out}. Boot fresh without loading an old roster or savestate; "
-              "F10 does not reload embedded assets. Disable old logo replacements to inspect the ISO result.")
+        print(f"Portable roster/native-texture ISO written to {a.iso_out}. Boot fresh without loading an old roster or savestate; "
+              "F10 does not reload embedded assets. Disable old logo/uniform replacements to inspect the ISO result.")
     if not a.card:
         print("Card not written (no --card given).")
 

@@ -53,6 +53,10 @@ class GsTextureTests(unittest.TestCase):
         addresses = (gs.address32(x, y, 1).ravel()[:, None] + np.arange(4)).ravel()
         self.assertEqual(sorted(addresses), list(range(8192)))
         self.assertEqual(gs.host_offsets(addresses, 8192).tolist(), list(range(8192)))
+        y, x = np.indices((128, 128))
+        self.assertEqual(sorted(gs.address4(x, y, 2).ravel()), list(range(16384)))
+        self.assertEqual(int(gs.address4(np.array(128), np.array(0), 4)), 16384)
+        self.assertEqual(int(gs.address4(np.array(0), np.array(128), 4)), 32768)
 
     def test_all_six_native_mips_shared_palette_and_alpha(self):
         data, expected = fixture()

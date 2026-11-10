@@ -150,6 +150,29 @@ class TextureCatalogueTests(unittest.TestCase):
         self.assertEqual(row["status"], "metadata-only")
         self.assertIsNone(row["stored_sha256"])
 
+    def test_nested_markscene_and_cinematic_descriptors_follow_tagged_scene_pointer(self):
+        data = bytearray(256)
+        pointer(data, 20, 32)
+        pointer(data, 32, 96)
+        struct.pack_into("<I", data, 96 + 20, 1)
+        pointer(data, 96 + 24, 160)
+        for kind, magic in (("MRKS", b"MRKS"), ("MRKH", b"MRKS"), ("CNSR", b"CNSR")):
+            data[12:16] = magic
+            self.assertEqual(native.descriptors(data, kind, len(data)), [(160, "descriptor-0")])
+        pointer(data, 32, 240)
+        with self.assertRaisesRegex(ValueError, "Truncated scene"):
+            native.descriptors(data, "CNSR", len(data))
+
+    def test_font_inline_descriptor_is_bounded_and_keeps_metrics_outside_pixels(self):
+        data = bytearray(160)
+        data[12:16] = b"FONT"
+        pointer(data, 16, 32)
+        data[32:42] = "font\0".encode("utf-16le")
+        pointer(data, 20, 64)
+        self.assertEqual(native.descriptors(data, "FONT", len(data)), [(96, "font")])
+        with self.assertRaisesRegex(ValueError, "exceeds system"):
+            native.descriptors(data, "FONT", 140)
+
     def test_dimensions_are_part_of_image_identity(self):
         rgba = b"\0" * 16
         self.assertNotEqual(native.pixel_digest(2, 2, rgba), native.pixel_digest(1, 4, rgba))
