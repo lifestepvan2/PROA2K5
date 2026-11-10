@@ -1,4 +1,4 @@
-"""Read-only decoding of verified GS32-upload / PSMT8 texture resources.
+"""Decode GS32-upload / PSMT8 and PSMT4 texture resources.
 
 The upload is a sequence of complete 64x32 PSMCT32 pages. Texture and
 palette reads use the descriptor's GS block addresses, not file offsets.
@@ -32,6 +32,18 @@ def address8(x: np.ndarray, y: np.ndarray, bw: int, base: int = 0) -> np.ndarray
               | ((((x >> 2) ^ (y >> 1) ^ (y >> 2)) & 1) << 5)
               | ((y & 4) << 4) | ((y & 8) << 4))
     return base * 256 + page * PAGE_BYTES + block * 256 + column
+
+
+def address4(x: np.ndarray, y: np.ndarray, bw: int, base: int = 0) -> np.ndarray:
+    """PSMT4 nibble addresses: 128x128 pages and 32x16 blocks."""
+    page = x // 128 + y // 128 * (bw // 2)
+    block = (((y >> 4) & 1) | (((x >> 5) & 1) << 1) | (((y >> 5) & 1) << 2)
+             | (((x >> 6) & 1) << 3) | (((y >> 6) & 1) << 4))
+    column = (((y >> 1) & 1) | (((x >> 3) & 1) << 1) | (((x >> 4) & 1) << 2)
+              | ((x & 1) << 3) | ((y & 1) << 4) | ((x & 2) << 4)
+              | ((((x >> 2) ^ (y >> 1) ^ (y >> 2)) & 1) << 6)
+              | ((y & 4) << 5) | ((y & 8) << 5))
+    return base * 512 + page * PAGE_BYTES * 2 + block * 512 + column
 
 
 @lru_cache(maxsize=1)
@@ -71,8 +83,9 @@ def decode_upload(data: bytes, system: int, video: int, descriptor: int) -> list
     width, height = struct.unpack_from("<HH", data, descriptor + 44)
     if not width or not height or width > 4096 or height > 4096:
         raise ValueError("Unsupported GS-upload geometry")
-    if ((tex0 >> 20) & 63) != 19:
-        raise ValueError("GS-upload decoder supports PSMT8 only")
+    psm = (tex0 >> 20) & 63
+    if psm not in (19, 20):
+        raise ValueError("GS-upload decoder supports PSMT8/PSMT4 only")
     if ((tex0 >> 51) & 15) or ((tex0 >> 55) & 1) or ((tex0 >> 56) & 31):
         raise ValueError("GS-upload decoder requires PSMCT32 CSM1 palette with CSA zero")
     if width != 1 << ((tex0 >> 26) & 15) or height != 1 << ((tex0 >> 30) & 15):
@@ -92,16 +105,24 @@ def decode_upload(data: bytes, system: int, video: int, descriptor: int) -> list
                 levels.append((base, bw))
     raw = np.frombuffer(data, dtype=np.uint8, count=video, offset=system)
     cbp = (tex0 >> 37) & 16383
-    y, x = np.indices((16, 16))
+    y, x = np.indices((16, 16) if psm == 19 else (2, 8))
     palette_addresses = address32(x, y, 1, cbp).ravel()[:, None] + np.arange(4)
-    palette = raw[host_offsets(palette_addresses, video)][SWZ]
+    palette = raw[host_offsets(palette_addresses, video)]
+    if psm == 19:
+        palette = palette[SWZ]
     images = []
     for level, (base, bw) in enumerate(levels):
         w, h = max(1, width >> level), max(1, height >> level)
         if bw < 2 or bw % 2 or bw * 64 < w:
-            raise ValueError("Unsupported PSMT8 mip buffer width")
-        offsets = host_offsets(texture_addresses(w, h, bw, base), video)
-        images.append({"level": level, "width": w, "height": h, "rgba": palette[raw[offsets]].tobytes(),
+            raise ValueError("Unsupported indexed mip buffer width")
+        if psm == 19:
+            offsets = host_offsets(texture_addresses(w, h, bw, base), video)
+            indices = raw[offsets]
+        else:
+            y, x = np.indices((h, w))
+            nibbles = address4(x, y, bw, base)
+            indices = (raw[host_offsets(nibbles // 2, video)] >> ((nibbles & 1) * 4)) & 15
+        images.append({"level": level, "width": w, "height": h, "rgba": palette[indices].tobytes(),
                        "tbp": base, "tbw": bw, "cbp": cbp, "tfx": (tex0 >> 35) & 3,
                        "tcc": (tex0 >> 34) & 1})
     return images

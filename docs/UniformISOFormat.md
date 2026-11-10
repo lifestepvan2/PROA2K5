@@ -1,5 +1,11 @@
 # Uniform storage and rendering investigation
 
+The [native uniform workflow](./NativeUniformWorkflow.md) now implements
+export, verified manual-artwork migration, mip regeneration and ISO encoding.
+The historical investigation below explains its packed upload format.
+Separate crowd TSETs also use a linear shared-index plane with per-variant
+palette offsets; those variants must be encoded jointly.
+
 ## Result
 
 The original clean PCSX2 dumps verify the missing game-uniform layout.

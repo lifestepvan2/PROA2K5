@@ -41,11 +41,18 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         logo_report = None
     else:
         texture_iso_workspace.validate_workspace(workspace)
+        from uniform_iso_workspace import MANIFEST as UNIFORM_MANIFEST
+        from remaining_texture_workspace import MANIFEST as TEXTURE_MANIFEST
+        uniform_edits = ([] if any((texture_workspace / filename).is_file()
+                                  for filename in (UNIFORM_MANIFEST, TEXTURE_MANIFEST)) else None)
+        options = {"texture_edits": uniform_edits} if uniform_edits is not None else {}
+        skin_options = {"compose_skin": True} if (texture_workspace / TEXTURE_MANIFEST).is_file() else {}
         visual_patches, visual_report = lettering_workspace.prepare(
-            stream, workspace, slots, None, skin_plan, include_courts=False, repack_archive=repack_archive)
+            stream, workspace, slots, None, skin_plan, include_courts=False, repack_archive=repack_archive,
+            **options, **skin_options)
         logo_patches, logo_report = texture_iso_workspace.prepare(
             stream, texture_workspace, court_colours.decoded_edits(stream, workspace),
-            repack_archive=repack_archive)
+            repack_archive=repack_archive, **options)
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
     patches.extend(visual_patches)
@@ -56,7 +63,7 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
     report = {
         "schema": 1, "source_sha256": SOURCE_SHA256, "iso_size": ISO_SIZE,
         "roster": roster_report, "visuals": visual_report, "logos": logo_report,
-        "scope": ("Default roster and native logo masters embedded; portraits and legacy skin PNGs remain external"
+        "scope": ("Default roster and exported native texture masters embedded; portraits and legacy skin PNGs remain external"
                   if logo_report is not None else "Default roster embedded; logo migration not selected"),
         "restore": "Boot the untouched pristine ISO; rebuild from it rather than patching a previous output",
     }

@@ -1,8 +1,9 @@
-"""Native logo masters, independent of PCSX2 dumps and replacement keys.
+"""Native texture masters, independent of PCSX2 dumps and replacement keys.
 
 Export discovers team logos and centerlogo mesh textures directly from the ISO.
-Only confirmed current-team sources can be edited in this POC. Other discovered
-sources are exported as stock references. Folder names never control rendering.
+Logo owners outside confirmed current teams remain stock references. Complete
+uniform bundles are included after uniform_iso_workspace.py export.
+Folder names never control rendering.
 """
 import argparse
 import collections
@@ -21,7 +22,7 @@ from PIL import Image
 import archive_iso
 from inventory_lettering_iso import asset_hash
 from iso_copy import hash_stream, publish_iso_copy
-from native_texture import display, encode
+from native_texture import display, encode, encode_shared
 from patch_lettering_iso import ISO_SIZE
 from patch_preview_lettering_iso import SOURCE_SHA256
 from player_texture_iso import read_archive
@@ -288,7 +289,7 @@ def export(source: Path, workspace: Path = DEFAULT_WS,
 
 def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = None,
             *, collect_failures: bool = False, repack_archive: bool = False,
-            palette_colors: int = 256) -> tuple[list, dict]:
+            palette_colors: int = 256, texture_edits: list | None = None) -> tuple[list, dict]:
     validate_workspace(workspace)
     if type(palette_colors) is not int or palette_colors not in (16, 32, 64, 128, 256):
         raise ValueError("Invalid default native palette color count")
@@ -298,7 +299,12 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
     if manifest.get("schema") != 1 or manifest.get("source_sha256") != SOURCE_SHA256:
         raise ValueError("Native logo workspace schema/source mismatch")
     entries = read_archive(stream)
-    sources = manifest["sources"]
+    from uniform_iso_workspace import MANIFEST as UNIFORM_MANIFEST, load_manifest, bundle_owner
+    uniforms = load_manifest(workspace) if (workspace / UNIFORM_MANIFEST).is_file() else None
+    from remaining_texture_workspace import MANIFEST as TEXTURE_MANIFEST, load_manifest as load_textures, location
+    remaining = load_textures(workspace) if (workspace / TEXTURE_MANIFEST).is_file() else None
+    generic_ids = {row["id"] for row in remaining["sources"]} if remaining else set()
+    sources = manifest["sources"] + (uniforms["sources"] if uniforms else []) + (remaining["sources"] if remaining else [])
     if (not sources or len({row["id"] for row in sources}) != len(sources)
             or any(not re.fullmatch(r"[0-9a-f]{8}", row["id"]) for row in sources)):
         raise ValueError("Native logo manifest requires unique valid master IDs")
@@ -313,6 +319,7 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                    for value in policy["palette_colors"].values())):
         raise ValueError("Invalid explicit native palette policy")
     resources = {}
+    shared_edits = collections.defaultdict(list)
     reports = []
     for row in sources:
         path = files[row["id"]]
@@ -324,9 +331,22 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             if image_digest(master) != row["seed_digest"]:
                 raise ValueError(f"{path}: historical/unconfirmed-owner reference is outside current-team POC scope")
             continue
-        actual_slot = current_slot(row["asset"], row["asset_hash"], row["texture"], row["group"])
-        if actual_slot is None or actual_slot != row["slot"]:
-            raise ValueError(f"{path}: current-team ownership does not match the native source")
+        if row["id"] in generic_ids:
+            identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
+            if (digest(identity.encode())[:8] != row["id"]
+                    or location(row["asset"], row["scene"], row["texture"], row["kind"])[2] != row["slot"]
+                    or (row["asset"] != f"hash:{row['asset_hash']}"
+                        and asset_hash(row["asset"]) != int(row["asset_hash"], 16))):
+                raise ValueError(f"{path}: native texture ownership/identity changed")
+        elif row["group"] == "uniforms":
+            actual = bundle_owner(row["asset"], row["asset_hash"], manifest["sources"])
+            if ((not row["asset"].startswith("hash:") and asset_hash(row["asset"]) != int(row["asset_hash"], 16))
+                    or any(row[key] != value for key, value in actual.items())):
+                raise ValueError(f"{path}: native uniform ownership changed")
+        else:
+            actual_slot = current_slot(row["asset"], row["asset_hash"], row["texture"], row["group"])
+            if actual_slot is None or actual_slot != row["slot"]:
+                raise ValueError(f"{path}: current-team ownership does not match the native source")
         if entries.get(int(row["asset_hash"], 16)) != (row["iso_offset"], row["asset_size"]):
             raise ValueError("Native master archive identity changed")
         offset = row["iso_offset"] + row["chunk_offset"] + 32
@@ -334,30 +354,49 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             body, decoded = source_bytes(stream, row)
             resources[offset] = [row, body, decoded, decoded]
         resource, body, original, target = resources[offset]
-        target, report, preview = encode(
-            target, row["system"], row["video"], row["descriptor"], row["descriptor_offsets"], master,
+        if row["layout"] == "linear-shared-indices":
+            shared_edits[offset].append((row, master))
+            continue
+        encoded, report, preview = encode(
+            original, row["system"], row["video"], row["descriptor"], row["descriptor_offsets"], master,
             palette_colors=policy["palette_colors"].get(row["id"], palette_colors))
+        target = merge_decoded(original, target, encoded, f"Native masters in {row['asset']}")
         resources[offset][3] = target
         reports.append({"id": row["id"], "asset": row["asset"], "texture": row["texture"], "resource_offset": offset,
                         "group": row["group"], "slot": row["slot"], "path": str(path), **report})
         preview_path = workspace / "_encoded" / f"{row['id']}.png"
         preview_path.parent.mkdir(exist_ok=True)
         preview.save(preview_path)
-    for offset, body, original, target, scratch, report in court_edits or []:
+    for offset, edits in shared_edits.items():
+        row, body, original, target = resources[offset]
+        colors = min(policy["palette_colors"].get(item["id"], palette_colors) for item, _ in edits)
+        encoded, details, previews = encode_shared(
+            original, row["system"], row["video"], row["descriptor_offsets"],
+            {item["descriptor"]: image for item, image in edits}, palette_colors=colors)
+        resources[offset][3] = merge_decoded(original, target, encoded, f"Shared-index masters in {row['asset']}")
+        cohort = {item["descriptor"]: item for item in sources
+                  if item["iso_offset"] + item["chunk_offset"] + 32 == offset}
+        for detail in details:
+            item = cohort[detail["descriptor"]]
+            reports.append({"id": item["id"], "asset": item["asset"], "texture": item["texture"],
+                            "resource_offset": offset, "group": item["group"], "slot": item["slot"],
+                            "path": str(files[item["id"]]), **detail})
+            preview_path = workspace / "_encoded" / f"{item['id']}.png"
+            preview_path.parent.mkdir(exist_ok=True)
+            previews[detail["descriptor"]].save(preview_path)
+    for offset, body, original, target, scratch, report in (court_edits or []) + (texture_edits or []):
         if offset in resources:
             row, existing_body, existing_original, edited = resources[offset]
             if original != existing_original or body != existing_body:
-                raise ValueError("Court and logo resources disagree on source bytes")
-            a, b = np.frombuffer(original, dtype=np.uint8), np.frombuffer(target, dtype=np.uint8)
-            changed = a != b
-            previous = np.frombuffer(edited, dtype=np.uint8)
-            if np.any((previous[changed] != a[changed]) & (previous[changed] != b[changed])):
-                raise ValueError("Court controls and native logo masters have conflicting writes")
-            combined = bytearray(edited)
-            np.frombuffer(combined, dtype=np.uint8)[changed] = b[changed]
-            resources[offset][3] = bytes(combined)
+                raise ValueError("Native texture/control resources disagree on source bytes")
+            if edited != original and any(edit[0] == offset for edit in texture_edits or []):
+                if report.get("modifier") == "skin_tones":
+                    raise ValueError("Skin-tone plan and native master target the same player texture; choose one source")
+                raise ValueError("Lettering master and colour controls target the same texture; "
+                                 "reset overlapping palette controls before editing its pixels")
+            resources[offset][3] = merge_decoded(original, edited, target, "Controls and native masters")
         else:
-            resources[offset] = [{"asset": report["asset"], "compressed": True, "scratch": scratch},
+            resources[offset] = [{"asset": report["asset"], "compressed": report.get("compressed", True), "scratch": scratch},
                                  body, original, target]
     patches, budgets, capacity_failures = [], [], []
     for offset, (row, body, original, target) in sorted(resources.items()):
@@ -443,9 +482,27 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                      "stock_centerlogo": manifest["unseeded_centerlogo"], "exceptions": manifest["exceptions"],
                      "capacity_failures": capacity_failures, "encoding_policy": policy,
                      "repack_archive": repack_archive, "default_palette_colors": palette_colors}
+    report["uniforms"] = ({"masters": len(uniforms["sources"]), "packages": len(uniforms["packages"]),
+                          "migration": uniforms["migration"]} if uniforms else None)
+    report["remaining"] = ({"masters": len(remaining["sources"]), "packages": remaining["packages"],
+                           "complete": remaining["complete"], "migration": remaining["migration"]}
+                          if remaining else None)
     if capacity_failures and not collect_failures:
         raise ValueError(f"{len(capacity_failures)} native resources exceed fixed capacity; run check for the complete review catalogue")
     return patches, report
+
+
+def merge_decoded(original: bytes, previous: bytes, target: bytes, context: str) -> bytes:
+    if len(original) != len(previous) or len(target) != len(original):
+        raise ValueError(f"{context}: decoded resource length changed")
+    a, b = np.frombuffer(original, dtype=np.uint8), np.frombuffer(target, dtype=np.uint8)
+    changed = a != b
+    edited = np.frombuffer(previous, dtype=np.uint8)
+    if np.any((edited[changed] != a[changed]) & (edited[changed] != b[changed])):
+        raise ValueError(f"{context}: conflicting writes; reset overlapping palette controls or master edits")
+    combined = bytearray(previous)
+    np.frombuffer(combined, dtype=np.uint8)[changed] = b[changed]
+    return bytes(combined)
 
 
 def main() -> None:

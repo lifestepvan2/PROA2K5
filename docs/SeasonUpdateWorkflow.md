@@ -15,9 +15,9 @@ An optional `--card PATH` exports the same final payload (PCSX2 must be closed f
 | 5 | Match new players to NBA face models and prepare requested model-local skin recipes (cached players keep their pid, overrides win) | `face_match.py [--iso-source PRISTINE]` | `data/face_match/proa_pid_map.csv`, `skin_tone_plan.json`, `docs/_face_sheets/` |
 | 6 | Build payload, pass 2 (pids and validated manual leg bytes applied) | `build_roster.py --iso-source PRISTINE` | payload, `report.md` |
 | 7 | Lineup headshots (pid-keyed) and team icons | `gen_replacements.py` | PCSX2 `replacements\` |
-| 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
+| 8 | Legacy logo textures (optional in ISO mode) | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
-| 10 | Single combined default-roster/lettering/court/stats-year/skin ISO publication | `season_iso.py build --roster ... --skin-plan ...` | new ISO and `.season.json` manifest |
+| 10 | Single combined default-roster/lettering/court/stats-year/skin/native-texture ISO publication | `season_iso.py build --roster ... --skin-plan ...` | new ISO and `.season.json` manifest |
 | 11 | Optional export of the exact step-6 payload, only after requested ISO work succeeds | `card_patch.py --bin ... --card ...` | backed-up, verified memory card |
 
 A read-only roster/lettering/court preflight runs before step 1; publication runs
@@ -243,8 +243,12 @@ python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\E
 Omitting `--iso-out` without one of these modes now fails with usage guidance, rather than silently
 producing a roster that is not deployed. `--build-only` cannot write a card; neither alternative accepts `--iso-out`.
 
-ISO mode now reads [native logo masters](./NativeLogoWorkflow.md) from
-`texture_workspace_ISO`; export that workspace before running the pipeline.
+ISO mode reads [native logo masters](./NativeLogoWorkflow.md) and exported
+[native uniform masters](./NativeUniformWorkflow.md), plus exported
+[remaining native textures](./NativeTextureWorkflow.md), from
+`texture_workspace_ISO`; export the required manifests before running the pipeline.
+The uniform manifest enables clothing, warmup, crowd, cheerleader and other
+bundle textures automatically, without running legacy COPY/LOD sync.
 `--texture-workspace PATH` selects another native workspace and its `team_palettes`
 subfolder. `--team-palettes PATH` overrides those palettes for both roster
 and ISO stages (`--lettering-workspace` remains an alias). It also works in alternative
@@ -263,7 +267,9 @@ The ISO stage embeds the complete final default roster: names, teams, starters, 
 PIDs, accessories, colleges, arena names and historical statistics. It also patches shared
 number/name RGB, courts with `court.mode=recolour`, the player-card season-label anchor
 matching `--season`, requested model-local skin recipes, and the native logo/centerlogo
-masters. It does **not** embed PCSX2 portrait/legacy skin replacement PNGs. This extends the **roster-portable milestone**,
+masters, plus the exported uniform bundles. Shared lettering/artwork resources
+are compressed once after decoded edits are composed; conflicting edits fail
+explicitly. It does **not** embed PCSX2 portrait/legacy skin replacement PNGs. This extends the **roster-portable milestone**,
 not yet a fully portable visual mod. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
@@ -276,8 +282,9 @@ Legacy logo PNG generation is skipped in ISO mode unless
 alone; disable them when reviewing the native result. The fixed-span logo defaults
 have compression-capacity blockers. Experimental `--repack-archive` instead pools
 native package sectors without changing filesystem extents or image size; it is
-forwarded to preflight and final composition. It currently fits the complete logo
-set without further artwork reductions, but remains opt-in pending the batched
+forwarded to preflight and final composition. It supports the migrated logo
+and uniform artwork without imposing a default colour reduction or degrading
+non-ProA teams, but remains opt-in pending the batched
 runtime review in [archive repacking](./ArchiveRepacking.md).
 
 Boot the new ISO **fresh**, with no savestate or old roster loaded. Disable both card
@@ -335,8 +342,9 @@ no longer maintained in a separate CSV. Text written into the game should be ASC
 
 Colour fields have moved to the `team` section of each
 [ISO team palette document](../texture_workspace_ISO/team_palettes/README.md).
-`colorjersey1/2` remain available for the future native cloth workflow; the legacy
-baseline cloth generator still reads the original workspace's palette documents.
+`colorjersey1/2` remain independent of native cloth artwork; the legacy baseline
+cloth generator still reads the original workspace's palette documents.
+Edit native uniform masters directly for ISO clothing changes.
 `colorui1/2` feed roster RGB
 triplets at `+0x62` / `+0x65` (UI/accessories and secondary backgrounds).
 The UI colours were initially copied exactly from the jersey colours, but can now be
@@ -351,8 +359,11 @@ of jersey/UI values, and use the [combined ISO stage](#iso-first-roster-deployme
 
 ## Not automated
 
-- New clubs' **jerseys** (and non-logo court/arena artwork): court colours can now be approximated via team palettes; native logo masters are wired, while other layouts still come from the original slot.
-  Needs texture dumps + the LOD pipeline, see `JerseyTextureWorkflow.md`.
+- New clubs' **jersey artwork**: edit the exported ISO game/preview masters;
+  warmups, fans and cheerleaders can be edited in the same slot folders.
+  Native mips are generated automatically; see [NativeUniformWorkflow.md](./NativeUniformWorkflow.md).
+  Arena props, sponsors/signage and remaining court artwork are editable in
+  home-team slot folders; see [NativeTextureWorkflow.md](./NativeTextureWorkflow.md).
 - **Arena names** of new clubs (unverified guesses).
 - **Player corrections** (`data/overrides.csv`): preferred shortened names, handedness, accessories and fixed ratings. Apply with `player_database.py` or re-scrape.
 - **Face overrides** after reviewing the contact sheets; **hair** (bald vs. not) is not modelled.

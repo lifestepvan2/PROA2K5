@@ -239,7 +239,10 @@ def validate_output(source: Path, output: Path, workspace: Path) -> Path:
 
 def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None,
             skin_plan: Path | None = None, *, include_courts: bool = True,
-            repack_archive: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+            repack_archive: bool = False, texture_edits: list | None = None,
+            compose_skin: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+    if compose_skin and texture_edits is None:
+        raise ValueError("Decoded skin composition requires a texture intent collector")
     expected, originals = expected_manifest(stream, slots)
     validate_manifest(workspace, expected)
     edited = {}
@@ -259,7 +262,10 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
             colour_reports.append(colour_report)
         if palette == decoded[-1024:]:
             continue
-        if row["compressed"]:
+        if texture_edits is not None:
+            changed = decoded[:-1024] + palette
+            offset, before, after = row["body_offset"], decoded, changed
+        elif row["compressed"]:
             try:
                 replacement = rebuild_tail(body, row["decoded_size"], palette, row["scratch_bytes"])
             except ValueError as error:
@@ -273,7 +279,11 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         if (changed[:-1024] != decoded[:-1024] or changed[-1021::4] != decoded[-1021::4]
                 or len(changed) != len(decoded)):
             raise ValueError(f"{row['asset']}: immutable lettering data changed")
-        patches.append((offset, before, after))
+        if texture_edits is None:
+            patches.append((offset, before, after))
+        else:
+            texture_edits.append((offset, body, decoded, changed, row["scratch_bytes"],
+                                  {"asset": row["asset"], "compressed": row["compressed"]}))
         changes.append({
             "nba_slot": row["nba_slot"], "variant": row["variant"],
             "surface": row["surface"], "target": row["target"], "asset": row["asset"],
@@ -298,7 +308,9 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         patches.extend(year_patches)
     if skin_plan is not None:
         from skin_tones import load_patches
-        skin_patches, report["skin_tones"] = load_patches(stream, skin_plan, repack_archive=repack_archive)
+        skin_options = {"texture_edits": texture_edits} if compose_skin else {}
+        skin_patches, report["skin_tones"] = load_patches(
+            stream, skin_plan, repack_archive=repack_archive, **skin_options)
         patches.extend(skin_patches)
     return patches, report
 

@@ -220,7 +220,7 @@ def validate_roster(plan, rows):
     return players
 
 
-def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_archive=False):
+def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_archive=False, texture_edits=None):
     players = validate_roster(plan, rows)
     if not players:
         return [], []
@@ -243,8 +243,12 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_arc
                 raise ValueError(f"Skin-tone source changed: p{pid}{side}.iff")
             patched, changes = original, []
             for part in ("arm", "neck"):
-                patched, report = replace_texture(patched, assets.asset(row[f"{part}_donor"], side)[1], part,
-                                                   repack_archive=repack_archive)
+                if texture_edits is None:
+                    patched, report = replace_texture(patched, assets.asset(row[f"{part}_donor"], side)[1], part,
+                                                       repack_archive=repack_archive)
+                else:
+                    _, _, donor, donor_system, _ = assets.resource(row[f"{part}_donor"], side, part)
+                    report = decoded_intent(assets, pid, side, part, donor[donor_system:], texture_edits)
                 report["source_chunk_offset"] = assets.resource(pid, side, part)[0]
                 changes.append(report)
             _, _, decoded, system, _ = assets.resource(pid, side, "face")
@@ -257,19 +261,37 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_arc
             target_lab = skin_lab(rgb_of(neck[neck_system:], 128, 64))
             if video != recolour_face_video(decoded[system:], target_lab):
                 raise ValueError("Skin-tone face palette differs from its donor-derived recolour")
-            patched, report = replace_video(patched, "face", video, repack_archive=repack_archive)
+            if texture_edits is None:
+                patched, report = replace_video(patched, "face", video, repack_archive=repack_archive)
+            else:
+                report = decoded_intent(assets, pid, side, "face", video, texture_edits)
             report["source_chunk_offset"] = assets.resource(pid, side, "face")[0]
             changes.append(report)
-            if patched != original:
+            if texture_edits is None and patched != original:
                 patches.append((offset, original, patched))
             reports.append({
                 "proa_id": row["proa_id"], "pid": pid, "skin_tone": row["skin_tone"],
                 "leg_byte": row["leg_byte"], "arm_donor": row["arm_donor"], "neck_donor": row["neck_donor"],
                 "asset": f"p{pid}{side}.iff", "offset": offset, "size": len(original),
-                "new_size": len(patched), "repack_archive": repack_archive,
-                "original_sha256": digest(original), "patched_sha256": digest(patched), "resources": changes,
+                "new_size": len(patched) if texture_edits is None else None, "repack_archive": repack_archive,
+                "original_sha256": digest(original),
+                "patched_sha256": digest(patched) if texture_edits is None else None, "resources": changes,
+                "composition": "asset-patch" if texture_edits is None else "decoded-resource-intents",
             })
     return patches, reports
+
+
+def decoded_intent(assets, pid, side, part, video, edits):
+    chunk, body, original, system, scratch = assets.resource(pid, side, part)
+    if len(video) != len(original) - system:
+        raise ValueError(f"PID {pid}: incompatible {part} decoded intent")
+    target = original[:system] + video
+    if target != original:
+        offset = assets.asset(pid, side)[0] + chunk + 32
+        edits.append((offset, body, original, target, scratch,
+                      {"asset": f"p{pid}{side}.iff", "compressed": True, "modifier": "skin_tones", "part": part}))
+    return {"part": part, "source_chunk_offset": chunk, "decoded_sha256": digest(target),
+            "composition": "decoded-resource-intent"}
 
 
 def save_plan(path, plan):
@@ -288,6 +310,7 @@ def save_plan(path, plan):
             temporary.unlink()
 
 
-def load_patches(stream, path, rows=None, *, repack_archive=False):
+def load_patches(stream, path, rows=None, *, repack_archive=False, texture_edits=None):
     plan = json.loads(Path(path).read_text(encoding="utf-8"))
-    return compile_plan(stream, plan, read_rows() if rows is None else rows, repack_archive=repack_archive)
+    return compile_plan(stream, plan, read_rows() if rows is None else rows, repack_archive=repack_archive,
+                        texture_edits=texture_edits)

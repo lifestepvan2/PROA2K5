@@ -1,18 +1,25 @@
 # Jersey (uniform) texture workflow
 
-How to replace jersey / shorts / warm-up / cloth textures and keep their low-res LODs and duplicates in sync.
+For portable ISO mods, use the [native uniform workflow](./NativeUniformWorkflow.md)
+and edit `texture_workspace_ISO/uniforms`. It includes game/preview clothing,
+warmups, fans, cheerleaders and the other native bundle textures, imports
+verified existing manual edits, and regenerates mips at build time.
+
+The remainder of this document describes the optional **legacy PCSX2**
+workflow: replacing jersey / shorts / warm-up / cloth textures and keeping
+their low-res LODs and duplicates in sync.
 Background and file formats: [pcsx2_texture_mapping.md](./pcsx2_texture_mapping.md).
 
 For native source identification and possible old-label mistakes, run the
 [read-only ISO catalogue/audit](./TextureISOMigrationPlan.md#milestone-1-implemented-inspection-workflow).
 It preserves every artist file and reports label suggestions separately. COPY/LOD
-labels alone are not verified ISO ownership. Native texture importing/patching is
-not implemented yet; the editing and PCSX2 sync workflow below is unchanged.
+labels alone are not verified ISO ownership. The legacy editing and PCSX2 sync
+workflow below is unchanged.
 
 The [native uniform format investigation](./UniformISOFormat.md) now maps all
 834 formerly blocked uniform targets exactly, including their stored mip levels.
 It explains the separate game/preview layouts and warmup bundles. This is
-read-only source evidence, not a change to `sync` or an ISO texture publisher.
+source evidence used by the native exporter, not a change to legacy `sync`.
 
 ## The naming scheme
 

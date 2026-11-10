@@ -32,6 +32,7 @@ from vc_lz import decode
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
 MAX_DECODED = 0x2000000
+TEXTURE_KINDS = ("TXTR", "HITX", "TSET", "SCNE", "HiSn", "FONT", "MRKS", "MRKH", "CNSR")
 RESOURCE_KIND = re.compile(rb"[A-Za-z0-9]{4}")
 
 
@@ -76,9 +77,11 @@ def resolve_names(stream: BinaryIO, entries: dict) -> dict[int, str]:
     for slot in range(1000):
         candidates.add(f"s{slot:03}.iff")
         candidates.add(f"s{slot:03}n.iff")
+        for prefix in ("cscrowd", "cstrainer", "csch"):
+            candidates.add(f"{prefix}{slot:03}.iff")
         for side in "hax":
             candidates.add(f"w{side}{slot:03}.iff")
-            for prefix in ("", "w", "sel", "selw"):
+            for prefix in ("", "w", "p", "s", "t", "sel", "selw", "selp", "sels", "selt"):
                 candidates.add(f"{prefix}u{side}{slot:03}.iff")
     result = {}
     for name in sorted(candidates):
@@ -91,7 +94,7 @@ def resolve_names(stream: BinaryIO, entries: dict) -> dict[int, str]:
 
 
 def ownership(name: str, courts: dict[str, list[dict]]) -> dict:
-    uniform = re.fullmatch(r"(sel)?(w)?u([hax])(\d{3})\.iff", name)
+    uniform = re.fullmatch(r"(sel)?([wpst])?u([hax])(\d{3})\.iff", name)
     warmup = re.fullmatch(r"w([hax])(\d{3})\.iff", name)
     model = re.fullmatch(r"p(\d+)([ha])(2?)\.iff", name)
     if uniform or warmup:
@@ -117,6 +120,13 @@ def ownership(name: str, courts: dict[str, list[dict]]) -> dict:
 
 
 def descriptors(data: bytes, kind: str, system: int) -> list[tuple[int, str]]:
+    if kind == "FONT":
+        if data[12:16] != b"FONT":
+            raise ValueError("Font object magic differs")
+        descriptor = relative(data, 20, system) + 32
+        if descriptor + 48 > system:
+            raise ValueError("Font texture descriptor exceeds system storage")
+        return [(descriptor, object_name(data, system))]
     if kind in ("TXTR", "HITX"):
         if data[0xC:0x10] not in (b"TXTR", b"HITX"):
             raise ValueError("Texture object magic differs")
@@ -134,10 +144,13 @@ def descriptors(data: bytes, kind: str, system: int) -> list[tuple[int, str]]:
                 raise ValueError("Texture-set object magic differs")
             result.append((relative(data, obj + 20, system), object_name(data, system, obj)))
         return result
-    if kind in ("SCNE", "HiSn"):
-        if data[12:16] != b"SCNE":
+    if kind in ("SCNE", "HiSn", "MRKS", "MRKH", "CNSR"):
+        expected = b"MRKS" if kind in ("MRKS", "MRKH") else b"CNSR" if kind == "CNSR" else b"SCNE"
+        if data[12:16] != expected:
             raise ValueError("Scene object magic differs")
         root = relative(data, 20, system)
+        if kind in ("MRKS", "MRKH", "CNSR"):
+            root = relative(data, root, system)
         if root + 0x1C > system:
             raise ValueError("Truncated scene table header")
         count = struct.unpack_from("<I", data, root + 0x14)[0]
@@ -227,6 +240,26 @@ def texture_span(data: bytes, system: int, video: int, descriptor: int,
 def texture_images(data: bytes, system: int, video: int, descriptor: int,
                    descriptor_offsets: list[int]) -> tuple[list[dict], str, int, int]:
     start, end = texture_span(data, system, video, descriptor, descriptor_offsets)
+    if len(descriptor_offsets) > 1:
+        width, height = struct.unpack_from("<HH", data, descriptor + 44)
+        size = width * height
+        shared = (size > 0 and video == size + len(descriptor_offsets) * 1024
+                  and all(struct.unpack_from("<I", data, location + 24)[0] == 0
+                          and struct.unpack_from("<HH", data, location + 44) == (width, height)
+                          and (struct.unpack_from("<Q", data, location)[0] >> 20) & 63 == 19
+                          and struct.unpack_from("<2Q", data, location + 8) == (1 << 63, 0)
+                          for location in descriptor_offsets))
+        if shared:
+            palettes = [struct.unpack_from("<I", data, location + 40)[0] or size
+                        for location in descriptor_offsets]
+            if sorted(palettes) != list(range(size, video, 1024)):
+                raise ValueError("Shared-index texture set has invalid palette offsets")
+            palette_offset = palettes[descriptor_offsets.index(descriptor)]
+            indices = np.frombuffer(data, dtype=np.uint8, count=size, offset=system)
+            palette = np.frombuffer(data, dtype=np.uint8, count=1024, offset=system + palette_offset).reshape(256, 4)
+            return ([{"level": 0, "width": width, "height": height, "rgba": palette[SWZ[indices]].tobytes(),
+                      "pixel_offset": system, "palette_offset": system + palette_offset}],
+                    "linear-shared-indices", 0, video)
     isolated = data[:system] + data[system + start:system + end]
     images, layout = linear_images(isolated, system, end - start, descriptor)
     if not images:
@@ -309,7 +342,7 @@ def add_resource(connection: sqlite3.Connection, key: str, ordinal: int, header:
     raw_kind, stored, system, video, sentinel, scratch, _, _ = header
     kind, compressed = raw_kind.decode("ascii"), sentinel == 0xFEEDBEEF
     decoded_hash, name, status, reason = "", "", "metadata-only", ""
-    if kind in ("TXTR", "HITX", "TSET", "SCNE", "HiSn"):
+    if kind in TEXTURE_KINDS:
         connection.execute("SAVEPOINT resource")
         try:
             if not 0 < system + video <= MAX_DECODED:
@@ -403,7 +436,7 @@ def catalogue(source: Path, output: Path) -> dict:
                         status, reason = "opaque-tail", f"Non-resource boundary at {pos:#x}: {kind.hex()}"
                         break
                     # Multimedia chunks can be very large; metadata alone is sufficient here.
-                    if kind in (b"TXTR", b"HITX", b"TSET", b"SCNE", b"HiSn"):
+                    if kind.decode("ascii") in TEXTURE_KINDS:
                         if stored > MAX_DECODED:
                             status, reason = "opaque-tail", f"Resource exceeds inspection bound at {pos:#x}"
                             break

@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `8d1bbefd`
+- payload: 725056 bytes, CRC32 `af8049b0`
 - teams: 18, players: 252
 - string pool: free before 4000 B, freed 13592 B, free after 4816 B (largest block 4000 B)
 - stats: 252 players, 127524/175184 B; season labels require ISO anchor 2026
@@ -685,3 +685,4 @@
 - Aitor Julen Pickett Lazo: 2026: GS unavailable (omitted in game)
 - Pablo Estelle: 2026: GS unavailable (omitted in game)
 - Mats Neumann: 2025: GS unavailable (omitted in game)
+- Skin Tone leg bytes require the matching combined ISO build from the prepared face-match plan.
