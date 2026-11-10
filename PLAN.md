@@ -37,9 +37,9 @@ virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roste
       big-man trait** (~70 guards to ~90 centers), **u32 = fame** (10..~44, superstars highest). Many of the
       remaining bytes are probably equipment (sleeves, shoes, bands, ...) or animation indexes; animation
       indexes could be found by correlating columns with position.
-- [ ] **Add a "Right Handed" (or "Handedness") column to the ProA database** for u2e. Not public information, so it
-      will be filled by manual edits only; `build_roster.py` reads an optional `Right Handed` column
-      (0/L = left) and defaults to right-handed. u30 is generated from height and u32 from the overall percentile
+- [x] **Shooting Hand column and persistent ProA-ID overrides** for u2e. `data/overrides.csv` supplies
+      manual values (0 left, 1 right); scraping defaults to right-handed and applies overrides.
+      u30 is generated from height and u32 from the overall percentile
       (see `write_record_fields`).
 - [ ] Check whether in-game "Overall" is computed or stored; birthday/years pro display check (player card)
 - [ ] Years pro: currently estimated from the birth year
@@ -86,7 +86,7 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 ### release
 - [x] re-scrape online data for 2026/27 season (`scripts/update_season.py`, `docs/SeasonUpdateWorkflow.md`)
 - [x] arena_props / uniform_parts / loading_video_tiles / courts_and_floors labelled with their NBA home team (live scan + visual labels, `data/texture_labels/`, `docs/pcsx2_texture_mapping.md`); cloth templates sorted into `uniforms/cloth_256x256`. Open: unseen leftovers, 6 unknown-team cloth textures
-- [x] accessories (headband, wristbands, arm bands/elbow braces, knee tape/braces): record bytes verified in game, configured per player in `data/accessories.csv` (see `docs/player_record_layout.md`). Open: fill the csv from photos; test left elbow/knee brace presets and 0x79/0x7A
+- [x] accessories (headband, wristbands, arm bands/elbow braces, knee tape/braces): record bytes verified in game; canonical workbook columns with permanent settings in `data/overrides.csv` (see `docs/player_record_layout.md`). Open: fill settings from photos; test left elbow/knee brace presets and 0x79/0x7A
 - [ ] update textures (jerseys, courts) and arena names of the new teams Essen, Heidelberg, Ulm. 
 - [ ] manual refinement pass over player attributes
 - [x] manual editing of Falcons home court (texture, via the workspace)

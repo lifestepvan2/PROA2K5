@@ -17,6 +17,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
 import skin_brighten as sb  # noqa: E402
+from skin_tones import tone_value  # noqa: E402
 from texlib import REPL_DIR, dump_files, prune  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
@@ -29,7 +30,7 @@ def used_reserved():
     out = []
     for r in csv.DictReader(open(MAP, encoding="utf-8-sig")):
         pid = int(r["override_pid"] or r["pid"])
-        if pid in usable:
+        if pid in usable and not tone_value(r):
             out.append((r, pid, float(r["skin_target"])))
     return out
 

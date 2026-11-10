@@ -119,8 +119,11 @@ used to verify it: all 10 faces and 7 necks match).
   pixel pointer, `+0x2C/+0x2E` width/height. Faces 256x256, arms 128x128, necks 128x64, hair 64x64.
 - Pixels are linear PSMT8 followed by a 1 KB CSM1-swizzled palette (index swizzle `i ^ ((((i>>3)&1)^((i>>4)&1))*0x18)`); the RGBA
   words equal the dump PNGs exactly, so a texture is matched to its dump key by an exact pixel compare (`txtr_match.py`).
-- Faces are unique per pid. **Necks and arms are shared by skin class** (about 200 neck and 90 arm textures for 270 pids), so a
-  replacement neck/arm affects every player sharing it.
+- Faces are unique per pid. **Necks and arms often have identical image content across models**
+  (about 200 neck and 90 arm images for the original 270-pid scan), so a PCSX2
+  replacement affects every model using the same texture key. This is not an immutable
+  model link: each inspected player ISO asset contains its own arm and neck TXTR
+  resources, which can be edited independently (see the model-local experiment below).
 - 24 models are loaded per game (12 per team). Rematch does not reload them; a real game start (Team Select -> Start -> Start Game
   -> Cross) re-reads the team structs. The ISO holds the assets hashed/compressed, so the mapping cannot be read statically.
 
@@ -164,7 +167,7 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
    TXTR names (the six `legsNN` objects all alias one pixel buffer that the engine fills per draw) and matching the structure of
    the dumped 128x128 textures against it.
 7. **Light reserve (recoloured faces).** Arms are baked into the `p<ID>h.iff` model, so a pid's arm class cannot be chosen
-   freely; the arm texture is shared by all pids of a skin class, and the class equals the record tone +0x69 exactly
+   freely by a roster-only edit; arm image content is shared by pids of a skin class, and the class equals the record tone +0x69 exactly
    (tone 5: 95 pids, 3: 63+9, 2: 55, 1: 34, 0: 8). `skin_brighten.py` therefore *reserves* the largest tone-3 arm class
    (82 pids, key `bf7f58d465c440ee-1619018f767b405a-00001dd3`): its arm texture is replaced by the pixels of the tone-5 arm, its
    legs use tone 5 (`load_skin_tones()`), and each reserved pid's face and neck can be recoloured light per player.
@@ -182,6 +185,90 @@ Overwriting the pid (u16 at record +4/+6) makes the game load that NBA player's 
 
 New roster/season: run `build_roster.py` (writes `player_map.csv`), `face_embed.py`, `face_match.py`, review, `build_roster.py` again,
 then `gen_skin_replacements.py`. After new face dumps: `skin_brighten.py scan` and `embed`, then `face_match.py --rematch`.
+
+### Model-local arm/neck ISO substitution (verified experiment)
+
+The production workflow now uses `Skin Tone` in `data/overrides.csv` / the
+generated workbook: 0/blank is automatic, 1..6 is lightest..darkest.
+`face_match.py --iso-source ...` prepares `data/face_match/skin_tone_plan.json`:
+same PID/face geometry, matching arm/neck donors on both sides, and a donor-neck
+Lab-targeted face palette (indices and alpha unchanged). `build_roster.py`
+applies `+0x69 = 6 - value` only after a roster-bound plan exists.
+`update_season.py` passes that recipe into the **same** ISO publication as
+lettering, courts and the stats-year anchor, then optionally writes the card.
+Active overrides without both ISO options are refused.
+
+The planner excludes donors whose keys collide with legacy light-reserve PNGs;
+legacy face/neck generation skips manual-tone players and prunes old managed
+output. Original fixed resource spans/scratch limits are preserved: compression
+failure tries another safe donor in the requested bucket, then aborts explicitly
+if none fits. Some PIDs cannot fit every bucket; use a different face PID or 0
+rather than a mismatched leg-only override. Cached/manual face choices are not
+silently changed to make a donor fit. Resetting to automatic needs an explicit
+CSV 0 and a fresh combined build from the pristine source.
+See [Manual complexion workflow](SeasonUpdateWorkflow.md#manual-complexion-workflow).
+
+`scripts/player_texture_iso.py` copies another model's arm and/or neck **pixel
+indices and palette** into a selected PID's own `p<ID>h.iff` and `p<ID>a.iff`
+resources. It does not change the PID or select a different face/model.
+
+```powershell
+# Read-only plan and fixed-span compression verification:
+python scripts\player_texture_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --pid 235 --donor 922
+
+# Independent arm and neck resources, both home and away, into a NEW ISO:
+python scripts\player_texture_iso.py "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --pid 235 --donor 922 --part arm --part neck --out "<new test ISO path>"
+```
+
+Default `--part` is `arm`; `--part neck` alone also works. The source must be the
+verified pristine Europe ISO and is opened read-only. Publication uses the existing
+full-source/full-output hashing and atomic new-copy helper; existing outputs are
+never overwritten. A `.player-textures.json` manifest records per-resource hashes.
+Archive entries, chunk headers, resource offsets, descriptors, face textures and
+scene geometry remain unchanged. No ELF change means PCSX2's game CRC is unchanged.
+
+Format: player assets contain 32-byte resource headers and independently compressed
+`TXTR`/`SCNE` bodies. Arm TXTRs verified here have 96 system bytes and 17,408 video
+bytes (128x128 PSMT8 indices plus a 1 KB palette); neck TXTRs have 112 system bytes
+and 9,216 video bytes (128x64 plus palette). Tagged pointers inside the decoded
+TXTR locate its name and descriptor. Donor video bytes replace only the selected
+target's decoded video tail using bounded VC-LZ rebuilding, preserving all target
+system bytes and existing in-place decoder scratch limits. Other texture sizes or
+unsafe compression growth are rejected, not truncated.
+
+**Live proof, 2026-11-10:** PID 235 (Samaki Walker) and control PID 359 originally
+have byte-identical arm images. Substituting donor PID 922's lighter arm into PID
+235 loaded correctly while PID 359 retained its original darker arm. A second
+fresh asset load substituted both arm and neck and verified **18 exact resource
+comparisons**: face/arm/neck for target, control and donor on **both home and away
+sides**. Target faces remained original; target arms/necks matched the donor;
+all control/donor resources remained original. These are simultaneous loaded-model
+checks, not just offline decoding. The loader did not force the original sharing
+back together. Test PCSX2 used a separate data directory, disabled memory cards and
+disabled all texture replacements; original cards, settings and savestates were
+not written. The test emulator was closed afterward.
+
+Limitations and implications:
+
+- The change applies to **every use of the target PID**, not individually to two
+  roster players sharing that PID. Unique face-casting PIDs remain necessary.
+- Legs still use roster byte `+0x69` independently. This experiment set the target
+  legs to the light tone only in isolated RAM. The tool does not update the roster
+  or recolour the face automatically.
+- New image content changes texture keys. Existing same-key PCSX2 replacements
+  may still affect donor-identical content. Production integration must update
+  skin-key inventories and reconcile the light-reserve replacement generator.
+- This is a standalone pristine-ISO experiment, not yet integrated with combined
+  lettering/court/year builds or the `Skin Tone` workbook/override schema.
+- Fixed spans are a real constraint: copying a more complex arm into a smaller
+  compressed resource can fail. The encoder reports the required/available bytes;
+  archive relocation or larger resource budgets have not been implemented.
+- Model-local tattoo images are now a plausible extension: modify the selected
+  model's arm image while preserving its UV layout and other resources. Custom PNG
+  import, palette quantization, tattoo placement and a live tattoo test are **not**
+  implemented by this donor-copy experiment.
+- Load the assets afresh after booting the new ISO. Loading a state with already
+  loaded player models reuses old assets and does not test the ISO edit.
 
 ## Labelling textures by home team (arena_props, uniform_parts, loading tiles, courts)
 

@@ -18,6 +18,7 @@ Usage: python scripts/face_match.py [--rematch] [--w-skin 2.0]
 import argparse
 import csv
 import hashlib
+import os
 import sys
 from pathlib import Path
 
@@ -28,6 +29,7 @@ from scipy.optimize import linear_sum_assignment
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import skin_brighten as sb  # noqa: E402
+import skin_tones  # noqa: E402
 from face_embed import FACES, proa_portrait, tex_face  # noqa: E402
 from gen_replacements import pid_keys  # noqa: E402
 
@@ -102,7 +104,7 @@ def sheet(team, rows, names, face=lambda pid, r: tex_face(pid)):
             img.paste(face(pid, r).resize((W - 4, W - 4), Image.LANCZOS), (W * (j + 1) + 2, i * W + 2))
             d.rectangle((W * (j + 1) + 2, i * W + 2, W * (j + 1) + W - 3, i * W + 24), fill="white")
             d.text((W * (j + 1) + 4, i * W + 4), f"{names[pid]} ({pid})\n{sc:.2f}" + (f" <== {tag}" if j == 0 else ""), fill="red")
-        d.text((W * 4 + 8, i * W + 8), f"{r['first']} {r['last']}\n(was {r['orig_first']} {r['orig_last']})\n"
+        d.text((W * 4 + 8, i * W + 8), f"{r['first']} {r['last']}\n"
                f"slot {r['slot']} ovr {r['ovr']}", fill="black")
     try:
         img.save(SHEETS / f"{team}.png")
@@ -112,7 +114,7 @@ def sheet(team, rows, names, face=lambda pid, r: tex_face(pid)):
 
 MAP = OUT / "proa_pid_map.csv"
 FIELDS = ["proa_id", "team_slot", "record", "first", "last", "pid", "nba_name", "sim", "skin_pen", "override_pid", "override_name",
-          "skin_target"]
+          "skin_target", "skin_tone"]
 
 
 def read_map():
@@ -126,15 +128,21 @@ def ival(s):
     return int(s) if s else None
 
 
-if __name__ == "__main__":
+def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--w-skin", type=float, default=2.0, help="weight of the skin lightness difference (L/100) against the ArcFace similarity")
     ap.add_argument("--rematch", action="store_true", help="ignore cached matches and match everybody again (override_pid is kept)")
+    ap.add_argument("--iso-source", type=Path, help="pristine ISO required for nonzero Skin Tone overrides")
+    ap.add_argument("--skin-plan", type=Path, default=skin_tones.PLAN, help="prepared complexion recipe for the combined ISO build")
     a = ap.parse_args()
     pids, names, ne, nl, players, pe, pl, E, bright = load()
     col = {p: c for c, p in enumerate(pids)}
     sim = pe @ ne.T
     skin = skin_diff(pl, nl, bright)
+    requested = np.array([bool(skin_tones.tone_value(row)) for row in players])
+    if requested.any() and a.iso_source is None:
+        ap.error("Nonzero Skin Tone requires --iso-source PRISTINE.iso; use update_season.py with both ISO options")
+    skin[requested, :] = 0  # manual complexion is applied to the selected model, not inherited from it
     cost0 = -sim + a.w_skin * skin + 0.05 * bright[None, :]  # a small preference for natural faces over recoloured ones
     prev = read_map()
     cache = {} if a.rematch else prev
@@ -168,10 +176,26 @@ if __name__ == "__main__":
     for i in range(len(players)):
         if manual(i):
             final[i] = manual(i)
+    final_rows = [{**row, "pid": final[i]} for i, row in enumerate(players)]
+    previews = {}
+    if requested.any():
+        with a.iso_source.open("rb") as stream:
+            complexion_plan = skin_tones.create_plan(stream, final_rows)
+            assets = skin_tones.Assets(stream, verify_hash=False)
+            for entry in complexion_plan["players"]:
+                recipe = next(recipe for recipe in entry["assets"] if recipe["side"] == "h")
+                _, _, decoded, system, _ = assets.resource(entry["pid"], "h", "face")
+                video = decoded[system:-1024] + bytes.fromhex(recipe["face_palette_hex"])
+                previews[entry["proa_id"]] = (entry["pid"], Image.fromarray(skin_tones.rgb_of(video, 256, 256)))
+    else:
+        complexion_plan = skin_tones.create_plan(None, final_rows)
     used_mask = np.array([100.0 if p in set(final.values()) else 0.0 for p in pids])
     target = {r["proa_id"]: pl[i] for i, r in enumerate(players)}
 
     def face(pid, r):
+        if skin_tones.tone_value(r):
+            preview_pid, image = previews[r["proa_id"]]
+            return image.crop(sb.TEX_CROP) if pid == preview_pid else tex_face(pid)
         return sb.face_image(pid, target[r["proa_id"]]) if pid in usable else tex_face(pid)
 
     teams = {}
@@ -190,18 +214,32 @@ if __name__ == "__main__":
             picks = [(eff, float(pe[i] @ ev))] + [(pids[o], sim[i, o]) for o in others]
             rows.append((players[i], picks, "override" if m else "pick"))
         sheet(f"{ts:02d}_{tname}", rows, names, face)
-    with open(MAP, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.writer(f)
-        w.writerow(FIELDS)
-        for i, (pid, s, sp) in sorted(result.items()):
-            r = players[i]
-            m = manual(i)
-            w.writerow([r["proa_id"], r["team_slot"], r["record"], r["first"], r["last"], pid, names[pid], s, sp,
-                        m or "", names[m] if m else "", f"{pl[i]:.3f}"])
+    temporary = MAP.with_name(MAP.name + ".tmp")
+    created = False
+    try:
+        with temporary.open("x", newline="", encoding="utf-8-sig") as f:
+            created = True
+            w = csv.writer(f)
+            w.writerow(FIELDS)
+            for i, (pid, s, sp) in sorted(result.items()):
+                r = players[i]
+                m = manual(i)
+                w.writerow([r["proa_id"], r["team_slot"], r["record"], r["first"], r["last"], pid, names[pid], s, sp,
+                            m or "", names[m] if m else "", f"{pl[i]:.3f}", skin_tones.tone_value(r)])
+        skin_tones.save_plan(a.skin_plan, complexion_plan)
+        os.replace(temporary, MAP)
+    finally:
+        if created and temporary.exists():
+            temporary.unlink()
+    print(f"Prepared {len(complexion_plan['players'])} model-local Skin Tone override(s) -> {a.skin_plan}")
     sims = np.array([float(v[1]) for v in result.values()])
     n_new = len(result) - len(cached)
     d = np.array([skin[i, col[final[i]]] for i in result if final[i] in col])
     print(f"skin lightness |diff| (L/100) mean {d.mean():.3f}, >0.15: {(d > 0.15).sum()}, >0.25: {(d > 0.25).sum()}")
-    print(f"{sum(1 for i in result if final[i] in usable)} players on recoloured (light-reserve) faces")
+    print(f"{sum(1 for i in result if final[i] in usable and not requested[i])} players on recoloured (light-reserve) faces")
     print(f"{len(result)} players ({len(cached)} cached, {n_new} newly matched); sim mean {sims.mean():.3f} min {sims.min():.3f}; "
           f"distinct pids {len({final[i] for i in result})}; overrides {sum(1 for i in result if manual(i))}")
+
+
+if __name__ == "__main__":
+    main()

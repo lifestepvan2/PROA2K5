@@ -120,6 +120,26 @@ class WorkspaceTests(unittest.TestCase):
             self.assertEqual(body[-1024:], bytes((18, 52, 86, 128)) * 256)
         self.assertEqual(self.source.read_bytes(), self.initial)
 
+    def test_skin_and_existing_patches_publish_in_one_iso_copy(self):
+        self.set_colours()
+        skin_plan = self.root / "skin.json"
+        skin_patch = (0, self.initial[:4], b"skin")
+        with patch("skin_tones.load_patches", return_value=([skin_patch], [{"pid": 235}])) as prepare_skin:
+            report = ws.build(self.source, self.output, self.workspace, self.slots, skin_plan=skin_plan)
+        self.assertEqual(report["skin_tones"], [{"pid": 235}])
+        self.assertEqual(len(report["changes"]), 2)
+        self.assertEqual(self.output.read_bytes()[:4], b"skin")
+        self.assertEqual(self.source.read_bytes(), self.initial)
+        self.assertEqual(prepare_skin.call_args.args[1], skin_plan)
+        self.assertTrue(self.output.with_name(self.output.name + ".lettering.json").exists())
+
+    def test_failed_skin_plan_never_publishes_iso(self):
+        with patch("skin_tones.load_patches", side_effect=ValueError("stale skin recipe")):
+            with self.assertRaisesRegex(ValueError, "stale skin recipe"):
+                ws.build(self.source, self.output, self.workspace, self.slots, skin_plan=self.root / "skin.json")
+        self.assertFalse(self.output.exists())
+        self.assertFalse(self.output.with_name(self.output.name + ".lettering.json").exists())
+
     def test_colour_controls_keep_names_independent_and_check_read_only(self):
         self.set_colours(target="names")
         before = {p: p.read_bytes() for p in self.workspace.rglob("*") if p.is_file()}

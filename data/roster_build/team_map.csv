@@ -5,15 +5,15 @@ slot,old_nick,old_abbr,old_city,nick,abbr,city,sheet,players,colorui1,colorui2
 15,Lakers,LAL,Los Angeles,BG,GOE,Goettingen,Gottingen,11,#64257d,#cfcecf
 16,Magic,ORL,Orlando,Knights,KIR,Kirchheim,Knights Kirchheim,14,#fed400,#1a171b
 17,Mavericks,DAL,Dallas,Eisbaeren,BRE,Bremerhaven,Bremerhaven,15,#004671,#f29700
-18,Nets,NJ,New Jersey,EPG Baskets,KOB,Koblenz,Koblenz,14,#187438,#211c1d
-19,Nuggets,DEN,Denver,46ers,GIE,Giessen,46ers,12,#e30613,#000000
+18,Nets,NJ,New Jersey,EPG Baskets,KOB,Koblenz,Koblenz,15,#187438,#211c1d
+19,Nuggets,DEN,Denver,46ers,GIE,Giessen,46ers,13,#e30613,#000000
 20,Pacers,IND,Indiana,Merlins,CRA,Crailsheim,Crailsheim Merlins,14,#0a4483,#1b1936
-21,Pistons,DET,Detroit,Falcons,NUE,Nuernberg,Falcons,13,#b51514,#000000
+21,Pistons,DET,Detroit,Falcons,NUE,Nuernberg,Falcons,14,#b51514,#000000
 22,Raptors,TOR,Toronto,Baskets,PAD,Paderborn,Baskets,12,#b12426,#ffffff
 23,Rockets,HOU,Houston,Miners,ESS,Essen,Essen,12,#d2aa6d,#28100f
 24,Sonics,SEA,Seattle,Lions,KAR,Karlsruhe,LIONS,14,#004d9a,#212c53
-25,Spurs,SA,San Antonio,RheinStars,KOE,Koeln,Koln,13,#bd242a,#2096d4
-26,Suns,PHX,Phoenix,SBB,WOL,Wolmirstedt,Wolmirstedt,14,#b32013,#7897a8
+25,Spurs,SA,San Antonio,RheinStars,KOE,Koeln,Koln,14,#bd242a,#2096d4
+26,Suns,PHX,Phoenix,SBB,WOL,Wolmirstedt,Wolmirstedt,15,#b32013,#7897a8
 27,T'Wolves,MIN,Minnesota,Tigers,TUE,Tuebingen,Tubingen,15,#fdc300,#000000
 28,Warriors,GS,Golden State,Academics,HEI,Heidelberg,Heidelberg,15,#043052,#ac9473
 29,Wizards,WAS,Washington,VfL,BOC,Bochum,Stars Bochum,14,#105ea6,#f08d00

@@ -25,6 +25,44 @@ Self-relative with a tag: `target = field_offset + signed_i32(value) - 1` (low b
 Always use signed `<i`. Only pointer fields below `POOL_MIN` (0x675DC) are rewritten; "pointers"
 inside the string pool are false positives.
 
+## College / FROM labels
+
+Player `+0x00` is a tagged self-relative pointer to a **college row**, not directly
+to text. Payload `+0x60` stores the row count (457), and `+0x64` points to the
+table at `0x4F88`. Each row is 12 bytes: `+0x00` points to a NUL-terminated
+UTF-16LE display string; `+0x04..+0x0B` is metadata preserved byte-for-byte.
+The table ends at the main player-table base `0x64F4`.
+
+Examples from the baseline: Iverson (record 0) points to college row 43 at
+`0x5198`, whose text at `0x6A6CA` is Georgetown. Record 269 (Prince/Pildner)
+points to Kentucky. Twenty auxiliary player templates follow the 792 main
+records; all originally reference row 0, Albany State. Their row pointers
+remain valid even when a row's label is replaced.
+
+The builder checks the descriptor and all 812 player/template row pointers,
+shares identical workbook College values, reuses existing matching labels, and
+assigns other labels deterministically. All 457 rows may be repurposed:
+**untouched NBA/legend/template college labels are not protected**. Other
+untouched strings and all college-row metadata remain protected. Empty College
+values get a valid shared empty-string row.
+
+College strings use the same ref-counted best-fit allocator as names and arenas.
+Only selected rows' strings are replaced initially. If that cannot fit, unused
+college rows are also repointed to a shared empty string and their old strings
+reclaimed; no dangling string pointers are left behind. The baseline college
+strings occupy `0x6A300..0x6CC88` (10,632 B), potentially reclaimable subject to
+other string owners. This is shared storage, not a separate fixed College budget.
+The build report gives distinct labels, UTF-16 bytes including terminators,
+remaining rows, reclaimed unused names, free bytes and largest free block,
+plus extra bytes still reclaimable from unused college names.
+Row exhaustion, byte exhaustion and fragmentation fail before publishing output
+or writing a card. Strings are never truncated to force a build to fit.
+
+Scraping expands raw NAT codes to English country names before applying manual
+overrides. Actual college names in `data/overrides.csv` remain literal. Printable
+BMP text is accepted; control characters, NULs and non-BMP characters are rejected.
+Font coverage for non-ASCII text is independent of UTF-16 storage support.
+
 ## Historical player statistics
 
 Verified against the original NBA payload, live player-card screenshots and
@@ -698,8 +736,8 @@ in-game, experiment E1) because the string is relocated and the pointer rewritte
 
 ## Display limits
 
-* Lineup caption shows `F. Lastname`, ellipsis at ~11-12 characters; default `--max-first/--max-last 12`.
-* Umlauts are transliterated (ae/oe/ue/ss) unless `--keep-umlauts` is given (glyph support untested).
+* Lineup caption shows `F. Lastname`, ellipsis at ~11-12 characters; the scraper limits each name to 12 characters.
+* The scraper transliterates umlauts (ae/oe/ue/ss) and other accented letters before generating the workbook. Persistent preferred names go in ID-keyed `data/overrides.csv`; they must already fit the ASCII/12-character constraints. The builder validates names without renaming them again, and `player_map.csv` contains only the final `first,last` names (no redundant `orig_first,orig_last`).
 
 ## Verified
 

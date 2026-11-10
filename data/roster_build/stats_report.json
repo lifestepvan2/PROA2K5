@@ -1,0 +1,9 @@
+{
+  "players": 252,
+  "used_bytes": 127524,
+  "capacity_bytes": 175184,
+  "free_bytes": 47660,
+  "season": "2026_2027",
+  "label_anchor": 2026,
+  "requires_iso_year_patch": true
+}

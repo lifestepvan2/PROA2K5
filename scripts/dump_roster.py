@@ -9,7 +9,6 @@ Usage: python scripts/dump_roster.py [--card MCD] [--missing-only face|any]
 """
 import argparse
 import csv
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -52,10 +51,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(pid_rows[0].keys()))
         w.writeheader()
         w.writerows(pid_rows)
-    shutil.copy(ROOT / "data/accessories.csv", OUT / "accessories_copy.csv")
-
-    cmd = [sys.executable, str(ROOT / "scripts/build_roster.py"), "--pids", str(tmp_map), "--out", str(OUT),
-           "--accessories", str(OUT / "accessories_copy.csv")]
+    cmd = [sys.executable, str(ROOT / "scripts/build_roster.py"), "--pids", str(tmp_map), "--out", str(OUT)]
     if a.card:
         cmd += ["--card", a.card]
     subprocess.run(cmd, check=True)

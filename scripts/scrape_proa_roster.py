@@ -30,12 +30,17 @@ Output default : proa_scraped.xlsx  in project root; data/proa_stats.json is wri
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
 import time
 from pathlib import Path
 from typing import Any
+from player_database import (
+    BLACKLIST, OVERRIDES, SHEET_COLUMNS, ACCESSORIES,
+    apply_overrides, expand_nationality, load_blacklist, load_overrides, sanitize_names,
+)
 
 # ---------------------------------------------------------------------------
 # Dependency check
@@ -80,7 +85,7 @@ KADER_URL_TPL   = f"{BASE_URL}/teams/kader/{{team_id}}/"
 PLAYER_URL_TPL  = f"{BASE_URL}/teams/kader/spieler/{{player_id}}/"
 PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/{season}/pc/{player_id}"
 
-REQUEST_DELAY   = 1.0   # seconds between live requests
+REQUEST_DELAY   = 0.5   # seconds between live requests
 HISTORY_SEASONS = 5     # previous seasons pooled into the stats (see season_stats.py)
 DEFAULT_RATING  = 69
 MAX_PLAYERS     = 15
@@ -98,12 +103,6 @@ VALID_POSITIONS: frozenset[str] = frozenset({"PG", "SG", "SF", "PF", "C"})
 RATING_COLS: frozenset[str] = frozenset(ALL_ATTRS)
 
 # Workbook column layout: identity columns, the 2K5 attributes, then the headshot id
-IDENTITY_COLS = [
-    "First Name", "Last Name", "Position", "Secondary Position",
-    "Jersey Number", "Birth Year", "Birth Month", "Birth Day", "Years Pro",
-    "Height", "Weight",
-]
-SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + ["Headshot ID"]
 
 # ---------------------------------------------------------------------------
 # ProA website team ID -> (display name, 2K26 sheet name)
@@ -212,7 +211,7 @@ def parse_kader_page(html: str) -> list[dict]:
 
     Returns a list of player dicts with keys:
       proa_id, first_name, last_name, position, secondary_position,
-      jersey_number, birth_day, birth_month, birth_year, height_m, weight_kg.
+      jersey_number, birth_day, birth_month, birth_year, height_m, weight_kg, nationality.
 
     Trainer/coach rows have no jersey number and are skipped.
     """
@@ -295,6 +294,21 @@ def parse_kader_page(html: str) -> list[dict]:
                 position = txt
                 break
 
+        table = row.find_parent("table")
+        header = [c.get_text(" ", strip=True).lower() for c in table.find("tr").find_all(["th", "td"])]
+        if "nat" not in header or header.index("nat") >= len(cells):
+            raise ValueError(f"{proa_id}: player roster table is missing the Nat column")
+        nat_cell = cells[header.index("nat")]
+        nationality = nat_cell.get_text(" / ", strip=True)
+        if not nationality:
+            codes = []
+            for flag in nat_cell.select(".flag-icon"):
+                codes.extend(c.removeprefix("flag-icon-").upper() for c in flag.get("class", [])
+                             if c.startswith("flag-icon-"))
+            nationality = " / ".join(dict.fromkeys(codes))
+        if not nationality:
+            print(f"  WARNING {proa_id}: empty Nat value; College left blank")
+
         players.append({
             "proa_id":            proa_id,
             "first_name":         first_name,
@@ -307,6 +321,7 @@ def parse_kader_page(html: str) -> list[dict]:
             "birth_year":         birth_y,
             "height_m":           height_m,
             "weight_kg":          weight_kg,
+            "nationality":        nationality,
         })
 
     return players
@@ -412,7 +427,7 @@ def download_portraits(
                 headers={"User-Agent": "Mozilla/5.0 (compatible; ProADataScraper/1.0)"},
             )
             resp.raise_for_status()
-        except Exception as exc:
+        except requests.RequestException as exc:
             print(f"  FAIL  proa_id={pid}: {exc}")
             failed += 1
             time.sleep(REQUEST_DELAY)
@@ -438,6 +453,35 @@ def download_portraits(
         f"  Cache: {portrait_dir}"
     )
     return result
+
+
+def report_missing_portraits(rosters, season):
+    from crop_headshots import placeholder_hashes
+
+    portrait_dir = _cache_root(season) / "portraits"
+    placeholders = placeholder_hashes(portrait_dir)
+    missing = []
+    seen = set()
+    for tid, players in rosters.items():
+        for player in players:
+            pid = int(player["proa_id"])
+            if pid in seen:
+                continue
+            seen.add(pid)
+            images = [portrait_dir / f"{pid}{ext}" for ext in (".jpg", ".jpeg", ".png", ".webp")]
+            image = next((p for p in images if p.is_file()), None)
+            if image is None or hashlib.md5(image.read_bytes()).hexdigest() in placeholders:
+                missing.append((tid, player, "not cached" if image is None else "placeholder"))
+    print(f"\nMissing source portraits: {len(missing)} player(s)")
+    for tid, player, reason in missing:
+        pid = player["proa_id"]
+        manual = PROJECT_ROOT / "assets" / "PS_out" / f"{pid}.png"
+        status = "manual portrait already present" if manual.is_file() else "manual portrait needed"
+        print(f"  {pid} | {TEAM_MAP[tid][1]} | {player['first_name']} {player['last_name']} | {reason}; {status}")
+    if missing:
+        print(f"Add a 512x512 head-and-shoulders PNG to {PROJECT_ROOT / 'assets' / 'PS_out'}"
+              r"\<ProA ID>.png. Existing manual portraits are preserved unless crop_headshots.py --force is used.")
+    return [int(player["proa_id"]) for _, player, _ in missing]
 
 
 # ---------------------------------------------------------------------------
@@ -525,6 +569,7 @@ def scrape_all(
     refresh: bool = False,
     no_stats: bool = False,
     history: int = HISTORY_SEASONS,
+    blacklist: set[int] | None = None,
 ) -> dict[int, list[dict]]:
     """
     Scrape every ProA team for *season*.
@@ -535,6 +580,7 @@ def scrape_all(
     so a partial --refresh can be done by deleting specific cache files.
     """
     rosters: dict[int, list[dict]] = {}
+    excluded = load_blacklist() if blacklist is None else blacklist
 
     # Discover team IDs from the listing page (or fall back to hardcoded map)
     print("Discovering team IDs ...")
@@ -549,6 +595,14 @@ def scrape_all(
         roster_key   = f"team_{team_id}_roster"
 
         cached_roster = None if refresh else load_json_cache(season, roster_key)
+        if cached_roster is not None and any("nationality" not in p for p in cached_roster):
+            html = fetch_html(KADER_URL_TPL.format(team_id=team_id), season,
+                              f"team_{team_id}_kader", refresh=refresh)
+            reparsed = parse_kader_page(html)
+            if not reparsed:
+                raise ValueError(f"{team_id}: could not migrate cached roster's Nat values")
+            cached_roster = reparsed
+            save_json_cache(season, roster_key, cached_roster)
         if cached_roster is not None:
             players = cached_roster
             print(f"  [{team_id:>4}] {display_name:<42} {len(players):>2} player(s) (cached)")
@@ -559,6 +613,13 @@ def scrape_all(
             save_json_cache(season, roster_key, players)
             print(f"  [{team_id:>4}] {display_name:<42} {len(players):>2} player(s) scraped")
 
+        retained = []
+        for p in players:
+            if int(p["proa_id"]) in excluded:
+                print(f"  Blacklist: excluded {p['proa_id']} {p['first_name']} {p['last_name']}")
+            else:
+                retained.append(p)
+        players = retained
         if not no_stats:
             for p in players:
                 pid = p["proa_id"]
@@ -592,6 +653,7 @@ def write_excel(
     columns: list[str],
     max_players: int = MAX_PLAYERS,
     headshot_map: dict[int, int] | None = None,
+    overrides: dict[int, dict] | None = None,
 ) -> None:
     """
     Write scraped roster data to an Excel workbook.
@@ -614,6 +676,7 @@ def write_excel(
     all_cols      = list(columns) + ["ProA ID"]
     total_players = 0
     hmap = headshot_map or {}
+    manual = load_overrides() if overrides is None else overrides
 
     for team_id, players in rosters.items():
         _, sheet_name = TEAM_MAP[team_id]
@@ -661,20 +724,28 @@ def write_excel(
             )
             computed_ratings = build_ratings(ctx)
 
+            first, last = sanitize_names(p.get("first_name"), p.get("last_name"))
+            history = p.get("history", {}).get("seasons", {})
+            anchor = int(p.get("history_anchor", 2026))
+            span = anchor - min(int(s.split("_")[0]) for s in history) + 1 if history else 1
             row_data: dict[str, object] = {
-                "First Name":          p.get("first_name"),
-                "Last Name":           p.get("last_name"),
+                "First Name":          first,
+                "Last Name":           last,
                 "Position":            p.get("position", "PG"),
                 "Secondary Position":  p.get("secondary_position", "N/A"),
                 "Jersey Number":       p.get("jersey_number"),
                 "Birth Year":          p.get("birth_year"),
                 "Birth Month":         p.get("birth_month"),
                 "Birth Day":           p.get("birth_day"),
-                "Years Pro":           p.get("years_pro"),   # left blank — unknown
+                "Years Pro":           span,
                 "Height":              p.get("height_m"),    # metres, direct from site
                 "Weight":              p.get("weight_kg"),   # kg, direct from site
                 **{col: computed_ratings.get(col, DEFAULT_RATING) for col in RATING_COLS},
                 "Headshot ID":         headshot_id,
+                "College":             expand_nationality(p.get("nationality", "")),
+                "Shooting Hand":       1,
+                "Skin Tone":           0,
+                **dict.fromkeys(ACCESSORIES, 0),
                 "ProA ID":             proa_id,
             }
             for ci, col in enumerate(all_cols, start=1):
@@ -685,6 +756,7 @@ def write_excel(
                     if len(players) > max_players else ""
         print(f"  Sheet '{sheet_name}': {len(top)} player(s) written{truncated}")
 
+    apply_overrides(wb, manual)
     from overall_sheet import add_overall
     add_overall(wb)  # live Overall formula column + weights sheet
     wb.save(output_path)
@@ -751,6 +823,8 @@ def main() -> None:
                     help="Skip portrait downloading (headshot IDs still assigned if map exists)")
     ap.add_argument("--stats-json-only", action="store_true",
                     help="Rebuild data/proa_stats.json from the cache and exit (leaves the workbook untouched)")
+    ap.add_argument("--overrides", type=Path, default=OVERRIDES, help="manual ID-keyed player field overrides")
+    ap.add_argument("--blacklist", type=Path, default=BLACKLIST, help="ProA IDs excluded even from cached rosters")
     args = ap.parse_args()
     if args.history_seasons < 0:
         ap.error("--history-seasons must be non-negative")
@@ -775,11 +849,14 @@ def main() -> None:
 
     cols = list(SHEET_COLUMNS)
 
-    rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats, history=args.history_seasons)
+    manual = load_overrides(args.overrides)
+    rosters = scrape_all(args.season, refresh=args.refresh, no_stats=args.no_stats, history=args.history_seasons,
+                        blacklist=load_blacklist(args.blacklist))
     if not rosters:
         sys.exit("ERROR: No roster data collected.")
     write_stats_json(rosters, args.season)
     if args.stats_json_only:
+        report_missing_portraits(rosters, args.season)
         return
 
     # Gather all unique player IDs and assign/maintain stable headshot IDs.
@@ -797,7 +874,11 @@ def main() -> None:
     else:
         print("Portrait download skipped (--no-portraits).")
 
-    write_excel(rosters, Path(args.output), cols, max_players=args.top, headshot_map=headshot_map)
+    report_missing_portraits(rosters, args.season)
+    for players in rosters.values():
+        for player in players:
+            player["history_anchor"] = int(args.season.split("_")[0])
+    write_excel(rosters, Path(args.output), cols, max_players=args.top, headshot_map=headshot_map, overrides=manual)
 
 
 if __name__ == "__main__":

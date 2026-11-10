@@ -17,6 +17,7 @@ from PIL import Image
 ROOT = Path(__file__).parent.parent
 OUT = ROOT / "assets" / "PS_out"
 K_SIDE, TOP_FRAC = 3.68, 0.21
+KNOWN_PLACEHOLDERS = {"f74bab73d6f43a5b8ec92c8b580b1ca5"}
 
 _app = None
 
@@ -58,7 +59,7 @@ def placeholder_hashes(src_dir):
     """Portraits the site serves as the generic silhouette share one byte-identical file."""
     import collections
     c = collections.Counter(hashlib.md5(p.read_bytes()).hexdigest() for p in src_dir.glob("*.*"))
-    return {h for h, n in c.items() if n >= 3}
+    return KNOWN_PLACEHOLDERS | {h for h, n in c.items() if n >= 3}
 
 
 def main():

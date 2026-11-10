@@ -237,7 +237,8 @@ def validate_output(source: Path, output: Path, workspace: Path) -> Path:
     return output
 
 
-def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None,
+            skin_plan: Path | None = None) -> tuple[list[tuple[int, bytes, bytes]], dict]:
     expected, originals = expected_manifest(stream, slots)
     validate_manifest(workspace, expected)
     edited = {}
@@ -294,22 +295,26 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
     if stats_year is not None:
         year_patches, report["stats_year"] = prepare_year_patch(stream, stats_year)
         patches.extend(year_patches)
+    if skin_plan is not None:
+        from skin_tones import load_patches
+        skin_patches, report["skin_tones"] = load_patches(stream, skin_plan)
+        patches.extend(skin_patches)
     return patches, report
 
 
 def check(source: Path, workspace: Path = DEFAULT_WS, slots: Path = DEFAULT_SLOTS,
-          output: Path | None = None, stats_year: int | None = None) -> dict:
+          output: Path | None = None, stats_year: int | None = None, skin_plan: Path | None = None) -> dict:
     if output is not None:
         validate_output(source, output, workspace)
     with source.open("rb") as stream:
-        return prepare(stream, workspace, slots, stats_year)[1]
+        return prepare(stream, workspace, slots, stats_year, skin_plan)[1]
 
 
 def build(source: Path, output: Path, workspace: Path = DEFAULT_WS, slots: Path = DEFAULT_SLOTS,
-          stats_year: int | None = None) -> dict:
+          stats_year: int | None = None, skin_plan: Path | None = None) -> dict:
     output = validate_output(source, output, workspace)
     with source.open("rb") as stream:
-        patches, report = prepare(stream, workspace, slots, stats_year)
+        patches, report = prepare(stream, workspace, slots, stats_year, skin_plan)
         report["source"] = str(source.resolve())
         return publish_iso_copy(stream, output, patches, SOURCE_SHA256, ISO_SIZE, report,
                                 output.with_name(output.name + ".lettering.json"))
@@ -341,6 +346,7 @@ def main() -> None:
     parser.add_argument("--iso-source", type=Path, required=True)
     parser.add_argument("--iso-out", type=Path)
     parser.add_argument("--stats-year", type=int, help="player-card season label anchor (check/build only)")
+    parser.add_argument("--skin-plan", type=Path, help="prepared face-match complexion recipe (check/build only)")
     parser.add_argument("--workspace", type=Path, default=DEFAULT_WS)
     parser.add_argument("--slots", type=Path, default=DEFAULT_SLOTS)
     parser.add_argument("--slot", type=int, choices=range(30), nargs="+")
@@ -355,6 +361,8 @@ def main() -> None:
         parser.error("--iso-out is only supported by check/build")
     if args.command in ("export", "reset") and args.stats_year is not None:
         parser.error("--stats-year is only supported by check/build")
+    if args.command in ("export", "reset") and args.skin_plan is not None:
+        parser.error("--skin-plan is only supported by check/build")
     try:
         if args.command == "export":
             report = export(args.iso_source, args.workspace, args.slots)
@@ -363,8 +371,10 @@ def main() -> None:
             reset(args.iso_source, args.workspace, args.slots, args.slot)
             print(f"Reset original palettes for slots {args.slot}")
         else:
-            report = (build(args.iso_source, args.iso_out, args.workspace, args.slots, args.stats_year)
-                      if args.command == "build" else check(args.iso_source, args.workspace, args.slots, args.iso_out, args.stats_year))
+            report = (build(args.iso_source, args.iso_out, args.workspace, args.slots, args.stats_year, args.skin_plan)
+                      if args.command == "build" else check(args.iso_source, args.workspace, args.slots, args.iso_out, args.stats_year, args.skin_plan))
+            if "skin_tones" in report:
+                print(f"Model-local complexion assets: {len(report['skin_tones'])}")
             print(f"Verified 30 slots, {report['uniforms']} uniforms, {report['sources']} sources; "
                   f"{len(report['changes'])} lettering patches, {len(report['courts'])} court patches.")
             if "stats_year" in report:

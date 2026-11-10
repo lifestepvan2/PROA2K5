@@ -9,17 +9,143 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 |---|------|--------|--------|
 | 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
-| 3 | Build payload, pass 1 (writes the player list the face steps need) | `build_roster.py` | `data/roster_build/player_map.csv` |
+| 3 | Provisional payload/player list; defer manual complexion leg changes | `build_roster.py --prepare-faces` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
-| 5 | Match new players to NBA face models (cached players keep their pid, overrides win) | `face_match.py` | `data/face_match/proa_pid_map.csv`, `docs/_face_sheets/` |
-| 6 | Build payload, pass 2 (pids applied), optionally write the card | `build_roster.py [--card]` | payload, `report.md` |
+| 5 | Match new players to NBA face models and prepare requested model-local skin recipes (cached players keep their pid, overrides win) | `face_match.py [--iso-source PRISTINE]` | `data/face_match/proa_pid_map.csv`, `skin_tone_plan.json`, `docs/_face_sheets/` |
+| 6 | Build payload, pass 2 (pids and validated manual leg bytes applied) | `build_roster.py` | payload, `report.md` |
 | 7 | Lineup headshots (pid-keyed) and team icons | `gen_replacements.py` | PCSX2 `replacements\` |
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
+| 10 | Optional single combined lettering/court/stats-year/skin ISO publication | `lettering_workspace.py build --skin-plan ...` | new ISO and manifest |
+| 11 | Optional card write, only after all requested ISO work succeeds | `build_roster.py --card ...` | memory card |
 
 With ISO options, a read-only lettering/court preflight runs before step 1 and ISO
 publication runs after all replacements (the final script is `gen_logo_replacements.py`).
-Neither stage runs without explicit ISO options.
+Neither stage runs without explicit ISO options. Nonzero `Skin Tone` requires
+both options; the workflow stops before building a roster if they are missing.
+
+### Persistent player edits and exclusions
+
+`proa_scraped.xlsx` is generated output, including accessory columns, `College`
+(populated from the site's `Nat` column as English country names, e.g.
+`Germany / United States`), and `Shooting Hand` (0 = left, 1 = right;
+default 1). Do not rely on manual workbook edits surviving a scrape.
+`Skin Tone` defaults to 0 (automatic).
+
+Edit **only `data/overrides.csv`** for permanent player corrections. Its header
+contains informational `Team`, the unique lookup key `ProA ID`, and every player
+workbook column except the computed `Overall`. `Team` is ignored for matching
+and never transfers a player; overrides follow IDs across clubs/seasons.
+The existing accessory settings were migrated once; automation never creates,
+appends to, or rewrites this file.
+
+- Blank/whitespace cell: no override. **`0` is an explicit value**, including
+  left-handedness, jersey number zero and removal of accessories.
+- `<CLEAR>` explicitly empties `College`. For numeric fields use 0 where allowed;
+  names, positions and other required values cannot be cleared.
+- `College` supplies the in-game player-card **FROM** label. Replace the country
+  with an actual college in the override CSV whenever desired; manual values are
+  used literally, never translated or shortened. Nationality expansion applies
+  only to generated defaults; cached NAT codes remain unchanged. Unknown codes
+  fail explicitly instead of silently publishing an untranslated default.
+- College values allow printable BMP text, without control characters or embedded
+  NULs. Non-ASCII glyph rendering still depends on the game's font.
+- The builder shares identical College labels across players, reuses all 457
+  college rows and keeps the payload size unchanged. Original NBA/legend/template
+  college labels are intentionally **not protected**. Extra unused college names
+  are cleared to a shared empty string only if string space is needed.
+  The build report lists label/row usage, remaining string bytes/largest block
+  and extra bytes still reclaimable from unused college names.
+  Too many distinct labels, insufficient bytes or fragmentation fail before
+  publishing a new payload or writing a card; shorten/share values to fit.
+- Generated names are transliterated (ae/oe/ue/ss, accents removed), whitespace
+  normalized and shortened to 12 characters. Manual preferred names apply
+  afterwards and must already fit those constraints.
+- Ratings are integers 25..99; accessory values are integers 0..255, using the
+  existing preset/raw-index meanings. Height is metres; weight is kg.
+- Duplicate IDs, unknown columns, invalid dates/numbers/names and invalid
+  shooting-hand values fail validation before saving. Overrides for players
+  absent this season are reported and retained.
+- `Years Pro` is derived from the season-history span. With stats enabled,
+  conflicting overrides are rejected by the builder rather than mislabelling
+  seasons. It is freely editable only for `build_roster.py --no-stats`.
+- `Skin Tone`: **0 or blank = automatic; 1..6 = lightest to darkest**.
+  Set it in `overrides.csv`, not in the generated face map. Use an explicit 0
+  to reset an already-applied manual value; merely emptying its CSV cell does
+  not undo the value in an existing workbook.
+  Nonzero values preserve the selected face/PID, choose original arm and neck
+  donors from the matching leg bucket, and recolour the face palette towards
+  the donor neck. The roster leg byte is `6 - Skin Tone`.
+  This requires a matching ISO, not only PCSX2 texture replacements; see below.
+
+The scraper applies overrides after computing ratings and sanitizing names,
+then builds the live `Overall` formulas. Stats JSON remains independently
+generated and is never manually overlaid.
+
+To reapply edits without scraping:
+
+```powershell
+python scripts\player_database.py
+python scripts\build_roster.py --season 2026_2027
+```
+
+`--workbook`, `--overrides` and `--blacklist` select alternate paths for the
+manual apply command. `update_season.py --skip-scrape` applies manual edits
+before its other steps. Clearing/removing an override stops future application;
+regenerate the workbook to restore the scraped/model value already overwritten
+by an earlier application.
+
+#### Manual complexion workflow
+
+After editing `Skin Tone` in the override CSV, run the usual update with ISO
+options (and optionally `--card`, with PCSX2 closed):
+
+```powershell
+python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<NEW output ISO path>"
+```
+
+Face matching prepares `data/face_match/skin_tone_plan.json`, bound to every
+current player/PID/tone. The single combined ISO build consumes this recipe
+together with the team palettes, court edits and stats-year anchor. No separate
+player-texture ISO patch is needed. The chosen face in the contact sheet previews
+the prepared recolour; alternative candidates remain unrecoloured.
+
+The provisional `--prepare-faces` roster cannot write a card. Final standalone
+roster builds with nonzero tones require a matching prepared plan; do not use
+their payload without its corresponding combined ISO. A changed PID/tone/roster
+requires preparing the recipe again. No manual tone applies to two players
+sharing a PID: model edits affect every use of that PID.
+
+Fixed compressed resource spans and decoder scratch space remain hard limits.
+The planner tries other safe same-bucket donors; if none fits, it stops before
+publishing the face map/plan, ISO or card, identifying the target PID and resource.
+Select another face PID or return that player to automatic mode; no complexion
+is silently substituted. Some existing PIDs cannot accommodate every bucket.
+Legacy light-reserve face/neck PNG generation skips manual-tone players and
+prunes its old managed files; donor keys affected by the remaining global reserve
+replacements are excluded. Boot the new ISO and load models fresh: F10 or an old
+savestate containing loaded models does not load these ISO edits.
+
+`data/blacklist.csv` has `Team,ProA ID,Reason`; only the ID affects behavior.
+Blacklisted IDs are filtered out of freshly scraped **and cached** team rosters
+before profile/stat/portrait requests and the top-player cutoff. The standalone
+apply command also removes blacklisted workbook rows; regenerating the workbook
+allows the next eligible player to fill the vacated top-player slot.
+
+#### Missing portraits
+
+After downloading portraits (or inspecting cached portraits with `--no-portraits`
+or `--stats-json-only`), the scraper lists each player served the shared silhouette,
+plus uncached/failed images, with team, name and ProA ID. It reports whether a
+manual portrait already exists. The known shared silhouette is recognized even
+when only one player uses it; repeated identical files also use the existing
+cropper's shared-placeholder detection.
+
+Add a **512x512 head-and-shoulders PNG** at
+`assets/PS_out/<ProA ID>.png`, then rerun the normal replacement workflow.
+Default cropping preserves existing images; avoid `crop_headshots.py --force`
+if you want manual portraits left alone. Source-cache placeholders are not
+silently replaced or deleted.
 
 ### Season and career statistics
 
@@ -160,7 +286,7 @@ of jersey/UI values, and use the [opt-in ISO stage](#optional-lettering-iso-stag
 - New clubs' **jerseys** (and court/arena artwork): court colours can now be approximated via team palettes, but logos/layout still come from the original slot.
   Needs texture dumps + the LOD pipeline, see `JerseyTextureWorkflow.md`.
 - **Arena names** of new clubs (unverified guesses).
-- **Name tweaks** (`data/overrides.csv`) for names that get truncated by the 2K string limits (see "Name adjustments" in `report.md`).
+- **Player corrections** (`data/overrides.csv`): preferred shortened names, handedness, accessories and fixed ratings. Apply with `player_database.py` or re-scrape.
 - **Face overrides** after reviewing the contact sheets; **hair** (bald vs. not) is not modelled.
 - Players with only the site's **silhouette** portrait (no headshot, no face match): they take whatever pid is left over and
   have no lineup headshot. Fix by providing `assets/PS_out/<proa_id>.png` by hand and re-running.

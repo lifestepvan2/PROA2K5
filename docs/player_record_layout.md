@@ -6,6 +6,7 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 
 | Off | Size | Meaning | |
 |---|---|---|---|
+| 0x00 | ptr | college-table row; its first pointer resolves to the player-card FROM string | W |
 | 0x0C | ptr | last name | W |
 | 0x10 | ptr | first name | W |
 | 0x14 | u16 | unknown id (0-59) | |
@@ -45,7 +46,7 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x5D | u8 | Defensive Awareness | W |
 | 0x5E | u8 | Offensive Awareness | W |
 | 0x5F, 0x60 | u8 | unknown (75/99, 75/85/95) | W (75) |
-| 0x69 | u8 | **skin tone 0-5**: selects the `legs00`-`legs05` texture (arm colour correlates r=0.985). Face/neck/arm follow the pid, so cast players get the tone of the borrowed model | W |
+| 0x69 | u8 | **skin tone 0-5**: selects `legs00`-`legs05`. Automatic casting inherits the PID's tone; manual workbook `Skin Tone` 1..6 writes `6 - value` with a matching model-local ISO recipe | W |
 
 ### Accessories (verified in game through the memory card)
 
@@ -65,9 +66,11 @@ The accessories are record bytes (not part of the pid model): they stay when the
 | 0x61, 0x62 = 5 | nothing visible in the tests | |
 | 0x64-0x66 | NBA only: 0x64/0x65 = 9 on the 80's Celtics (historic teams?), 0x66 = goggles index (`goggles00`-`07`) | not used |
 
-Items are indices into one shared pool of model parts (`wristitem01-17`, `armitem01-03`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`, `headitem02-33`), so other numbers (2-20 occur in the NBA data) give other looks; use the raw number in `data/accessories.csv` to try them.
+Items are indices into one shared pool of model parts (`wristitem01-17`, `armitem01-03`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`, `headitem02-33`), so other numbers (2-20 occur in the NBA data) give other looks; use the corresponding accessory column in `data/overrides.csv` to try them.
 
-`build_roster.py` clears all of these bytes for every ProA player (NBA records have their own accessories) and then applies `data/accessories.csv` (key `proa_id`; new players are appended with empty cells, existing rows are never overwritten, so hand edits survive re-scrapes). Columns: `headband` (1 normal, 2 larger), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; blank/0 = none).
+`build_roster.py` clears all of these bytes for every ProA player (NBA records have their own accessories) and then reads the canonical workbook columns. The former `data/accessories.csv` values have been migrated into ID-keyed `data/overrides.csv`; edit only that file for persistent changes. Columns: `headband` (1 normal, 2 larger), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; 0 = none). An empty override cell means no override, not removal.
+
+`Shooting Hand` in the workbook writes byte `+0x2E`: 0 = left, 1 = right. It defaults to right until manually overridden. `College` defaults to English country names expanded from the site's `Nat` value (e.g. `Germany / United States`), and writes the player-card FROM label through `+0x00`. A manual College override is literal; `<CLEAR>` produces a valid empty label rather than retaining the inherited college. See [College / FROM labels](roster_payload_format.md#college--from-labels) for table layout and capacity safeguards.
 
 "Overall" is not a stored byte; the game computes it at runtime from the ratings and the player's position.
 `scripts/fit_overall.py` fits that formula from displayed values (see "Overall formula" below).
@@ -78,7 +81,7 @@ other words that look like pointers (e.g. 0x14..0x17) are false positives and ar
 `build_roster.py`.
 
 The 19 rating columns of `proa_scraped.xlsx` are the 2K5 attributes themselves (written by `scripts/proa_attr_model.py`,
-hand-editable); `scripts/rating_map_2k5.py` only maps column name -> byte offset and clamps to 25-99.
+overridable via `data/overrides.csv`); `scripts/rating_map_2k5.py` maps column name -> byte offset. The database workflow validates ratings in 25-99 before building.
 Units in the source: height in m, weight in kg.
 
 ## Overall formula (displayed overall)

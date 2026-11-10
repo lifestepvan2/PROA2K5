@@ -14,12 +14,12 @@ Payload layout: see docs/roster_payload_format.md
 """
 import argparse
 import collections
+import copy
 import csv
 import json
 import re
 import struct
 import sys
-import unicodedata
 import zlib
 from pathlib import Path
 
@@ -32,12 +32,15 @@ from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
 from roster_stats import encode_history, repack as repack_stats  # noqa: E402
+from player_database import PLAYER_COLUMNS, field_value  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
 
 # --- payload layout (see docs/roster_payload_format.md) -------------------
 PLAYER_BASE, PLAYER_STRIDE, PLAYER_COUNT = 0x64F4, 0x94, 0x318
+PLAYER_STORAGE_COUNT = PLAYER_COUNT + 20  # auxiliary templates follow the main player table
+COLLEGE_BASE, COLLEGE_STRIDE, COLLEGE_COUNT = 0x4F88, 12, 457
 P_LAST, P_FIRST, P_NICK, P_BDAY = 0xC, 0x10, 0x24, 0x28
 P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # weight is u16
 P_PID = 0x4  # u16 player-model id (p<ID>h/a.iff: face, body, ...), duplicated at +6
@@ -56,7 +59,6 @@ ACC_COLS = {
 ACC_HEADBAND = {1: 0, 2: 2}  # headband (0x67 = 0 switches it on) -> style byte 0x62 (2 = slightly larger)
 ACC_NONE = {0x61: 255, 0x62: 0, 0x64: 255, 0x65: 255, 0x66: 255, 0x67: 255, 0x75: 0, 0x76: 0, 0x77: 0, 0x78: 0,
             0x79: 0, 0x7A: 0, 0x7E: 0, 0x7F: 0}  # every accessory byte "off"
-ACC_FIELDS = ["proa_id", "team", "first", "last", "headband"] + list(ACC_COLS)
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
 ROSTER_SLOTS = 15
@@ -73,9 +75,7 @@ NBA_RECORDS = 395  # records 0-394 are NBA-team players; 395+ are legend-team pl
 LEGEND_TEAMS = range(32, 50)
 FIRST_FREE_TEAM = 30  # NBA slots 0-29; ProA teams sit on the slots of data/team_slots.csv, the others donate players if needed
 
-REF_YEAR = 2026  # "years pro" is not in the data: estimated from the birth year
 POS = {"PG": 0, "SG": 1, "SF": 2, "PF": 3, "C": 4}
-TRANSLIT =  {"Ã¤": "ae", "Ã¶": "oe", "Ã¼": "ue", "Ã„": "Ae", "Ã–": "Oe", "Ãœ": "Ue", "ÃŸ": "ss"}
 
 
 def apply_team_colours(buf, base, team):
@@ -87,36 +87,6 @@ def apply_team_colours(buf, base, team):
         colours[field] = bytes.fromhex(value.lstrip("#"))
     for field, offset in T_UI_COLOURS.items():
         buf[base + offset:base + offset + 3] = colours[field]
-
-
-def clean(text, keep_umlauts):
-    text = str(text or "").strip()
-    if not keep_umlauts:
-        text = "".join(TRANSLIT.get(c, c) for c in text)
-        text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    return re.sub(r"\s+", " ", text).strip()
-
-
-SUFFIXES = {"jr", "jr.", "sr", "sr.", "ii", "iii", "iv"}
-
-
-def fit_names(first, last, max_first, max_last):
-    """Shortening ladder. Returns (first, last, note)."""
-    note = ""
-    if len(first) > max_first:
-        tok = first.split(" ")[0]
-        first = tok[:max_first]
-        note += "first-trunc "
-    if len(last) > max_last:
-        toks = [t for t in last.split(" ") if t.lower() not in SUFFIXES] or last.split(" ")
-        cand = " ".join(toks)
-        i = 0
-        while len(cand) > max_last and i < len(toks) - 1:
-            i += 1
-            cand = " ".join(toks[i:])
-        last = cand[:max_last]
-        note += "last-shortened "
-    return first, last, note.strip()
 
 
 class Payload:
@@ -191,6 +161,91 @@ class Payload:
         return sum(e - s for s, e in self.free)
 
 
+def plan_colleges(pl, colleges):
+    """Reserve shared FROM rows; inherited NBA college labels may be replaced."""
+    if (struct.unpack_from("<I", pl.d, 0x60)[0] != COLLEGE_COUNT
+            or pl.target(0x64) != COLLEGE_BASE
+            or COLLEGE_BASE + COLLEGE_COUNT * COLLEGE_STRIDE != PLAYER_BASE):
+        raise ValueError("Unsupported college-table descriptor; expected 457 twelve-byte rows at 0x4F88")
+    if any(not isinstance(r, int) or not 0 <= r < PLAYER_COUNT for r in colleges):
+        raise ValueError("College replacements must reference main player records")
+    colleges = {r: field_value("College", text) for r, text in colleges.items()}
+    for r in range(PLAYER_STORAGE_COUNT):
+        field = PLAYER_BASE + r * PLAYER_STRIDE
+        target = pl.target(field)
+        if (not pl.d[field] & 1 or not COLLEGE_BASE <= target < PLAYER_BASE
+                or (target - COLLEGE_BASE) % COLLEGE_STRIDE):
+            raise ValueError(f"Invalid college-row pointer in player/template {r}")
+    existing = {}
+    for r in range(COLLEGE_COUNT):
+        field = COLLEGE_BASE + r * COLLEGE_STRIDE
+        if field not in pl.refs[pl.target(field)]:
+            raise ValueError(f"Invalid college-string pointer in row {r}")
+        existing.setdefault(pl.str_at(field), r)
+    labels = sorted(set(colleges.values()))
+    chosen = {text: existing[text] for text in labels if text in existing}
+    available = set(range(COLLEGE_COUNT))
+    free = sorted(available - set(chosen.values()))
+    new_labels = [text for text in labels if text not in chosen]
+    if len(new_labels) > len(free):
+        raise ValueError(f"College table exhausted: {len(labels)} distinct labels requested, "
+                         f"{len(new_labels)} need new rows but only {len(free)} are available "
+                         f"({COLLEGE_COUNT} rows total; share labels to fit)")
+    assignments = []
+    for text, r in zip(new_labels, free):
+        chosen[text] = r
+        assignments.append((COLLEGE_BASE + r * COLLEGE_STRIDE, text))
+    for r, text in colleges.items():
+        pl.set_ptr(PLAYER_BASE + r * PLAYER_STRIDE, COLLEGE_BASE + chosen[text] * COLLEGE_STRIDE)
+    remaining = sorted(available - set(chosen.values()))
+    return assignments, [COLLEGE_BASE + r * COLLEGE_STRIDE for r in remaining], {
+        "labels": len(labels), "reusable_rows": len(available),
+        "new_rows": len(new_labels), "remaining_rows": len(remaining),
+        "label_bytes": sum(len(text.encode("utf-16-le")) + 2 for text in labels),
+    }
+
+
+def repack_strings(pl, assignments, reclaim_colleges=()):
+    """Try normal allocation first, then reclaim unused college names if necessary."""
+    def attempt(pending):
+        trial = copy.deepcopy(pl)
+        old_fields = {field: trial.release(field) for field, _ in pending}
+        freed = sum(trial.free_string(t) for t in sorted(set(old_fields.values())))
+        encoded = {text: text.encode("utf-16-le") + b"\0\0" for _, text in pending}
+        required = sum(map(len, encoded.values()))
+        available = trial.free_bytes()
+        largest = max((end - start for start, end in trial.free), default=0)
+        if required > available:
+            raise MemoryError(f"string pool needs {required} B, has {available} B after reclamation "
+                              f"(short {required - available} B; largest block {largest} B)")
+        placed = {}
+        for text in sorted(encoded, key=lambda text: (-len(encoded[text]), text)):
+            data = encoded[text]
+            try:
+                target = trial.alloc(len(data))
+            except MemoryError as error:
+                largest = max((end - start for start, end in trial.free), default=0)
+                raise MemoryError(f"string pool fragmentation: need a contiguous {len(data)} B block, "
+                                  f"largest block {largest} B, total remaining {trial.free_bytes()} B") from error
+            trial.d[target:target + len(data)] = data
+            placed[text] = target
+        for field, text in pending:
+            trial.set_ptr(field, placed[text])
+            trial.refs[placed[text]].add(field)
+        return trial, old_fields, freed
+
+    try:
+        result = attempt(assignments)
+        reclaimed = 0
+    except MemoryError:
+        if not reclaim_colleges:
+            raise
+        # Every reclaimed row receives a valid shared empty string, never a dangling pointer.
+        result = attempt([*assignments, *((field, "") for field in reclaim_colleges)])
+        reclaimed = len(reclaim_colleges)
+    return *result, reclaimed
+
+
 def load_proa(path):
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     teams = {}
@@ -199,11 +254,18 @@ def load_proa(path):
             continue
         rows = list(wb[name].iter_rows(values_only=True))
         hdr, rows = rows[0], rows[1:]
+        if missing := set(PLAYER_COLUMNS) - {"Skin Tone"} - set(hdr):
+            raise ValueError(f"{name}: missing workbook columns {sorted(missing)}; regenerate with scraper")
         players = []
         for r in rows:
             if not r[1]:
                 continue
             rowd = dict(zip(hdr, r))
+            for col in PLAYER_COLUMNS:
+                if col != "ProA ID" and rowd.get(col) not in (None, ""):
+                    field_value(col, rowd[col])
+            field_value("First Name", rowd.get("First Name"))
+            field_value("Last Name", rowd.get("Last Name"))
             attrs = read_attrs(rowd)
             pos = POS.get(str(r[2]), 2)
             ovr = predict_overall(pos, attrs, _num(rowd.get("Height"), 1.96), _num(rowd.get("Weight"), 92))
@@ -236,10 +298,8 @@ def write_record_fields(buf, off, p):
     buf[off + P_POS] = p["pos"]
     buf[off + P_HEIGHT] = int(round(_num(row.get("Height"), 1.96) * 39.3701))
     struct.pack_into("<H", buf, off + P_WEIGHT, int(round(_num(row.get("Weight"), 92) * 2.20462)))
-    by = _num(row.get("Birth Year"), 1995)
-    buf[off + P_YEARS] = max(1, min(21, REF_YEAR - int(by) - 19))
-    hand = row.get("Right Handed")  # optional manual column; default right-handed
-    buf[off + P_HAND] = 0 if hand in (0, False, "0", "L", "l", "left", "Left") else 1
+    buf[off + P_YEARS] = field_value("Years Pro", row["Years Pro"])
+    buf[off + P_HAND] = field_value("Shooting Hand", row["Shooting Hand"])
     buf[off + P_SIZE_INT] = max(60, min(95, int(round(0.9856 * buf[off + P_HEIGHT] + 0.70))))
     buf[off + P_FAME] = p.get("fame", 20)
     for k, o in ATTR_OFFSETS.items():
@@ -344,25 +404,15 @@ def load_skin_tones():
     return tones
 
 
-def load_accessories(path):
-    """{proa_id: csv row} from data/accessories.csv (hand-edited; blank/0 = none)."""
-    if not Path(path).exists():
-        return {}
-    return {r["proa_id"]: r for r in csv.DictReader(open(path, encoding="utf-8-sig")) if r.get("proa_id")}
-
-
 def _acc_val(row, col):
-    v = (row.get(col) or "").strip()
-    if not v:
+    value = row.get(col)
+    if value is None or value == "":
         return 0
-    try:
-        return int(float(v))
-    except ValueError:
-        raise SystemExit(f"accessories.csv: bad value {v!r} in column {col} (proa_id {row.get('proa_id')})")
+    return field_value(col, value)
 
 
 def apply_accessories(buf, off, row):
-    """No accessories by default; the csv row of the player switches items on."""
+    """No accessories by default; canonical workbook fields switch items on."""
     for o, v in ACC_NONE.items():
         buf[off + o] = v
     if not row:
@@ -375,20 +425,6 @@ def apply_accessories(buf, off, row):
         v = _acc_val(row, col)
         if v:
             buf[off + o] = presets.get(v, v)
-
-
-def write_accessories_csv(path, existing, players):
-    """Appends rows for players that are not in the csv yet; existing rows (hand edits) are never touched."""
-    new = [{"proa_id": str(pid), "team": team, "first": first, "last": last} for pid, team, first, last in players
-           if pid is not None and str(pid) not in existing]
-    if not new and Path(path).exists():
-        return 0
-    rows = list(existing.values()) + new
-    with open(path, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, ACC_FIELDS, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(rows)
-    return len(new)
 
 
 def load_pids(path):
@@ -421,20 +457,18 @@ def main():
                     help="team metadata: names, arena, verified")
     ap.add_argument("--team-palettes", type=Path, default=DEFAULT_WS, help="canonical per-team colour workspace")
     ap.add_argument("--slots", default=str(ROOT / "data/team_slots.csv"), help="csv: sheet,nba_slot (final ProA team -> NBA slot mapping)")
-    ap.add_argument("--overrides", default=str(ROOT / "data/overrides.csv"),
-                    help="csv: sheet,orig_last,first,last (manual name overrides)")
-    ap.add_argument("--accessories", default=str(ROOT / "data/accessories.csv"),
-                    help="csv: proa_id, headband, wrist_l/r, arm_l/r, knee_l/r (hand-edited; new players are appended)")
     ap.add_argument("--out", default=str(ROOT / "data/roster_build"))
     ap.add_argument("--stats", type=Path, default=ROOT / "data" / "proa_stats.json",
                     help="schema-v2 stats source (default: data/proa_stats.json)")
     ap.add_argument("--no-stats", action="store_true", help="keep inherited NBA histories (legacy roster-only build)")
     ap.add_argument("--season", help="require the stats archive to match this YYYY_YYYY season")
     ap.add_argument("--card", help="write result into this memory card (PCSX2 closed!)")
-    ap.add_argument("--keep-umlauts", action="store_true")
-    ap.add_argument("--max-first", type=int, default=12)
-    ap.add_argument("--max-last", type=int, default=12)
+    ap.add_argument("--prepare-faces", action="store_true", help="provisional face-match input; defer nonzero Skin Tone leg changes")
+    ap.add_argument("--skin-plan", type=Path, default=ROOT / "data" / "face_match" / "skin_tone_plan.json",
+                    help="face-match recipe required before applying nonzero Skin Tone leg bytes")
     a = ap.parse_args()
+    if a.card and a.prepare_faces:
+        ap.error("--prepare-faces is provisional and cannot write a memory card")
 
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -459,18 +493,12 @@ def main():
         tr.update(team_colours(a.team_palettes, tr["nba_slot"]))
     slots = [tr["nba_slot"] for tr in team_rows]  # team index -> NBA slot
     assert len(set(slots)) == len(slots) and max(slots) < FIRST_FREE_TEAM, "bad data/team_slots.csv"
-    overrides = {}
-    if Path(a.overrides).exists():
-        for r in csv.DictReader(open(a.overrides, encoding="utf-8")):
-            overrides[(r["sheet"], r["orig_last"])] = (r["first"], r["last"])
-
     pid_of = load_pids(a.pids)
     skin_of = load_skin_tones()
-    acc_of = load_accessories(a.accessories)
-    acc_seen = []
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
     stats_replacements = {}
+    colleges = {}
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
 
     team_players = [order_roster(proa[tr["sheet"]][:ROSTER_SLOTS]) for tr in team_rows]
@@ -503,11 +531,8 @@ def main():
             pl.set_ptr(base + T_STARTERS + 4 * i, rec_off(recs[i]))
 
         for i, (p, r) in enumerate(zip(players, recs)):
-            f0, l0 = clean(p["first"], a.keep_umlauts), clean(p["last"], a.keep_umlauts)
-            first, last = overrides.get((tr["sheet"], p["last"]), (None, None))
-            note = "override" if first else ""
-            if not first:
-                first, last, note = fit_names(f0, l0, a.max_first, a.max_last)
+            first, last = p["first"], p["last"]
+            colleges[r] = field_value("College", p["rowd"].get("College") or "")
             assignments.append((rec_off(r) + P_LAST, last))
             assignments.append((rec_off(r) + P_FIRST, first))
             assignments.append((rec_off(r) + P_NICK, ""))
@@ -518,10 +543,12 @@ def main():
                 if source is None or "history" not in source:
                     raise SystemExit(f"Missing scraped history for {p['first']} {p['last']} ({p['proa_id']})")
                 encoded, span, unavailable = encode_history(source["history"], stats_anchor)
+                if pl.d[rec_off(r) + P_YEARS] != span:
+                    raise ValueError(f"{p['proa_id']}: Years Pro must equal history span {span}; "
+                                     "remove the Years Pro override or use --no-stats")
                 stats_replacements[r] = (encoded, span)
                 notes.extend(f"{p['first']} {p['last']}: {note}" for note in unavailable)
-            apply_accessories(pl.d, rec_off(r), acc_of.get(str(p["proa_id"])))
-            acc_seen.append((p["proa_id"], tr["sheet"], p["first"], p["last"]))
+            apply_accessories(pl.d, rec_off(r), p["rowd"])
             pid = pid_of.get(str(p["proa_id"]))
             if pid is None:
                 notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' has no pid in {Path(a.pids).name}, keeps the model of record {r}")
@@ -529,16 +556,13 @@ def main():
             struct.pack_into("<HH", pl.d, rec_off(r) + P_PID, pid, pid)
             if pid in skin_of:
                 pl.d[rec_off(r) + P_SKIN] = skin_of[pid]
+            skin_tone = field_value("Skin Tone", p["rowd"].get("Skin Tone") or 0)
+            if skin_tone and not a.prepare_faces:
+                pl.d[rec_off(r) + P_SKIN] = 6 - skin_tone
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
-                                "first": first, "last": last, "orig_first": p["first"], "orig_last": p["last"],
+                                "first": first, "last": last, "college": colleges[r], "skin_tone": skin_tone,
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],
-                                "starter": i < 5, "pid": pid, "note": note})
-            if note:
-                notes.append(f"{tr['sheet']}: '{p['first']} {p['last']}' -> '{first} {last}' ({note})")
-
-    n_new = write_accessories_csv(a.accessories, acc_of, acc_seen)
-    if n_new:
-        notes.append(f"{Path(a.accessories).name}: {n_new} new players appended (no accessories until edited)")
+                                "starter": i < 5, "pid": pid})
 
     # home arenas: venue rows are keyed by the "sNNN" string (NBA team slot), not by row index
     venue_row = {}
@@ -565,23 +589,24 @@ def main():
         assignments.append((base + A_CITY, tr["city"]))
         arena_out.append({"slot": tr["nba_slot"], "row": row, "sheet": tr["sheet"], "old_arena": old, "arena": name})
 
-    # pass 1: unlink every field we are about to rewrite, free strings that lost all referrers
+    if not a.prepare_faces and any(row["skin_tone"] for row in player_rows):
+        import skin_tones
+        if not a.skin_plan.is_file():
+            raise SystemExit("Nonzero Skin Tone needs a prepared ISO recipe; run face_match.py --iso-source PRISTINE.iso first")
+        skin_tones.validate_roster(json.loads(a.skin_plan.read_text(encoding="utf-8")), player_rows)
+        notes.append("Skin Tone leg bytes require the matching combined ISO build from the prepared face-match plan.")
+    college_assignments, reclaim_colleges, college_report = plan_colleges(pl, colleges)
+    assignments.extend(college_assignments)
     free_before = pl.free_bytes()
-    olds = {}
-    for fld, _ in assignments:
-        olds[fld] = pl.release(fld)
-    freed = sum(pl.free_string(t) for t in sorted(set(olds.values())))
-    # pass 2: allocate new strings (longest first, deduplicated)
-    texts = sorted({t for _, t in assignments}, key=lambda s: (-len(s), s))
-    placed = {}
-    for t in texts:
-        b = t.encode("utf-16-le") + b"\0\0"
-        off = pl.alloc(len(b))
-        pl.d[off:off + len(b)] = b
-        placed[t] = off
-    for fld, t in assignments:
-        pl.set_ptr(fld, placed[t])
-        pl.refs[placed[t]].add(fld)
+    try:
+        pl, olds, freed, reclaimed = repack_strings(pl, assignments, reclaim_colleges)
+    except MemoryError as error:
+        raise SystemExit(f"Cannot build roster: {error}. College labels: {college_report['labels']}, "
+                         f"{college_report['label_bytes']} UTF-16 B. Shorten/share College values or other names; "
+                         "no new payload or card data written.") from error
+    college_pool = copy.deepcopy(pl)
+    spare_targets = {college_pool.release(field) for field in reclaim_colleges}
+    college_reclaimable = sum(college_pool.free_string(t) for t in sorted(spare_targets))
 
     # integrity: every untouched pointer field still resolves to the same string
     after = {}
@@ -594,6 +619,7 @@ def main():
     for p in player_rows:
         o = int(p["offset"], 16)
         assert pl.str_at(o + P_LAST) == p["last"] and pl.str_at(o + P_FIRST) == p["first"]
+        assert pl.str_at(pl.target(o)) == p["college"]
     assert len(pl.d) == Path(a.base).stat().st_size
 
     stats_report = None
@@ -620,7 +646,14 @@ def main():
         "# build_roster report", "",
         f"- payload: {len(data)} bytes, CRC32 `{crc[::-1].hex()}`",
         f"- teams: {len(team_out)}, players: {len(player_rows)}",
-        f"- string pool: free before {free_before} B, freed {freed} B, free after {pl.free_bytes()} B",
+        f"- string pool: free before {free_before} B, freed {freed} B, free after {pl.free_bytes()} B "
+        f"(largest block {max(e - s for s, e in pl.free)} B)",
+        f"- colleges: {college_report['labels']} shared labels ({college_report['label_bytes']} UTF-16 B), "
+        f"{college_report['new_rows']} new rows / {college_report['reusable_rows']} reusable; "
+        f"{college_report['remaining_rows']} rows remaining; "
+        f"{reclaimed} additional unused names cleared for space; "
+        f"{college_reclaimable} B still reclaimable "
+        f"({pl.free_bytes() + college_reclaimable} B potential shared free space)",
         f"- records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: {FIRST_FREE_TEAM - len(team_rows)}",
         f"- longest last names: {long_last}", "",
         "## Notes (names, models and unavailable statistics)", *[f"- {n}" for n in notes],
@@ -629,7 +662,7 @@ def main():
         rep.insert(5, f"- stats: {stats_report['players']} players, {stats_report['used_bytes']}/{stats_report['capacity_bytes']} B; "
                    f"season labels require ISO anchor {stats_anchor}")
     (out / "report.md").write_text("\n".join(rep) + "\n", encoding="utf-8")
-    print("\n".join(rep[:6]))
+    print("\n".join(rep[:7]))
     print(f"{len(notes)} notes (see report.md)")
 
     if a.card:
