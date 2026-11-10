@@ -131,7 +131,15 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(self.output.read_bytes()[:4], b"skin")
         self.assertEqual(self.source.read_bytes(), self.initial)
         self.assertEqual(prepare_skin.call_args.args[1], skin_plan)
+        self.assertEqual(prepare_skin.call_args.kwargs, {"repack_archive": False})
         self.assertTrue(self.output.with_name(self.output.name + ".lettering.json").exists())
+
+    def test_repack_mode_reaches_skin_compilation_without_resizing_standalone_publication(self):
+        skin_plan = self.root / "skin.json"
+        with patch("skin_tones.load_patches", return_value=([], [])) as prepare_skin:
+            with self.source.open("rb") as stream:
+                ws.prepare(stream, self.workspace, self.slots, skin_plan=skin_plan, repack_archive=True)
+        self.assertEqual(prepare_skin.call_args.kwargs, {"repack_archive": True})
 
     def test_failed_skin_plan_never_publishes_iso(self):
         with patch("skin_tones.load_patches", side_effect=ValueError("stale skin recipe")):

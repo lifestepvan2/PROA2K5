@@ -118,11 +118,37 @@ their payload without its corresponding combined ISO. A changed PID/tone/roster
 requires preparing the recipe again. No manual tone applies to two players
 sharing a PID: model edits affect every use of that PID.
 
-Fixed compressed resource spans and decoder scratch space remain hard limits.
+Without archive repacking, the original compressed spans/scratch remain limits.
 The planner tries other safe same-bucket donors; if none fits, it stops before
 publishing the face map/plan, ISO or card, identifying the target PID and resource.
-Select another face PID or return that player to automatic mode; no complexion
-is silently substituted. Some existing PIDs cannot accommodate every bucket.
+To preserve the selected face and exact donor pixels instead of reducing quality,
+add `--repack-archive` to the update command:
+
+```powershell
+python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<NEW output ISO path>" --repack-archive
+```
+
+This option now reaches **both** face matching and final skin compilation.
+Arm, neck and recoloured face resources can change stored length/scratch, while
+dimensions, descriptors, face indices/alpha and unedited sibling resources stay
+unchanged. Complete player-package edits are composed before archive relocation;
+only the selected target PID is edited, never the source donor assets.
+The plan records its required storage mode; a repacking recipe cannot accidentally
+be published through a fixed-span builder. Older fixed-span recipes remain usable.
+For standalone planning, use `face_match.py --iso-source ... --repack-archive`,
+then pass the same flag to `season_iso.py` for the combined build.
+
+The legs themselves still use the roster's `+0x69` selector for the existing six
+stock textures. A failure saying `no compatible arm donor for leg tone ...`
+concerns a matching **arm** TXTR, not a leg texture that needs resizing.
+Logo master caps in `texture_workspace_ISO/_iso_encoding.json` do not control
+player skin resources.
+
+No complexion is silently substituted or quantized to make it fit. Aggregate
+archive capacity, runtime scratch and geometry compatibility still apply;
+arbitrary future artwork is not guaranteed to fit an unlimited budget.
+Repacking remains experimental pending the consolidated
+[runtime review](./ArchiveRepacking.md#batched-runtime-review-gate).
 Legacy light-reserve face/neck PNG generation skips manual-tone players and
 prunes its old managed files; donor keys affected by the remaining global reserve
 replacements are excluded. Boot the new ISO and load models fresh: F10 or an old

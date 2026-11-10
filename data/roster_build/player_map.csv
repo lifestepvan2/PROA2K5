@@ -29,21 +29,21 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 13,1,Ulm,12,26,0x73fc,Tobias,Holbach,DE,0,4,17,77.2,2000160,False,29
 13,1,Ulm,13,394,0x148bc,Yanu,Slingerland,NL,0,1,3,75.9,2001947,False,249
 13,1,Ulm,14,369,0x13a48,Marko,Volf,DE,0,1,22,75.8,2001950,False,1134
-14,2,Bayreuth,0,174,0xc98c,Glen,Abram Jr.,US,0,0,28,95.5,2004151,True,807
-14,2,Bayreuth,1,175,0xca20,Moritz,Plescher,DE,0,1,6,86.6,6604,True,1022
-14,2,Bayreuth,2,176,0xcab4,Kevin,Wohlrath,DE,0,2,8,80.9,1400007,True,1021
-14,2,Bayreuth,3,177,0xcb48,Simon,Hildebrandt,DE,0,3,55,82.6,2003942,True,226
-14,2,Bayreuth,4,178,0xcbdc,Collin,Metcalf,DE,0,4,45,92.4,2003199,True,74
-14,2,Bayreuth,5,179,0xcc70,Darrell,Davis Jr.,US,0,0,23,95.2,2005405,False,967
-14,2,Bayreuth,6,180,0xcd04,Matt,Frierson,US,0,1,3,84.7,2003855,False,1179
-14,2,Bayreuth,7,182,0xce2c,Joshua,Bonga,DE,0,0,0,83.9,1400003,False,891
-14,2,Bayreuth,8,183,0xcec0,Luis,Wulff,DE,0,1,7,83.4,1400028,False,447
-14,2,Bayreuth,9,184,0xcf54,Emanuel,Prospere II,US,0,1,12,82.2,2003858,False,467
-14,2,Bayreuth,10,185,0xcfe8,Leroy,Ikejiaku,DE,0,4,22,81.7,2001629,False,1049
-14,2,Bayreuth,11,186,0xd07c,Noah,Wabersich,DE,0,0,9,80.5,2001622,False,1133
-14,2,Bayreuth,12,187,0xd110,Taje,Kelly,US,0,3,2,78.0,2001623,False,283
-14,2,Bayreuth,13,13,0x6c78,Earl,Timberlake,US,0,2,25,77.8,2005446,False,199
-14,2,Bayreuth,14,148,0xba84,Chris,Wuermseher,DE,0,2,44,75.2,2001627,False,965
+14,2,Bayreuth,0,174,0xc98c,Glen,Abram Jr.,West Virginia,0,0,28,95.5,2004151,True,807
+14,2,Bayreuth,1,175,0xca20,Moritz,Plescher,Mettmann,0,1,6,86.6,6604,True,1022
+14,2,Bayreuth,2,176,0xcab4,Kevin,Wohlrath,Berlin,0,2,8,80.9,1400007,True,1021
+14,2,Bayreuth,3,177,0xcb48,Simon,Hildebrandt,Washington State,0,3,55,82.6,2003942,True,226
+14,2,Bayreuth,4,178,0xcbdc,Collin,Metcalf,Maryland,0,4,45,92.4,2003199,True,74
+14,2,Bayreuth,5,179,0xcc70,Darrell,Davis Jr.,Dayton,0,0,23,95.2,2005405,False,967
+14,2,Bayreuth,6,180,0xcd04,Matt,Frierson,Citadel,0,1,3,84.7,2003855,False,1179
+14,2,Bayreuth,7,182,0xce2c,Joshua,Bonga,Koblenz,0,0,0,83.9,1400003,False,891
+14,2,Bayreuth,8,183,0xcec0,Luis,Wulff,Munich,0,1,7,83.4,1400028,False,447
+14,2,Bayreuth,9,184,0xcf54,Emanuel,Prospere II,UC San Diego,0,1,12,82.2,2003858,False,467
+14,2,Bayreuth,10,185,0xcfe8,Leroy,Ikejiaku,Dalton State,0,4,22,81.7,2001629,False,1049
+14,2,Bayreuth,11,186,0xd07c,Noah,Wabersich,Munich,0,0,9,80.5,2001622,False,1133
+14,2,Bayreuth,12,187,0xd110,Earl,Timberlake,Bryant,0,2,25,77.8,2005446,False,199
+14,2,Bayreuth,13,13,0x6c78,Taje,Kelly,Charleston Southern,0,3,2,76.8,2001623,False,283
+14,2,Bayreuth,14,148,0xba84,Chris,Wuermseher,Munich,0,2,44,75.2,2001627,False,965
 15,3,Gottingen,0,188,0xd1a4,Tai,Bibbs,US,0,0,33,92.1,2003902,True,1024
 15,3,Gottingen,1,190,0xd2cc,Radvilas,Kneizys,LT,0,1,9,86.3,2003184,True,987
 15,3,Gottingen,2,191,0xd360,Zach,Jackson,US,0,2,21,84.4,2001580,True,643
@@ -55,20 +55,20 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 15,3,Gottingen,8,197,0xd6d8,Zachary,Watson,US,0,3,2,76.1,2003183,False,633
 15,3,Gottingen,9,198,0xd76c,Gaston,Nguyen,DE,0,0,13,75.8,2000803,False,345
 15,3,Gottingen,10,199,0xd800,Emil,Bode,DE,0,1,5,71.7,2000797,False,837
-16,4,Knights Kirchheim,0,202,0xd9bc,Adrian,Worthy,DE,0,0,0,87.6,2004073,True,744
-16,4,Knights Kirchheim,1,203,0xda50,Desmond,Watson,US,0,1,4,88.6,1400011,True,211
-16,4,Knights Kirchheim,2,204,0xdae4,Christoph,Philipps,DE,0,2,5,79.3,2005083,True,785
-16,4,Knights Kirchheim,3,205,0xdb78,Philip,Alston,US,0,3,1,79.9,2004009,True,257
-16,4,Knights Kirchheim,4,206,0xdc0c,Julius,Wolf,DE,0,4,28,87.6,2004013,True,1041
-16,4,Knights Kirchheim,5,209,0xddc8,Corey,Hines Jr,US,0,0,2,86.2,2004723,False,443
-16,4,Knights Kirchheim,6,210,0xde5c,Johannes,Patrick,DE,0,0,6,85.7,1400009,False,809
-16,4,Knights Kirchheim,7,211,0xdef0,Nicolas,Bretzel,DE,0,4,21,83.9,2002089,False,232
-16,4,Knights Kirchheim,8,212,0xdf84,Tyrel,Morgan,US,0,1,11,83.2,2001727,False,201
-16,4,Knights Kirchheim,9,213,0xe018,Lukas,Zerner,DE,0,4,10,79.9,2004015,False,63
-16,4,Knights Kirchheim,10,214,0xe0ac,Paul,Viefhues,DE,0,1,3,79.4,2004012,False,1142
-16,4,Knights Kirchheim,11,215,0xe140,Alexander,Stief,DE,0,3,14,72.4,2004011,False,349
-16,4,Knights Kirchheim,12,136,0xb394,Fabian,John,DE,0,3,44,70.8,2004032,False,334
-16,4,Knights Kirchheim,13,120,0xaa54,Moritz,Lemke,DE,0,2,13,69.4,2004045,False,571
+16,4,Knights Kirchheim,0,202,0xd9bc,Adrian,Worthy,Bamberg,0,0,0,87.6,2004073,True,744
+16,4,Knights Kirchheim,1,203,0xda50,Desmond,Watson,Loyola,0,1,4,88.6,1400011,True,211
+16,4,Knights Kirchheim,2,204,0xdae4,Christoph,Philipps,Munich,0,2,5,79.3,2005083,True,785
+16,4,Knights Kirchheim,3,205,0xdb78,Philip,Alston,Loyola,0,3,1,79.9,2004009,True,257
+16,4,Knights Kirchheim,4,206,0xdc0c,Julius,Wolf,Ehingen,0,4,28,87.6,2004013,True,1041
+16,4,Knights Kirchheim,5,209,0xddc8,Corey,Hines Jr,Temple,0,0,2,86.2,2004723,False,443
+16,4,Knights Kirchheim,6,210,0xde5c,Johannes,Patrick,Ludwigsburg,0,0,6,85.7,1400009,False,809
+16,4,Knights Kirchheim,7,211,0xdef0,Nicolas,Bretzel,Ulm,0,4,21,84.7,2002089,False,232
+16,4,Knights Kirchheim,8,212,0xdf84,Tyrel,Morgan,Texas State,0,1,11,83.2,2001727,False,201
+16,4,Knights Kirchheim,9,213,0xe018,Lukas,Zerner,Wuerzburg,0,4,10,79.9,2004015,False,63
+16,4,Knights Kirchheim,10,214,0xe0ac,Paul,Viefhues,Muenster,0,1,3,79.4,2004012,False,1142
+16,4,Knights Kirchheim,11,215,0xe140,Alexander,Stief,Kirchheim,0,3,14,72.4,2004011,False,349
+16,4,Knights Kirchheim,12,136,0xb394,Fabian,John,Kirchheim,0,3,44,70.8,2004032,False,334
+16,4,Knights Kirchheim,13,120,0xaa54,Moritz,Lemke,Kirchheim,0,2,13,69.4,2004045,False,571
 17,5,Bremerhaven,0,216,0xe1d4,Garai,Zeeb,DE,0,0,3,91.4,2003165,True,828
 17,5,Bremerhaven,1,217,0xe268,Vincent,Friederici,DE,0,1,30,86.5,2003164,True,1101
 17,5,Bremerhaven,2,218,0xe2fc,Carlos,Carter,US,0,2,6,80.4,2000514,True,466
@@ -84,21 +84,21 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 17,5,Bremerhaven,12,81,0x93c8,Anton,Meyer,DE,0,1,19,75.4,2002027,False,296
 17,5,Bremerhaven,13,66,0x8b1c,Benjamin,Zintz,DE,0,2,5,73.2,2002073,False,557
 17,5,Bremerhaven,14,54,0x842c,Alen,Blakaj,DE,0,2,21,72.6,2004971,False,405
-18,6,Koblenz,0,231,0xea80,Tyren,Moore,US,0,0,5,92.1,1400008,True,1032
-18,6,Koblenz,1,232,0xeb14,Mason,Kraus,DE,0,1,1,83.6,2003969,True,568
-18,6,Koblenz,2,233,0xeba8,Dragos-Andre,Diculescu,RO,0,2,31,88.3,2003933,True,1604
-18,6,Koblenz,3,234,0xec3c,Jonas,Niedermanner,DE,0,3,9,79.8,2001760,True,1091
-18,6,Koblenz,4,235,0xecd0,Alexander,Moeller,DE,0,4,22,84.3,2001759,True,731
-18,6,Koblenz,5,236,0xed64,Frankie,Collins,US,0,0,3,88.8,2005419,False,273
-18,6,Koblenz,6,237,0xedf8,Chase,Johnson,US,0,0,15,88.1,2003985,False,1027
-18,6,Koblenz,7,238,0xee8c,Marko,Bacak,DE,0,4,13,84.3,2001774,False,102
-18,6,Koblenz,8,239,0xef20,Camaron,Tongue,US,0,4,21,83.0,2003988,False,68
-18,6,Koblenz,9,240,0xefb4,Jayden,Williams,US,0,2,7,82.0,2003970,False,655
-18,6,Koblenz,10,241,0xf048,Ferenc,Gille,DE,0,4,11,81.9,2003934,False,415
-18,6,Koblenz,11,25,0x7368,Badu,Buck,DE,0,1,2,81.2,2001758,False,301
-18,6,Koblenz,12,393,0x14828,Jannis,Sonnefeld,DE,0,3,14,79.2,2001764,False,161
-18,6,Koblenz,13,368,0x139b4,David Lars,Gaspers,DE,0,1,17,71.7,2001840,False,640
-18,6,Koblenz,14,12,0x6be4,Oemer,Girgin,TR,0,2,6,70.1,2002957,False,117
+18,6,Koblenz,0,231,0xea80,Tyren,Moore,Georgia Southern,0,0,5,92.1,1400008,True,1032
+18,6,Koblenz,1,232,0xeb14,Mason,Kraus,Winnipeg,0,1,1,83.6,2003969,True,568
+18,6,Koblenz,2,233,0xeba8,Dragos,Diculescu,Romania,0,2,31,88.3,2003933,True,1604
+18,6,Koblenz,3,234,0xec3c,Jonas,Niedermanner,Leipzig,0,3,9,79.8,2001760,True,1091
+18,6,Koblenz,4,235,0xecd0,Alexander,Moeller,Xanten,0,4,22,84.3,2001759,True,731
+18,6,Koblenz,5,236,0xed64,Frankie,Collins,Vanderbilt,0,0,3,88.8,2005419,False,273
+18,6,Koblenz,6,237,0xedf8,Chase,Johnson,Boston,0,0,15,88.1,2003985,False,1027
+18,6,Koblenz,7,238,0xee8c,Marko,Bacak,Berlin,0,4,13,84.3,2001774,False,102
+18,6,Koblenz,8,239,0xef20,Camaron,Tongue,Santa Clara,0,4,21,83.0,2003988,False,68
+18,6,Koblenz,9,240,0xefb4,Jayden,Williams,Bucknell,0,2,7,82.0,2003970,False,655
+18,6,Koblenz,10,241,0xf048,Ferenc,Gille,Kremkau,0,4,11,81.9,2003934,False,415
+18,6,Koblenz,11,25,0x7368,Badu,Buck,Berlin,0,1,2,81.2,2001758,False,301
+18,6,Koblenz,12,393,0x14828,Jannis,Sonnefeld,Bamberg,0,3,14,79.2,2001764,False,161
+18,6,Koblenz,13,368,0x139b4,David Lars,Gaspers,Koblenz,0,1,17,71.7,2001840,False,640
+18,6,Koblenz,14,12,0x6be4,Oemer,Girgin,Turkey,3,2,6,69.5,2002957,False,117
 19,7,46ers,0,243,0xf170,Tyler,Peterson,US,0,0,51,91.5,2005422,True,152
 19,7,46ers,1,244,0xf204,Luis Elias,Koenig Figge,DE,0,1,14,79.3,6247,True,497
 19,7,46ers,2,246,0xf32c,Robin,Benzing,DE,0,2,12,84.8,57676,True,1175
@@ -112,34 +112,34 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 19,7,46ers,10,254,0xf7cc,Luca-Noel,Nickel,DE,0,0,11,77.1,2004603,False,741
 19,7,46ers,11,147,0xb9f0,Milan Elias,Genius,DE,0,0,2,77.1,2004605,False,905
 19,7,46ers,12,135,0xb300,Kai,Muesse,DE,0,4,15,75.1,2000861,False,629
-20,8,Crailsheim Merlins,0,255,0xf860,Simon,Krajcovic,SK,0,0,55,90.3,2003170,True,1013
-20,8,Crailsheim Merlins,1,256,0xf8f4,Booker,Coplin,US,0,1,6,86.7,2003864,True,67
-20,8,Crailsheim Merlins,2,259,0xfab0,Luc,van Slooten,DE,0,2,11,80.4,2003178,True,839
-20,8,Crailsheim Merlins,3,261,0xfbd8,Marko,Dordevic,DE,0,3,25,80.8,2005213,True,922
-20,8,Crailsheim Merlins,4,262,0xfc6c,Courtney,Alexander,US,0,4,2,87.3,2004273,True,564
-20,8,Crailsheim Merlins,5,263,0xfd00,Dylan,Addae-Wusu,US,0,1,7,86.5,2005235,False,209
-20,8,Crailsheim Merlins,6,264,0xfd94,Gianni,Otto,DE,0,0,10,84.9,2001472,False,918
-20,8,Crailsheim Merlins,7,265,0xfe28,Till,Isemann,DE,0,4,21,84.0,2003107,False,79
-20,8,Crailsheim Merlins,8,266,0xfebc,Lucas,Mayer,DE,0,1,8,83.4,2003168,False,288
-20,8,Crailsheim Merlins,9,117,0xa898,Hendrik,Drescher,DE,0,3,9,80.2,2003169,False,617
-20,8,Crailsheim Merlins,10,109,0xa3f8,Nico,Hoellerl,DE,0,2,5,79.7,2004274,False,784
-20,8,Crailsheim Merlins,11,92,0x9a24,Peyton,Gerald,US,0,3,13,78.8,2003862,False,195
-20,8,Crailsheim Merlins,12,80,0x9334,Matheo,Hermann,DE,0,1,4,75.8,2004275,False,908
-20,8,Crailsheim Merlins,13,65,0x8a88,Phil,Ikejiaku,DE,0,4,19,72.4,2004363,False,1036
+20,8,Crailsheim Merlins,0,255,0xf860,Simon,Krajcovic,Slovakia,0,0,55,90.3,2003170,True,1013
+20,8,Crailsheim Merlins,1,256,0xf8f4,Booker,Coplin,Augsburg,0,1,6,86.7,2003864,True,67
+20,8,Crailsheim Merlins,2,259,0xfab0,Luc,van Slooten,Vechta,0,2,11,80.4,2003178,True,839
+20,8,Crailsheim Merlins,3,261,0xfbd8,Marko,Dordevic,Berlin,0,3,25,80.8,2005213,True,922
+20,8,Crailsheim Merlins,4,262,0xfc6c,Till,Isemann,Oldenburg,0,4,21,84.0,2003107,True,79
+20,8,Crailsheim Merlins,5,263,0xfd00,Dylan,Addae-Wusu,Seton Hall,0,1,7,86.5,2005235,False,209
+20,8,Crailsheim Merlins,6,264,0xfd94,Gianni,Otto,Ludwigsburg,0,0,10,84.9,2001472,False,918
+20,8,Crailsheim Merlins,7,265,0xfe28,Lucas,Mayer,Giessen,0,1,8,83.4,2003168,False,288
+20,8,Crailsheim Merlins,8,266,0xfebc,Hendrik,Drescher,Berlin,0,3,9,80.2,2003169,False,617
+20,8,Crailsheim Merlins,9,117,0xa898,Nico,Hoellerl,Austria,0,2,5,79.7,2004274,False,784
+20,8,Crailsheim Merlins,10,109,0xa3f8,Peyton,Gerald,Florida Southern,0,3,13,78.8,2003862,False,195
+20,8,Crailsheim Merlins,11,92,0x9a24,Courtney,Alexander,Tennessee Tech,0,4,2,78.7,2004273,False,564
+20,8,Crailsheim Merlins,12,80,0x9334,Matheo,Hermann,Berlin,0,1,4,75.8,2004275,False,908
+20,8,Crailsheim Merlins,13,65,0x8a88,Phil,Ikejiaku,Leverkusen,0,4,19,68.6,2004363,False,1036
 21,9,Falcons,0,267,0xff50,Larry,Austin Jr,Central Michigan,0,0,0,89.7,2005421,True,78
-21,9,Falcons,1,268,0xffe4,Nate,Heise,Iowa State,0,1,33,89.2,2004101,True,1138
+21,9,Falcons,1,268,0xffe4,Nate,Heise,Iowa State,1,1,33,89.2,2004101,True,1138
 21,9,Falcons,2,269,0x10078,Jenoe,Pildner,Berlin,0,2,37,78.9,2003982,True,266
-21,9,Falcons,3,270,0x1010c,Ty,Allred,Colorado Mesa,0,3,10,84.3,2004046,True,653
-21,9,Falcons,4,272,0x10234,Daniel,Helterhoff,DE,0,4,13,83.5,2003983,True,460
-21,9,Falcons,5,273,0x102c8,Tim,Koepple,Ulm,0,0,5,87.9,5469,False,981
+21,9,Falcons,3,270,0x1010c,Ty,Allred,Colorado Mesa,1,3,10,87.1,2004046,True,653
+21,9,Falcons,4,272,0x10234,Daniel,Helterhoff,Rider University,0,4,13,83.5,2003983,True,460
+21,9,Falcons,5,273,0x102c8,Tim,Koepple,Ulm,3,0,5,87.9,5469,False,981
 21,9,Falcons,6,274,0x1035c,Xavier,Bell,Wichita State,0,0,4,87.8,2004435,False,303
-21,9,Falcons,7,275,0x103f0,Lars,Lagerpusch,Braunschweig,0,4,44,81.8,2002186,False,457
-21,9,Falcons,8,276,0x10484,Nic,Welp,DE,0,4,20,80.3,2004048,False,421
+21,9,Falcons,7,275,0x103f0,Lars,Lagerpusch,Brunswick,0,4,44,81.8,2002186,False,457
+21,9,Falcons,8,276,0x10484,Nic,Welp,California State,0,4,20,80.3,2004048,False,421
 21,9,Falcons,9,277,0x10518,Jarne,Juergens,Ostfriesland,0,4,21,79.6,2003981,False,268
-21,9,Falcons,10,279,0x10640,Drew,Stover,US,0,4,42,78.8,2004965,False,453
-21,9,Falcons,11,53,0x8398,Christian,Feneberg,DE,0,1,7,78.6,5034,False,89
-21,9,Falcons,12,24,0x72d4,Dominick,von Waaden,DE,0,1,9,77.4,2004606,False,992
-21,9,Falcons,13,392,0x14794,Lars,Lenke,DE,0,2,11,74.2,2001468,False,1040
+21,9,Falcons,10,279,0x10640,Drew,Stover,Millersville,0,4,42,78.8,2004965,False,453
+21,9,Falcons,11,53,0x8398,Christian,Feneberg,Nuremberg,0,1,7,78.6,5034,False,89
+21,9,Falcons,12,24,0x72d4,Dominick,von Waaden,Bamberg,0,1,9,77.8,2004606,False,992
+21,9,Falcons,13,392,0x14794,Lars,Lenke,Nuremberg,0,2,11,74.2,2001468,False,1040
 22,10,Baskets,0,280,0x106d4,Jon'll,Fugett,US,0,0,0,95.2,2004483,True,732
 22,10,Baskets,1,281,0x10768,Nik Philip,Schlipf,DE,0,1,9,86.0,2005106,True,619
 22,10,Baskets,2,282,0x107fc,Christopher,Schultz,DE,0,2,13,84.1,2004482,True,751
@@ -192,21 +192,21 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 25,13,Koln,11,52,0x8304,Konstantin,Lehmann,DE,0,1,7,76.9,58073,False,1048
 25,13,Koln,12,23,0x7240,Karl,Buehner,DE,0,3,11,76.5,1400017,False,1145
 25,13,Koln,13,391,0x14700,Ferdinand,Trefzger,DE,0,0,3,75.8,2001841,False,547
-26,14,Wolmirstedt,0,331,0x12450,Martin,Bogdanov,DE,0,0,6,90.2,5575,True,1042
-26,14,Wolmirstedt,1,332,0x124e4,Kenneth,Cooper,US,0,1,22,90.9,2004201,True,1020
-26,14,Wolmirstedt,2,333,0x12578,Alieu,Ceesay,DE,0,2,28,81.2,2001705,True,1155
-26,14,Wolmirstedt,3,334,0x1260c,Brock Boone,Gardner,US,0,3,4,82.2,2005027,True,970
-26,14,Wolmirstedt,4,336,0x12734,Akim-Jamal,Jonah,DE,0,4,34,91.5,2004200,True,1161
-26,14,Wolmirstedt,5,337,0x127c8,Sebastian,Brach,DE,0,1,10,86.9,2004203,False,96
-26,14,Wolmirstedt,6,338,0x1285c,Kyndahl,Hill,US,0,4,5,86.9,2004426,False,422
-26,14,Wolmirstedt,7,339,0x128f0,John,Bryant,Santa Clara,0,4,54,85.6,2005414,False,1043
-26,14,Wolmirstedt,8,340,0x12984,Jordan,Davis,US,0,0,0,83.7,2005415,False,1154
-26,14,Wolmirstedt,9,341,0x12a18,Carl Thure,Peters,DE,0,1,8,80.9,2004267,False,1018
-26,14,Wolmirstedt,10,343,0x12b40,Matthias,Fichtner,DE,0,3,35,79.9,6055,False,1163
-26,14,Wolmirstedt,11,366,0x1388c,Dennis,Nawrocki,DE,0,2,2,79.6,2004202,False,556
-26,14,Wolmirstedt,12,9,0x6a28,Aeneas,Jung,DE,0,3,9,79.0,2004199,False,745
-26,14,Wolmirstedt,13,145,0xb8c8,Marcus,Evans,US,0,1,1,77.5,2004206,False,291
-26,14,Wolmirstedt,14,133,0xb1d8,Paul Manuel,Raabe,DE,0,2,77,72.3,2004707,False,1045
+26,14,Wolmirstedt,0,331,0x12450,Martin,Bogdanov,Berlin,0,0,6,86.5,5575,True,1042
+26,14,Wolmirstedt,1,332,0x124e4,Kenneth,Cooper,Tennessee State,0,1,22,90.9,2004201,True,1020
+26,14,Wolmirstedt,2,333,0x12578,Alieu,Ceesay,Bremen,0,2,28,81.2,2001705,True,1155
+26,14,Wolmirstedt,3,334,0x1260c,Brock Boone,Gardner,Liberty,0,3,4,82.2,2005027,True,970
+26,14,Wolmirstedt,4,336,0x12734,Akim-Jamal,Jonah,Berlin,0,4,34,91.5,2004200,True,1161
+26,14,Wolmirstedt,5,337,0x127c8,Sebastian,Brach,Giessen,0,1,10,86.9,2004203,False,96
+26,14,Wolmirstedt,6,338,0x1285c,Kyndahl,Hill,Weber State,0,4,5,86.9,2004426,False,422
+26,14,Wolmirstedt,7,339,0x128f0,John,Bryant,Santa Clara,1,4,54,85.6,2005414,False,1043
+26,14,Wolmirstedt,8,340,0x12984,Jordan,Davis,Jacksonville,0,0,0,83.7,2005415,False,1154
+26,14,Wolmirstedt,9,341,0x12a18,Carl Thure,Peters,Berlin,0,1,8,80.9,2004267,False,1018
+26,14,Wolmirstedt,10,343,0x12b40,Matthias,Fichtner,Bamberg,0,3,35,79.9,6055,False,1163
+26,14,Wolmirstedt,11,366,0x1388c,Dennis,Nawrocki,Brunswick,0,2,2,79.6,2004202,False,556
+26,14,Wolmirstedt,12,9,0x6a28,Aeneas,Jung,Nuremberg,0,3,9,79.0,2004199,False,745
+26,14,Wolmirstedt,13,145,0xb8c8,Marcus,Evans,VCU,0,1,1,77.5,2004206,False,291
+26,14,Wolmirstedt,14,133,0xb1d8,Paul Manuel,Raabe,Berlin,0,2,77,72.3,2004707,False,1045
 27,15,Tubingen,0,344,0x12bd4,Simon,Feneberg,DE,0,0,20,91.9,1400000,True,540
 27,15,Tubingen,1,345,0x12c68,Isaac,Haney,US,0,1,11,87.1,2003150,True,1028
 27,15,Tubingen,2,346,0x12cfc,Timothy,Smith,US,0,2,2,85.3,2003819,True,1178

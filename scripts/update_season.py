@@ -99,7 +99,8 @@ def main():
     run("build_roster.py", *roster_args, "--prepare-faces")  # provisional map; no manual leg changes yet
     run("face_embed.py")
     run("face_match.py", *(["--rematch"] if a.rematch_faces else []),
-        *(["--iso-source", a.iso_source] if a.iso_source else []))
+        *(["--iso-source", a.iso_source] if a.iso_source else []),
+        *(["--repack-archive"] if a.repack_archive else []))
     run("build_roster.py", *roster_args)
     run("gen_replacements.py")
     run("gen_skin_replacements.py")

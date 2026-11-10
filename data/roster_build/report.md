@@ -1,10 +1,10 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `2dac7778`
+- payload: 725056 bytes, CRC32 `8d1bbefd`
 - teams: 18, players: 252
-- string pool: free before 4000 B, freed 12806 B, free after 4700 B (largest block 4000 B)
+- string pool: free before 4000 B, freed 13592 B, free after 4816 B (largest block 4000 B)
 - stats: 252 players, 127524/175184 B; season labels require ISO anchor 2026
-- colleges: 25 shared labels (306 UTF-16 B), 22 new rows / 457 reusable; 432 rows remaining; 0 additional unused names cleared for space; 10082 B still reclaimable (14782 B potential shared free space)
+- colleges: 73 shared labels (1338 UTF-16 B), 56 new rows / 457 reusable; 384 rows remaining; 0 additional unused names cleared for space; 9012 B still reclaimable (13828 B potential shared free space)
 - records: face-owning pool only (see player_map.csv, record_faces.csv); donor NBA teams: 12
 - longest last names: [(12, 'Kazakevicius', 'Dragons'), (12, 'Koenig Figge', '46ers'), (12, 'Marty-Decker', 'Baskets'), (12, 'Moenninghoff', 'Gottingen'), (12, 'Niedermanner', 'Koblenz'), (12, 'Pickett Lazo', 'Stars Bochum'), (12, 'Price-Townse', 'Essen'), (12, 'Schwanenberg', 'Tubingen')]
 
@@ -95,8 +95,8 @@
 - Leroy Ikejiaku: 2025: GS unavailable (omitted in game)
 - Leroy Ikejiaku: 2026: GS unavailable (omitted in game)
 - Noah Wabersich: 2025: GS unavailable (omitted in game)
-- Taje Kelly: 2026: GS unavailable (omitted in game)
 - Earl Timberlake: 2026: GS unavailable (omitted in game)
+- Taje Kelly: 2026: GS unavailable (omitted in game)
 - Chris Wuermseher: 2025: GS unavailable (omitted in game)
 - Chris Wuermseher: 2026: GS unavailable (omitted in game)
 - Tai Bibbs: 2026: GS unavailable (omitted in game)
@@ -217,7 +217,7 @@
 - Alen Blakaj: 2026: GS unavailable (omitted in game)
 - Tyren Moore: 2026: GS unavailable (omitted in game)
 - Mason Kraus: 2026: GS unavailable (omitted in game)
-- Dragos-Andre Diculescu: 2026: GS unavailable (omitted in game)
+- Dragos Diculescu: 2026: GS unavailable (omitted in game)
 - Jonas Niedermanner: 2016: GS unavailable (omitted in game)
 - Jonas Niedermanner: 2020: GS unavailable (omitted in game)
 - Jonas Niedermanner: 2021: GS unavailable (omitted in game)
@@ -324,8 +324,12 @@
 - Luc van Slooten: 2024: GS unavailable (omitted in game)
 - Luc van Slooten: 2026: GS unavailable (omitted in game)
 - Marko Dordevic: 2026: GS unavailable (omitted in game)
-- Courtney Alexander: 2023: GS unavailable (omitted in game)
-- Courtney Alexander: 2026: GS unavailable (omitted in game)
+- Till Isemann: 2021: GS unavailable (omitted in game)
+- Till Isemann: 2022: GS unavailable (omitted in game)
+- Till Isemann: 2023: GS unavailable (omitted in game)
+- Till Isemann: 2024: GS unavailable (omitted in game)
+- Till Isemann: 2025: GS unavailable (omitted in game)
+- Till Isemann: 2026: GS unavailable (omitted in game)
 - Dylan Addae-Wusu: 2026: GS unavailable (omitted in game)
 - Gianni Otto: 2018: GS unavailable (omitted in game)
 - Gianni Otto: 2019: GS unavailable (omitted in game)
@@ -335,12 +339,6 @@
 - Gianni Otto: 2024: GS unavailable (omitted in game)
 - Gianni Otto: 2025: GS unavailable (omitted in game)
 - Gianni Otto: 2026: GS unavailable (omitted in game)
-- Till Isemann: 2021: GS unavailable (omitted in game)
-- Till Isemann: 2022: GS unavailable (omitted in game)
-- Till Isemann: 2023: GS unavailable (omitted in game)
-- Till Isemann: 2024: GS unavailable (omitted in game)
-- Till Isemann: 2025: GS unavailable (omitted in game)
-- Till Isemann: 2026: GS unavailable (omitted in game)
 - Lucas Mayer: 2023: GS unavailable (omitted in game)
 - Lucas Mayer: 2024: GS unavailable (omitted in game)
 - Lucas Mayer: 2025: GS unavailable (omitted in game)
@@ -352,6 +350,8 @@
 - Hendrik Drescher: 2026: GS unavailable (omitted in game)
 - Nico Hoellerl: 2026: GS unavailable (omitted in game)
 - Peyton Gerald: 2026: GS unavailable (omitted in game)
+- Courtney Alexander: 2023: GS unavailable (omitted in game)
+- Courtney Alexander: 2026: GS unavailable (omitted in game)
 - Matheo Hermann: 2026: GS unavailable (omitted in game)
 - Larry Austin Jr: 2026: GS unavailable (omitted in game)
 - Nate Heise: 2026: GS unavailable (omitted in game)

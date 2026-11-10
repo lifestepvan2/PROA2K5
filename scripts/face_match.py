@@ -134,6 +134,8 @@ def main():
     ap.add_argument("--rematch", action="store_true", help="ignore cached matches and match everybody again (override_pid is kept)")
     ap.add_argument("--iso-source", type=Path, help="pristine ISO required for nonzero Skin Tone overrides")
     ap.add_argument("--skin-plan", type=Path, default=skin_tones.PLAN, help="prepared complexion recipe for the combined ISO build")
+    ap.add_argument("--repack-archive", action="store_true",
+                    help="allow lossless skin-resource growth; the final ISO build must also use this option")
     a = ap.parse_args()
     pids, names, ne, nl, players, pe, pl, E, bright = load()
     col = {p: c for c, p in enumerate(pids)}
@@ -180,7 +182,7 @@ def main():
     previews = {}
     if requested.any():
         with a.iso_source.open("rb") as stream:
-            complexion_plan = skin_tones.create_plan(stream, final_rows)
+            complexion_plan = skin_tones.create_plan(stream, final_rows, repack_archive=a.repack_archive)
             assets = skin_tones.Assets(stream, verify_hash=False)
             for entry in complexion_plan["players"]:
                 recipe = next(recipe for recipe in entry["assets"] if recipe["side"] == "h")
@@ -188,7 +190,7 @@ def main():
                 video = decoded[system:-1024] + bytes.fromhex(recipe["face_palette_hex"])
                 previews[entry["proa_id"]] = (entry["pid"], Image.fromarray(skin_tones.rgb_of(video, 256, 256)))
     else:
-        complexion_plan = skin_tones.create_plan(None, final_rows)
+        complexion_plan = skin_tones.create_plan(None, final_rows, repack_archive=a.repack_archive)
     used_mask = np.array([100.0 if p in set(final.values()) else 0.0 for p in pids])
     target = {r["proa_id"]: pl[i] for i, r in enumerate(players)}
 

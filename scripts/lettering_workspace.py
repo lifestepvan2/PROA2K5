@@ -238,7 +238,8 @@ def validate_output(source: Path, output: Path, workspace: Path) -> Path:
 
 
 def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None,
-            skin_plan: Path | None = None, *, include_courts: bool = True) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+            skin_plan: Path | None = None, *, include_courts: bool = True,
+            repack_archive: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
     expected, originals = expected_manifest(stream, slots)
     validate_manifest(workspace, expected)
     edited = {}
@@ -297,7 +298,7 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         patches.extend(year_patches)
     if skin_plan is not None:
         from skin_tones import load_patches
-        skin_patches, report["skin_tones"] = load_patches(stream, skin_plan)
+        skin_patches, report["skin_tones"] = load_patches(stream, skin_plan, repack_archive=repack_archive)
         patches.extend(skin_patches)
     return patches, report
 

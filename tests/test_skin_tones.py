@@ -2,6 +2,7 @@ import contextlib
 import copy
 import io
 import json
+import random
 import sys
 import tempfile
 import unittest
@@ -18,7 +19,7 @@ import face_match
 import player_database as db
 import texlib
 from player_texture_iso import texture_resource
-from test_player_texture_iso import resource
+from test_player_texture_iso import resource, compact_asset
 from test_player_database import workbook
 
 
@@ -45,6 +46,16 @@ class FixtureAssets:
         return texture_resource(self.data[pid], part)
 
 
+class GrowingFixtureAssets(FixtureAssets):
+    def __init__(self, stream=None, verify_hash=True):
+        super().__init__(stream, verify_hash)
+        position, body, decoded, system, _ = self.resource(20, "h", "arm")
+        pixels = random.Random(31).randbytes(128 * 128) + decoded[-1024:]
+        donor = self.data[20]
+        self.data[20] = donor[:position] + resource("arm", pixels) + donor[position + 32 + len(body):]
+        self.data = {pid: compact_asset(body) for pid, body in self.data.items()}
+
+
 class SkinToneTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -56,10 +67,52 @@ class SkinToneTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def create(self):
+    def create(self, **kwargs):
         with patch.object(skin, "Assets", FixtureAssets), \
                 patch.object(skin, "donor_candidates", return_value={(5, "arm"): [20], (5, "neck"): [20]}):
-            return skin.create_plan(None, self.rows, defaults=[], keys={})
+            return skin.create_plan(None, self.rows, defaults=[], keys={}, **kwargs)
+
+    def test_repack_plan_survives_arm_growth_then_neck_and_face_updates_on_both_sides(self):
+        with patch.object(skin, "Assets", GrowingFixtureAssets):
+            with self.assertRaisesRegex(ValueError, "no compatible arm donor"):
+                skin.create_plan(None, self.rows)
+            plan = skin.create_plan(None, self.rows, repack_archive=True)
+        self.assertTrue(plan["repack_archive"])
+        assets = GrowingFixtureAssets()
+        patches, reports = skin.compile_plan(None, plan, self.rows, assets, repack_archive=True)
+        self.assertEqual(len(patches), 2)
+        for _, before, after in patches:
+            self.assertGreater(len(after), len(before))
+            for part in ("arm", "neck"):
+                _, _, decoded, system, _ = texture_resource(after, part)
+                _, _, donor, donor_system, _ = assets.resource(20, "h", part)
+                self.assertEqual(decoded[system:], donor[donor_system:])
+                self.assertEqual(decoded[:system], texture_resource(before, part)[2][:system])
+            _, _, old_face, system, _ = texture_resource(before, "face")
+            _, _, new_face, _, _ = texture_resource(after, "face")
+            self.assertEqual(old_face[:-1024], new_face[:-1024])
+            self.assertEqual(old_face[-1021::4], new_face[-1021::4])
+        self.assertTrue(all(row["new_size"] > row["size"] for row in reports))
+        self.assertEqual([row["asset"] for row in reports], ["p10h.iff", "p10a.iff"])
+
+    def test_repack_recipe_requires_matching_publisher_mode_and_old_recipes_remain_usable(self):
+        plan = self.create(repack_archive=True)
+        with self.assertRaisesRegex(ValueError, "requires --repack-archive"):
+            skin.compile_plan(None, plan, self.rows, FixtureAssets())
+        plan.pop("repack_archive")
+        skin.compile_plan(None, plan, self.rows, FixtureAssets())
+        skin.compile_plan(None, plan, self.rows, FixtureAssets(), repack_archive=True)
+        plan["repack_archive"] = "true"
+        with self.assertRaisesRegex(ValueError, "storage mode"):
+            skin.compile_plan(None, plan, self.rows, FixtureAssets(), repack_archive=True)
+
+    def test_load_patches_forwards_repack_mode(self):
+        plan = self.create(repack_archive=True)
+        path = self.root / "plan.json"
+        skin.save_plan(path, plan)
+        with patch.object(skin, "Assets", FixtureAssets):
+            patches, reports = skin.load_patches(None, path, self.rows, repack_archive=True)
+        self.assertEqual((len(patches), len(reports)), (2, 2))
 
     def test_schema_zero_and_bounds(self):
         for value in (0, "0", 1, 6, "6"):
@@ -235,7 +288,8 @@ class SkinToneTests(unittest.TestCase):
         source = self.root / "source.iso"
         source.write_bytes(b"fixture")
         plan = {"players": []}
-        with patch.object(sys, "argv", ["face_match.py", "--iso-source", str(source), "--skin-plan", str(plan_path)]), \
+        with patch.object(sys, "argv", ["face_match.py", "--iso-source", str(source), "--skin-plan", str(plan_path),
+                                       "--repack-archive"]), \
                 patch.object(face_match, "load", return_value=loaded), \
                 patch.object(face_match, "read_map", return_value={"123": {"pid": "10", "sim": "1", "skin_pen": "0"}}), \
                 patch.object(sb, "reserved_pids", return_value=set()), \
@@ -248,6 +302,7 @@ class SkinToneTests(unittest.TestCase):
         final_rows = create.call_args.args[1]
         self.assertEqual(final_rows[0]["pid"], 10)
         self.assertEqual(final_rows[0]["skin_tone"], 1)
+        self.assertEqual(create.call_args.kwargs, {"repack_archive": True})
         self.assertEqual(json.loads(plan_path.read_text()), plan)
         self.assertIn("skin_tone", mapping.read_text())
 

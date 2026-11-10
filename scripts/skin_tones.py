@@ -2,7 +2,8 @@
 
 Skin Tone 0/blank preserves automatic casting; 1..6 select lightest..darkest.
 The generated plan is a recipe, not a second ISO. Compilation verifies the current
-roster, pristine assets, bounded resource spans and unchanged geometry/alpha.
+roster, pristine assets and unchanged geometry/alpha. Fixed spans are preserved
+unless archive repacking is explicitly selected throughout the season pipeline.
 """
 import csv
 import json
@@ -146,17 +147,19 @@ def donor_candidates(assets, defaults, keys):
     }
 
 
-def _choose_donor(assets, target, candidates, part, leg):
+def _choose_donor(assets, target, candidates, part, leg, *, repack_archive=False):
     failures = []
     for donor in candidates.get((leg, part), []):
         try:
             for side in ("h", "a"):
-                replace_texture(assets.asset(target, side)[1], assets.asset(donor, side)[1], part)
+                replace_texture(assets.asset(target, side)[1], assets.asset(donor, side)[1], part,
+                                repack_archive=repack_archive)
             return donor
         except ValueError as error:
             failures.append(f"{donor}: {error}")
     detail = "; ".join(failures[:3]) or "no inventoried donors safe from legacy skin replacements"
-    raise ValueError(f"PID {target}: no compatible {part} donor for leg tone {leg}: {detail}")
+    advice = "" if repack_archive else " Retry the ISO pipeline with --repack-archive to allow lossless resource growth."
+    raise ValueError(f"PID {target}: no compatible {part} donor for leg tone {leg}: {detail}.{advice}")
 
 
 def load_candidates(assets, defaults=None, keys=None):
@@ -166,9 +169,10 @@ def load_candidates(assets, defaults=None, keys=None):
     return donor_candidates(assets, defaults, sb.read_keys() if keys is None else keys)
 
 
-def create_plan(stream, rows, defaults=None, keys=None):
+def create_plan(stream, rows, defaults=None, keys=None, *, repack_archive=False):
     roster = signature(rows)
-    plan = {"schema": 1, "source_sha256": SOURCE_SHA256, "roster": roster, "players": []}
+    plan = {"schema": 1, "source_sha256": SOURCE_SHA256, "roster": roster, "players": [],
+            "repack_archive": repack_archive}
     requested = [row for row in roster if row["skin_tone"]]
     if not requested:
         return plan
@@ -176,8 +180,8 @@ def create_plan(stream, rows, defaults=None, keys=None):
     candidates = load_candidates(assets, defaults, keys)
     for row in requested:
         pid, leg = row["pid"], 6 - row["skin_tone"]
-        arm = _choose_donor(assets, pid, candidates, "arm", leg)
-        neck = _choose_donor(assets, pid, candidates, "neck", leg)
+        arm = _choose_donor(assets, pid, candidates, "arm", leg, repack_archive=repack_archive)
+        neck = _choose_donor(assets, pid, candidates, "neck", leg, repack_archive=repack_archive)
         recipes = []
         for side in ("h", "a"):
             _, _, decoded, system, _ = assets.resource(neck, side, "neck")
@@ -185,7 +189,7 @@ def create_plan(stream, rows, defaults=None, keys=None):
             _, _, face, face_system, _ = assets.resource(pid, side, "face")
             video = recolour_face_video(face[face_system:], target_lab)
             try:
-                replace_video(assets.asset(pid, side)[1], "face", video)
+                replace_video(assets.asset(pid, side)[1], "face", video, repack_archive=repack_archive)
             except ValueError as error:
                 raise ValueError(f"{row['proa_id']} PID {pid} {side}: face recolour cannot fit: {error}") from error
             recipes.append({
@@ -194,7 +198,7 @@ def create_plan(stream, rows, defaults=None, keys=None):
                 "target_lab": target_lab.tolist(),
             })
         plan["players"].append({**row, "leg_byte": leg, "arm_donor": arm, "neck_donor": neck, "assets": recipes})
-    compile_plan(stream, plan, rows, assets, candidates)
+    compile_plan(stream, plan, rows, assets, candidates, repack_archive=repack_archive)
     return plan
 
 
@@ -202,6 +206,8 @@ def validate_roster(plan, rows):
     if (plan.get("schema") != 1 or plan.get("source_sha256") != SOURCE_SHA256
             or plan.get("roster") != signature(rows)):
         raise ValueError("Skin-tone plan is stale or incompatible; rerun face_match.py --iso-source PRISTINE.iso")
+    if type(plan.get("repack_archive", False)) is not bool:
+        raise ValueError("Invalid skin-tone archive storage mode")
     requested = {row["proa_id"]: row for row in plan["roster"] if row["skin_tone"]}
     players = plan.get("players")
     if (not isinstance(players, list) or len(players) != len(requested)
@@ -214,10 +220,12 @@ def validate_roster(plan, rows):
     return players
 
 
-def compile_plan(stream, plan, rows, assets=None, candidates=None):
+def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_archive=False):
     players = validate_roster(plan, rows)
     if not players:
         return [], []
+    if plan.get("repack_archive", False) and not repack_archive:
+        raise ValueError("Skin-tone plan requires --repack-archive for the combined ISO build")
     assets = assets or Assets(stream)
     candidates = load_candidates(assets) if candidates is None else candidates
     patches, reports = [], []
@@ -235,7 +243,9 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None):
                 raise ValueError(f"Skin-tone source changed: p{pid}{side}.iff")
             patched, changes = original, []
             for part in ("arm", "neck"):
-                patched, report = replace_texture(patched, assets.asset(row[f"{part}_donor"], side)[1], part)
+                patched, report = replace_texture(patched, assets.asset(row[f"{part}_donor"], side)[1], part,
+                                                   repack_archive=repack_archive)
+                report["source_chunk_offset"] = assets.resource(pid, side, part)[0]
                 changes.append(report)
             _, _, decoded, system, _ = assets.resource(pid, side, "face")
             palette = bytes.fromhex(recipe["face_palette_hex"])
@@ -247,7 +257,8 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None):
             target_lab = skin_lab(rgb_of(neck[neck_system:], 128, 64))
             if video != recolour_face_video(decoded[system:], target_lab):
                 raise ValueError("Skin-tone face palette differs from its donor-derived recolour")
-            patched, report = replace_video(patched, "face", video)
+            patched, report = replace_video(patched, "face", video, repack_archive=repack_archive)
+            report["source_chunk_offset"] = assets.resource(pid, side, "face")[0]
             changes.append(report)
             if patched != original:
                 patches.append((offset, original, patched))
@@ -255,6 +266,7 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None):
                 "proa_id": row["proa_id"], "pid": pid, "skin_tone": row["skin_tone"],
                 "leg_byte": row["leg_byte"], "arm_donor": row["arm_donor"], "neck_donor": row["neck_donor"],
                 "asset": f"p{pid}{side}.iff", "offset": offset, "size": len(original),
+                "new_size": len(patched), "repack_archive": repack_archive,
                 "original_sha256": digest(original), "patched_sha256": digest(patched), "resources": changes,
             })
     return patches, reports
@@ -276,6 +288,6 @@ def save_plan(path, plan):
             temporary.unlink()
 
 
-def load_patches(stream, path, rows=None):
+def load_patches(stream, path, rows=None, *, repack_archive=False):
     plan = json.loads(Path(path).read_text(encoding="utf-8"))
-    return compile_plan(stream, plan, read_rows() if rows is None else rows)
+    return compile_plan(stream, plan, read_rows() if rows is None else rows, repack_archive=repack_archive)

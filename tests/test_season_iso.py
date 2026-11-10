@@ -64,7 +64,7 @@ class SeasonCompositionTests(unittest.TestCase):
                 patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
             report = season.build(self.source, self.output, self.roster, self.workspace,
                                   texture_workspace=native_workspace)
-        self.assertEqual(visual.call_args.kwargs, {"include_courts": False})
+        self.assertEqual(visual.call_args.kwargs, {"include_courts": False, "repack_archive": False})
         self.assertEqual(logos.call_args.args[1:], (native_workspace, court_edits))
         self.assertEqual(report["visuals"]["courts"], report["logos"]["courts"])
         self.assertEqual(self.output.read_bytes()[16:18], b"LL")
@@ -82,7 +82,7 @@ class SeasonCompositionTests(unittest.TestCase):
         copy_plan = [CopySpan(0, 32, data=rendered)]
         archive_report = {"changed_assets": 2}
         with patch.object(season.roster_iso, "prepare", return_value=([self.roster_patch], {})), \
-                patch.object(season.lettering_workspace, "prepare", return_value=([self.visual_patch], {"sources": 1})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([self.visual_patch], {"sources": 1})) as visuals, \
                 patch.object(season.court_colours, "decoded_edits", return_value=[]), \
                 patch.object(season.texture_iso_workspace, "prepare",
                              return_value=([logo_patch], {"courts": []})) as logos, \
@@ -93,6 +93,7 @@ class SeasonCompositionTests(unittest.TestCase):
             report = season.build(self.source, self.output, self.roster, self.workspace,
                                   texture_workspace=self.root / "native", repack_archive=True)
         self.assertEqual(logos.call_args.kwargs, {"repack_archive": True})
+        self.assertEqual(visuals.call_args.kwargs, {"include_courts": False, "repack_archive": True})
         self.assertEqual(plan.call_args.args[1], [self.roster_patch, self.visual_patch, logo_patch])
         self.assertEqual(report["archive"], archive_report)
         self.assertEqual(self.output.read_bytes(), b"RR" + b"A" * 6 + b"VV" + b"A" * 6 + b"LLL" + b"A" * 13)

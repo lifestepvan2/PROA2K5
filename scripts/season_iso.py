@@ -36,12 +36,13 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
             repack_archive: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
     patches, roster_report = roster_iso.prepare(stream, roster)
     if texture_workspace is None:
-        visual_patches, visual_report = lettering_workspace.prepare(stream, workspace, slots, None, skin_plan)
+        visual_patches, visual_report = lettering_workspace.prepare(
+            stream, workspace, slots, None, skin_plan, repack_archive=repack_archive)
         logo_report = None
     else:
         texture_iso_workspace.validate_workspace(workspace)
         visual_patches, visual_report = lettering_workspace.prepare(
-            stream, workspace, slots, None, skin_plan, include_courts=False)
+            stream, workspace, slots, None, skin_plan, include_courts=False, repack_archive=repack_archive)
         logo_patches, logo_report = texture_iso_workspace.prepare(
             stream, texture_workspace, court_colours.decoded_edits(stream, workspace),
             repack_archive=repack_archive)

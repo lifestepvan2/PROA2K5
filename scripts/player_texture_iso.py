@@ -16,7 +16,7 @@ from inventory_lettering_iso import asset_hash
 from iso_copy import hash_stream, publish_iso_copy
 from patch_lettering_iso import ARCHIVE_BASE, ISO_SIZE, digest
 from patch_preview_lettering_iso import SOURCE_SHA256
-from vc_lz import decode, rebuild_tail
+from vc_lz import decode, rebuild_tail, recompress, validate_inplace
 
 PARTS = {"arm": (128, 128), "neck": (128, 64)}
 TEXTURE_SIZES = {**PARTS, "face": (256, 256)}
@@ -66,36 +66,53 @@ def texture_resource(asset: bytes, part: str) -> tuple[int, bytes, bytes, int, i
     return found[0]
 
 
-def replace_texture(asset: bytes, donor: bytes, part: str) -> tuple[bytes, dict]:
+def replace_texture(asset: bytes, donor: bytes, part: str, *, repack_archive: bool = False) -> tuple[bytes, dict]:
     if part not in PARTS:
         raise ValueError(f"Only arm/neck donor substitution is supported, not {part!r}")
     _, _, donor_decoded, donor_system, _ = texture_resource(donor, part)
     pixels = donor_decoded[donor_system:]
-    return replace_video(asset, part, pixels)
+    return replace_video(asset, part, pixels, repack_archive=repack_archive)
 
 
-def replace_video(asset: bytes, part: str, pixels: bytes) -> tuple[bytes, dict]:
+def replace_video(asset: bytes, part: str, pixels: bytes, *, repack_archive: bool = False) -> tuple[bytes, dict]:
     offset, body, original, system, scratch = texture_resource(asset, part)
     if len(pixels) != len(original) - system:
         raise ValueError(f"Incompatible {part} texture storage")
-    rebuilt = rebuild_tail(body, len(original), pixels, scratch)
+    target = original[:system] + pixels
+    new_scratch = scratch
+    header = asset[offset:offset + 32]
+    if repack_archive and target != original:
+        rebuilt, required_scratch = min(
+            (recompress(body, target, distance_bits=bits) for bits in dict.fromkeys((body[8], 9))),
+            key=lambda result: (len(result[0]), result[1]))
+        new_scratch = max(scratch, required_scratch)
+        validate_inplace(rebuilt, target, new_scratch)
+        updated = bytearray(header)
+        struct.pack_into("<I", updated, 4, len(rebuilt))
+        struct.pack_into("<I", updated, 20, new_scratch)
+        header = bytes(updated)
+    else:
+        rebuilt = rebuild_tail(body, len(original), pixels, scratch)
     verified, _, _ = decode(rebuilt, len(original))
     if verified != original[:system] + pixels:
         raise ValueError("Player texture replacement failed decoded readback")
     start, end = offset + 32, offset + 32 + len(body)
-    result = asset[:start] + rebuilt + asset[end:]
-    if (len(result) != len(asset) or result[:start] != asset[:start]
-            or result[end:] != asset[end:]):
+    result = asset[:offset] + header + rebuilt + asset[end:]
+    if (result[:offset] != asset[:offset]
+            or result[offset + 32 + len(rebuilt):] != asset[end:]
+            or (not repack_archive and (len(result) != len(asset) or result[:start] != asset[:start]))):
         raise ValueError("Player texture replacement modified another resource")
     return result, {
         "part": part, "chunk_offset": offset, "body_offset": start,
         "stored_body_size": len(body), "system_size": system,
         "video_size": len(pixels), "scratch_bytes": scratch,
+        "new_stored_body_size": len(rebuilt), "new_scratch_bytes": new_scratch,
+        "asset_size_delta": len(result) - len(asset),
         "original_body_sha256": digest(body), "patched_body_sha256": digest(rebuilt),
         "descriptor_sha256": digest(original[:system]),
         "original_pixels_sha256": digest(original[system:]),
         "donor_pixels_sha256": digest(pixels),
-        "changed_bytes": sum(a != b for a, b in zip(body, rebuilt)),
+        "changed_bytes": sum(a != b for a, b in zip(body, rebuilt)) + abs(len(body) - len(rebuilt)),
     }
 
 

@@ -216,10 +216,16 @@ Active overrides without both ISO options are refused.
 
 The planner excludes donors whose keys collide with legacy light-reserve PNGs;
 legacy face/neck generation skips manual-tone players and prunes old managed
-output. Original fixed resource spans/scratch limits are preserved: compression
-failure tries another safe donor in the requested bucket, then aborts explicitly
-if none fits. Some PIDs cannot fit every bucket; use a different face PID or 0
-rather than a mismatched leg-only override. Cached/manual face choices are not
+output. By default, original fixed resource spans/scratch limits are preserved:
+compression failure tries another safe donor in the requested bucket, then aborts
+explicitly if none fits. `update_season.py --repack-archive` instead enables
+lossless growth during both face matching and final compilation; its arm, neck
+and face edits are pooled with other mods inside the existing archive extents.
+This keeps donor pixels, target geometry and face indices/alpha intact. The saved
+plan requires a matching repacking build; no donor asset is globally recoloured.
+The roster's leg selector remains independent of the model-local arm TXTR.
+Without repacking, some PIDs cannot fit every bucket; use a different face PID or
+0 rather than a mismatched leg-only override. Cached/manual face choices are not
 silently changed to make a donor fit. Resetting to automatic needs an explicit
 CSV 0 and a fresh combined build from the pristine source.
 See [Manual complexion workflow](SeasonUpdateWorkflow.md#manual-complexion-workflow).

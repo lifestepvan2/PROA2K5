@@ -11,7 +11,7 @@ import player_texture_iso as iso
 from player_texture_iso import inspect, replace_texture, texture_resource
 from inventory_lettering_iso import asset_hash
 from patch_lettering_iso import digest
-from vc_lz import decode, rebuild_tail
+from vc_lz import decode, rebuild_tail, recompress, validate_inplace
 
 
 def resource(part, value, capacity=None):
@@ -43,7 +43,51 @@ def asset(value):
     return resource("face", 42) + resource("arm", value) + resource("neck", value) + scene
 
 
+def compact_asset(original):
+    parts, position = [], 0
+    while position < len(original):
+        header = bytearray(original[position:position + 32])
+        kind, stored, system, video, sentinel, _, _, _ = struct.unpack("<4s7I", header)
+        body = original[position + 32:position + 32 + stored]
+        if kind == b"TXTR" and sentinel == 0xFEEDBEEF:
+            target = decode(body, system + video)[0]
+            body, scratch = recompress(body, target)
+            struct.pack_into("<I", header, 4, len(body))
+            struct.pack_into("<I", header, 20, max(16, scratch))
+        parts.append(bytes(header) + body)
+        position += 32 + stored
+    return b"".join(parts)
+
+
 class PlayerTextureIsoTests(unittest.TestCase):
+    def test_repack_grows_arm_losslessly_and_preserves_every_sibling_and_descriptor(self):
+        original = compact_asset(asset(20))
+        donor = resource("arm", random.Random(19).randbytes(128 * 128 + 1024))
+        with self.assertRaisesRegex(ValueError, "fixed span"):
+            replace_texture(original, donor, "arm")
+        patched, report = replace_texture(original, donor, "arm", repack_archive=True)
+        pos, body, decoded, system, _ = texture_resource(original, "arm")
+        new_pos, rebuilt, target, new_system, scratch = texture_resource(patched, "arm")
+        self.assertEqual((new_pos, new_system), (pos, system))
+        self.assertGreater(len(patched), len(original))
+        self.assertEqual(patched[:pos], original[:pos])
+        self.assertEqual(patched[pos + 32 + len(rebuilt):], original[pos + 32 + len(body):])
+        self.assertEqual(target[:system], decoded[:system])
+        self.assertEqual(target[system:], texture_resource(donor, "arm")[2][system:])
+        self.assertEqual(len(rebuilt) % 16, 0)
+        validate_inplace(rebuilt, target, scratch)
+        self.assertEqual(report["asset_size_delta"], len(patched) - len(original))
+        header = struct.unpack_from("<4s7I", patched, pos)
+        self.assertEqual((header[1], header[5]), (len(rebuilt), scratch))
+        for part in ("face", "neck"):
+            self.assertEqual(texture_resource(original, part)[1:], texture_resource(patched, part)[1:])
+
+    def test_repack_identical_pixels_remains_byte_identical(self):
+        original = compact_asset(asset(20))
+        patched, report = replace_texture(original, original, "arm", repack_archive=True)
+        self.assertEqual(patched, original)
+        self.assertEqual((report["changed_bytes"], report["asset_size_delta"]), (0, 0))
+
     def test_planner_changes_only_both_target_assets(self):
         archive_base = 0x100
         image = bytearray(0xC100)

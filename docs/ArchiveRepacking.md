@@ -77,6 +77,18 @@ Both standalone builders and `update_season.py` accept `--repack-archive`.
 `update_season.py` forwards it to preflight and final composition; it cannot be
 used in card-only/build-only mode. Always select a new output path and boot fresh.
 
+For manual complexion overrides, the same option is passed to `face_match.py`
+and the final skin-plan compiler. Arm/neck donor selection and face recolouring
+must not enforce old fixed spans while the final publisher uses pooled storage.
+The saved recipe records this requirement, and compilation rejects a repacking
+recipe without the option. All three resource edits are assembled into the
+target player package before assigning new sectors.
+
+For example, PID 981 with tone-3 arm/neck donor 126 needs a 16,272-byte arm body
+instead of its 14,464-byte original. Lossless recompilation changes each home/away
+package from 103,600 to 105,328 bytes: one extra sector per side, not a new face
+PID or a lower-quality donor. The source donor packages remain untouched.
+
 For read-only class-policy trials, the native standalone command additionally
 accepts `--palette-colors 128` (or 64/32/16). This is a default for encoded logo
 and centerlogo output from edited masters, not an edit to masters or saved policy.
@@ -149,6 +161,7 @@ one consolidated cold-boot review covers the following catalogue:
 | Unchanged-artwork relocation control | Can a relocated, visually unchanged package load after a cold boot? |
 | Frontend | Do Essen and two control teams display correct large/small logos, team-selection UI and preview models? |
 | Grown scene | Does Essen's home court load with its center badge, floor, court controls, arena and both teams intact? |
+| Grown player texture | Do PID 981's home/away models retain the intended face and matching arms, neck and stock leg tone after fresh loads? |
 | Unrelated package preservation | Do a non-ProA team and a second arena load with their original artwork? |
 | Resource lifetime | Do away/home rematches and repeated frontend-to-match transitions remain stable? |
 | Boundary streaming | Does an actual package crossing an archive segment boundary read correctly? |

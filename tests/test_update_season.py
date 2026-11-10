@@ -82,6 +82,8 @@ class SeasonIsoTests(unittest.TestCase):
         calls = [call.args for call in runner.call_args_list if call.args[0] == "season_iso.py"]
         self.assertEqual(len(calls), 2)
         self.assertTrue(all("--repack-archive" in call for call in calls))
+        casting = next(call.args for call in runner.call_args_list if call.args[0] == "face_match.py")
+        self.assertEqual(casting, ("face_match.py", "--iso-source", "clean.iso", "--repack-archive"))
         with patch.object(season, "run") as runner, contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
                 self.invoke(["--iso-source", "clean.iso", "--build-only", "--repack-archive"], runner)
