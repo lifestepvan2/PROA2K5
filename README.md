@@ -17,4 +17,15 @@ roster. Companion of the 2K26 live-memory project; only its data pipeline is reu
 ## Status
 - Names: proven live (RAM patch) and via the memory-card roster file (strings may be lengthened/relocated).
 - Textures: PCSX2 replacement PNGs named after the dump keys work.
-- Next: `scripts/build_roster.py` - generate a complete roster payload from the ProA data and write it to the card.
+- Roster deployment is ISO-first: `scripts/update_season.py` builds from the pristine European disc roster,
+  embeds the ProA default roster alongside lettering/court/year/skin patches, and optionally exports the same
+  payload to a memory card. Portrait/logo/legacy skin PNGs still require PCSX2 replacements.
+
+```powershell
+python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ProA.iso"
+```
+
+Use a new output path and boot fresh, without loading an older roster or savestate.
+Add `--card PATH` for an additional card export; `--card-only --card PATH` or `--build-only`
+are explicit alternatives to ISO publication (both still require `--iso-source`).
+See [season setup and commands](docs/SeasonUpdateWorkflow.md#iso-first-roster-deployment).

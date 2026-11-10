@@ -12,10 +12,12 @@ YEAR_ISO_OFFSET = 0x284F18
 ELF_ISO_OFFSET, CRC_PADDING_OFFSET = 0x90000, 0xFC
 
 
-def prepare_year_patch(stream, year):
+def prepare_year_patch(stream, year, elf_delta=0):
     """Only the verified Europe player-card label instruction; never the game calendar."""
     if isinstance(year, bool) or not isinstance(year, int) or not 1900 <= year <= 9999:
         raise ValueError("Stats label year must be an integer in 1900..9999")
+    if isinstance(elf_delta, bool) or not isinstance(elf_delta, int) or not 0 <= elf_delta <= 0xFFFFFFFF:
+        raise ValueError("Additional ELF CRC delta must be a uint32")
     stream.seek(ELF_ISO_OFFSET)
     header = stream.read(0x100)
     if (header[:7] != b"\x7fELF\x01\x01\x01" or len(header) != 0x100
@@ -34,18 +36,19 @@ def prepare_year_patch(stream, year):
         raise ValueError("Unexpected European player-card year-rendering code")
     before = struct.pack("<I", 0x2603F822)
     after = struct.pack("<I", 0x26030000 | (-(year + 10) & 0xFFFF))
-    delta = int.from_bytes(before, "little") ^ int.from_bytes(after, "little")
+    delta = int.from_bytes(before, "little") ^ int.from_bytes(after, "little") ^ elf_delta
     # PCSX2 identifies games by XOR of ELF words. Compensate in the verified
     # nonloaded header padding so existing texture and per-game settings still apply.
-    patches = ([(YEAR_ISO_OFFSET, before, after),
-                (ELF_ISO_OFFSET + CRC_PADDING_OFFSET, bytes(4), struct.pack("<I", delta))]
-               if delta else [])
+    patches = [(YEAR_ISO_OFFSET, before, after)] if before != after else []
+    if delta:
+        patches.append((ELF_ISO_OFFSET + CRC_PADDING_OFFSET, bytes(4), struct.pack("<I", delta)))
     return patches, {
         "label_anchor": year, "ee_address": "0x2f4e18", "iso_offset": hex(YEAR_ISO_OFFSET),
         "original": before.hex(), "replacement": after.hex(),
         "pcsx2_crc_preserved": True,
         "crc_padding_iso_offset": hex(ELF_ISO_OFFSET + CRC_PADDING_OFFSET),
         "crc_padding_replacement": struct.pack("<I", delta).hex(),
+        "additional_elf_crc_delta": elf_delta,
         "scope": "player-card season labels only; calendar and birth dates unchanged",
     }
 

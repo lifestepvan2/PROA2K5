@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `3ebb2b08`
+- payload: 725056 bytes, CRC32 `2dac7778`
 - teams: 18, players: 252
 - string pool: free before 4000 B, freed 12806 B, free after 4700 B (largest block 4000 B)
 - stats: 252 players, 127524/175184 B; season labels require ISO anchor 2026

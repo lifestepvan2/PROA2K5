@@ -311,11 +311,12 @@ broader in-emulator acceptance still remains.
    colours. Reference colours are automatically inferred for the generic outlined
    mode; nothing is seeded from `colorjersey1/2`.
    `colorui1/2` remain exclusively roster controls.
-3. `update_season.py` accepts paired `--iso-source` / `--iso-out` options and optional
-   `--team-palettes` (`--lettering-workspace` remains an alias). It runs read-only lettering/court preflight before scraping,
+3. `update_season.py` is ISO-first, requiring `--iso-source` / `--iso-out` and optional
+   `--team-palettes` (`--lettering-workspace` remains an alias). It runs read-only roster/lettering/court preflight before scraping,
    roster/card writes or replacement generation, then builds the ISO after the last
-   logo-generation step. Normal runs neither require an ISO nor invoke this stage.
-   See [season commands](SeasonUpdateWorkflow.md#optional-lettering-iso-stage).
+   logo-generation step. `season_iso.py` embeds the default roster alongside all visual/year/skin patches
+   in one publication. Explicit `--card-only` / `--build-only` modes skip ISO publication.
+   See [season commands](SeasonUpdateWorkflow.md#iso-first-roster-deployment).
 4. Build a new output from a verified pristine source, never cumulatively edit an
    unknown image. Validate every original chunk/palette, apply equal-size patches,
    verify the whole expected output hash and unchanged bytes elsewhere, then publish

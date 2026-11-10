@@ -150,6 +150,16 @@ class RosterStatsTests(unittest.TestCase):
             original_crc ^= int.from_bytes(before, "little") ^ int.from_bytes(after, "little")
         self.assertEqual(original_crc, 0)
         self.assertEqual(stats.prepare_year_patch(io.BytesIO(data), 2004)[0], [])
+        for year in (2004, 2026):
+            additional = 0x0C05E998
+            combined, _ = stats.prepare_year_patch(io.BytesIO(data), year, additional)
+            delta = additional
+            for _, before, after in combined:
+                delta ^= int.from_bytes(before, "little") ^ int.from_bytes(after, "little")
+            self.assertEqual(delta, 0)
+        for invalid in (-1, 0x100000000, True, 1.5):
+            with self.assertRaises(ValueError):
+                stats.prepare_year_patch(io.BytesIO(data), 2026, invalid)
         for year in (True, 1800, 10000, 2026.5):
             with self.assertRaises(ValueError):
                 stats.prepare_year_patch(io.BytesIO(data), year)

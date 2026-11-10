@@ -1,6 +1,6 @@
 """Build a ProA roster payload for NBA 2K5 (PS2) from the cached ProA data.
 
-Takes the roster-save payload (extracted from the memory card), replaces team
+Takes the pristine ISO's default roster (or an explicit legacy save payload), replaces team
 names and the player names/rosters/starters of the 18 NBA team slots in data/team_slots.csv (12-29) with
 the 18 ProA teams, repacks the string pool (ref-counted, first/best-fit
 allocator, size unchanged), recomputes CRC32 into EXTRA and optionally writes
@@ -8,6 +8,7 @@ the result into the virtual memory card (PCSX2 must be closed).
 
 Usage:
   python scripts/build_roster.py                      # dry run: payload + reports only
+  python scripts/build_roster.py --iso-source CLEAN   # build from the disc, without a card dump
   python scripts/build_roster.py --card CARD          # also write the card
 Reports: data/roster_build/{payload_proa.bin,extra_proa.bin,player_map.csv,team_map.csv,report.md}
 Payload layout: see docs/roster_payload_format.md
@@ -19,6 +20,7 @@ import csv
 import json
 import re
 import struct
+import subprocess
 import sys
 import zlib
 from pathlib import Path
@@ -449,7 +451,9 @@ def load_pids(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", default=str(ROOT / "data/roster_test/payload_current.bin"))
+    source = ap.add_mutually_exclusive_group()
+    source.add_argument("--base", help="legacy save payload (default without --iso-source: data/roster_test/payload_current.bin)")
+    source.add_argument("--iso-source", type=Path, help="verified pristine Europe ISO; no memory-card baseline needed")
     ap.add_argument("--proa", default=str(ROOT / "proa_scraped.xlsx"))
     ap.add_argument("--pids", default=str(ROOT / "data/face_match/proa_pid_map.csv"),
                     help="csv from face_match.py: proa_id, pid (automatic), override_pid (manual, wins) -> player model")
@@ -472,7 +476,13 @@ def main():
 
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    pl = Payload(Path(a.base).read_bytes())
+    if a.iso_source is not None:
+        from roster_iso import baseline, read_source
+        with a.iso_source.open("rb") as stream:
+            base_data = baseline(read_source(stream))
+    else:
+        base_data = Path(a.base or ROOT / "data/roster_test/payload_current.bin").read_bytes()
+    pl = Payload(base_data)
     stats_source = None
     if not a.no_stats:
         stats_source = json.loads(a.stats.read_text(encoding="utf-8"))
@@ -620,7 +630,7 @@ def main():
         o = int(p["offset"], 16)
         assert pl.str_at(o + P_LAST) == p["last"] and pl.str_at(o + P_FIRST) == p["first"]
         assert pl.str_at(pl.target(o)) == p["college"]
-    assert len(pl.d) == Path(a.base).stat().st_size
+    assert len(pl.d) == len(base_data)
 
     stats_report = None
     if stats_source is not None:
@@ -630,6 +640,9 @@ def main():
             "requires_iso_year_patch": stats_anchor != 2004,
         }, indent=2) + "\n", encoding="utf-8")
     data = bytes(pl.d)
+    if a.iso_source is not None:
+        from roster_iso import validate_payload
+        validate_payload(data)
     crc = struct.pack("<I", zlib.crc32(data) & 0xFFFFFFFF)
     (out / "payload_proa.bin").write_bytes(data)
     (out / "extra_proa.bin").write_bytes(crc)
@@ -666,10 +679,8 @@ def main():
     print(f"{len(notes)} notes (see report.md)")
 
     if a.card:
-        from mc_write import write_file, verify_card
-        write_file(a.card, CARD_DIR + "BESLES-53022Roster1", data)
-        write_file(a.card, CARD_DIR + "EXTRA", crc)
-        print("written to", a.card)
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "card_patch.py"),
+                        "--bin", str(out / "payload_proa.bin"), "--card", a.card], cwd=ROOT, check=True)
 
 
 if __name__ == "__main__":

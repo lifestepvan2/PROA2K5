@@ -15,6 +15,15 @@ def hash_stream(stream: BinaryIO) -> str:
     return result.hexdigest()
 
 
+def validate_patches(patches: list[tuple[int, bytes, bytes]], size: int) -> None:
+    previous_end = 0
+    for offset, before, after in sorted(patches):
+        if (offset < previous_end or not before or len(before) != len(after)
+                or offset + len(before) > size):
+            raise ValueError("ISO patches must be disjoint, equal-size spans within the image")
+        previous_end = offset + len(before)
+
+
 def publish_iso_copy(
     stream: BinaryIO, output: Path, patches: list[tuple[int, bytes, bytes]],
     source_hash: str, size: int, manifest: dict, manifest_path: Path,
@@ -23,12 +32,7 @@ def publish_iso_copy(
         raise ValueError("Output ISO or manifest already exists; choose a new output path")
     if not output.parent.is_dir():
         raise ValueError("Output parent directory does not exist")
-    previous_end = 0
-    for offset, before, after in sorted(patches):
-        if (offset < previous_end or not before or len(before) != len(after)
-                or offset + len(before) > size):
-            raise ValueError("ISO patches must be disjoint, equal-size spans within the image")
-        previous_end = offset + len(before)
+    validate_patches(patches, size)
     temporary = None
     manifest_created = published = False
     try:

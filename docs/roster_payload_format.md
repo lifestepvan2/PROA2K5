@@ -6,6 +6,80 @@ in the `EXTRA` blob). After loading, payload offset `X` lives at PS2 RAM `0xA95B
 Tooling: `scripts/mc_inspect.py` (extract), `scripts/mc_write.py` (write in place + ECC),
 `scripts/build_roster.py` (build the ProA payload), `scripts/card_patch.py` (versioned `data/roster.bin` <-> card).
 
+## Disc default roster and ISO export
+
+The verified European ISO contains uncompressed `roster.iff`, archive entry 3,
+filename hash `0x4A37581D`, at ISO `0xBCB800`, length `0x87340`.
+Its SHA256 is `bb87308ff4136a5fc8a1f4b495b9ad5ff5ea531f1ac4f8030422cc26bcb2b5b6`.
+
+The native resource header describes `0x87320` stored/system bytes and zero video bytes.
+Its object has a 32-byte UTF-16 resource-name block at `0x40..0x5F`; table descriptors
+start at `0x60`. Removing that name block aligns every descriptor, table and string
+with the save-layout offsets documented below. Every relative pointer remains valid:
+its field and target move together. The native object flags/descriptor pointer at
+`0x30/0x34` are `0x11/0x2D`; the unnamed save representation uses `0/0x0D`.
+
+`scripts/roster_iso.py` verifies the pristine source, removes the name block,
+normalizes the unnamed resource header and zero-pads to the existing `0xB1040`
+card-file size. This supplies a reproducible baseline without any card dump.
+The card header is **not** the generic disc resource header: `+0x0C` must
+contain `0x872E0`, the descriptor/data copy length starting at `+0x40`.
+The card loader at EE `0x179E00` copies that many bytes before relocating
+pointers with `0x17AB40`. Setting it to zero produces a successful-load
+dialog but leaves tagged pointers in RAM instead of a usable roster.
+`+0x08` is the optional auxiliary snapshot length; disc-derived builds set
+it to zero, which the loader explicitly supports, retaining initialized
+auxiliary state rather than importing a personal save's snapshot.
+The builder's allocator still uses the original gap/reclaimed strings, not the
+extra card padding. Final validation checks table descriptors, player/college/team/
+arena string pointers, history streams, and that all bytes at normalized offset
+`0x87320` onward remain zero.
+
+ISO export restores the pristine native prologue/name and copies normalized
+`0x40..0x8731F` back to disc offset `0x60`. The archive entry, resource length,
+sector positions and ISO size remain unchanged. The save-only padding is not
+embedded, and no card `EXTRA` checksum is written into the archive.
+
+The default-roster startup path also needs a code patch: its call at EE
+`0x1B0834` (ISO `0x140934`) invokes `0x17A660`, which removes the season
+ordinal matching each player's Years Pro. It marks removed entries with
+`0x10000000` and can clear single-season players' entire history pointer.
+That initialization is appropriate for the original NBA defaults, but would
+discard the newest embedded ProA season. ISO export replaces only this
+verified startup `jal` (`0x0C05E998`) with a NOP, checking its surrounding
+instructions first. Other callers, including the season-rollover call at
+EE `0x2DB7A0`, are left unchanged; this is not a global statistics-delete patch.
+
+The startup instruction's XOR delta and the year-label instruction's delta share
+one compensation word in the previously verified nonloaded ELF padding at
+ISO `0x900FC`. The composed patch keeps PCSX2 CRC `CA37B42E`; a 2026 build
+uses compensation word `0x0C05E9B6`. Standalone visual-only year patching
+still uses only its own year delta.
+
+`scripts/season_iso.py` composes this patch with the existing lettering/court/year/
+skin patches, rejects overlaps, and publishes one fully verified new image with a
+`.season.json` manifest. The same final `payload_proa.bin` can be exported through
+`card_patch.py`, which handles its separate CRC, ECC, backup and read-back.
+See [ISO-first commands](SeasonUpdateWorkflow.md#iso-first-roster-deployment).
+
+Cold-boot validation used isolated PCSX2 2.8.2, both memory cards disabled,
+no savestate, cheats or texture replacements. All 252 ProA players' names,
+ratings, PIDs, attributes and accessories, all 54 roster/starter lists and
+team colours, all 457 college rows and all 86 arena rows matched the built
+payload: 15,301 checks. The entire fixed history pool was byte-identical,
+including the newest seasons and single-season histories. The 2026 label
+instruction and unchanged PCSX2 CRC were independently verified in the booted game.
+The in-game Manage Roster > Reset Roster command was also tested after changing
+one rating in isolated RAM: it restored the embedded ProA value, and all 15,301
+checks passed again with the history pool still byte-identical.
+
+The optional card export was independently loaded through the game's Load/Save
+menu on the pristine disc, using a disposable copy of a card. After acknowledging
+the success dialog (which precedes applying the roster), all 15,301 checks
+passed, including the complete history pool. The exported bytes were identical
+to the final build payload; CRC/ECC/read-back verification introduced no new
+card errors. Original cards and emulator settings were not modified.
+
 ## Hex-editing workflow
 
 `data/roster.bin` is the versioned payload (0xB1040 bytes). Edit it with a hex editor, then, with PCSX2 closed:

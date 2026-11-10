@@ -1,7 +1,8 @@
 # Season update workflow
 
-Rebuilds the game's ProA roster for a new season. Everything below the *manual prerequisites* is chained by
-`python scripts/update_season.py --season 2026_2027 --card "<Mcd001.ps2>"` (PCSX2 must be closed for `--card`).
+Rebuilds the game's ProA roster for a new season and embeds it as the disc's default roster.
+The [ISO-first command](#iso-first-roster-deployment) chains everything below the *manual prerequisites*.
+An optional `--card PATH` exports the same final payload (PCSX2 must be closed for card writes).
 
 ## Pipeline (automated)
 
@@ -9,20 +10,21 @@ Rebuilds the game's ProA roster for a new season. Everything below the *manual p
 |---|------|--------|--------|
 | 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
-| 3 | Provisional payload/player list; defer manual complexion leg changes | `build_roster.py --prepare-faces` | `data/roster_build/player_map.csv` |
+| 3 | Provisional payload/player list from the pristine disc; defer manual complexion leg changes | `build_roster.py --iso-source PRISTINE --prepare-faces` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
 | 5 | Match new players to NBA face models and prepare requested model-local skin recipes (cached players keep their pid, overrides win) | `face_match.py [--iso-source PRISTINE]` | `data/face_match/proa_pid_map.csv`, `skin_tone_plan.json`, `docs/_face_sheets/` |
-| 6 | Build payload, pass 2 (pids and validated manual leg bytes applied) | `build_roster.py` | payload, `report.md` |
+| 6 | Build payload, pass 2 (pids and validated manual leg bytes applied) | `build_roster.py --iso-source PRISTINE` | payload, `report.md` |
 | 7 | Lineup headshots (pid-keyed) and team icons | `gen_replacements.py` | PCSX2 `replacements\` |
 | 8 | Logo textures | `gen_logo_replacements.py` | PCSX2 `replacements\` |
 | 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
-| 10 | Optional single combined lettering/court/stats-year/skin ISO publication | `lettering_workspace.py build --skin-plan ...` | new ISO and manifest |
-| 11 | Optional card write, only after all requested ISO work succeeds | `build_roster.py --card ...` | memory card |
+| 10 | Single combined default-roster/lettering/court/stats-year/skin ISO publication | `season_iso.py build --roster ... --skin-plan ...` | new ISO and `.season.json` manifest |
+| 11 | Optional export of the exact step-6 payload, only after requested ISO work succeeds | `card_patch.py --bin ... --card ...` | backed-up, verified memory card |
 
-With ISO options, a read-only lettering/court preflight runs before step 1 and ISO
-publication runs after all replacements (the final script is `gen_logo_replacements.py`).
-Neither stage runs without explicit ISO options. Nonzero `Skin Tone` requires
-both options; the workflow stops before building a roster if they are missing.
+A read-only roster/lettering/court preflight runs before step 1; publication runs
+after all replacements (the final generator is `gen_logo_replacements.py`).
+The pristine ISO supplies the roster baseline in every mode; no memory-card extraction is needed.
+`--card-only` and `--build-only` skip visual ISO preflight/publication but still verify the disc roster.
+Nonzero `Skin Tone` requires an ISO output; alternative modes stop before building a roster.
 
 ### Persistent player edits and exclusions
 
@@ -189,23 +191,35 @@ workflow with PCSX2 closed.
 Labels use season start years: 2026/2027 displays 2026. Years Pro becomes the
 contiguous history span, including gaps; zero-game gaps are hidden by the
 game. The ISO stage automatically adds the matching season-label anchor.
-Without ISO options, counts are embedded but labels still require a separately
+In card-only/build-only mode, counts are embedded but labels still require a separately
 patched ISO. See the [verified format and rounding limits](roster_payload_format.md#historical-player-statistics).
 
-### Optional lettering ISO stage
+### ISO-first roster deployment
 
 Export and edit the [all-30-slot colour-control workspace](JerseyTextureWorkflow.md#simple-colour-controls-recommended)
 first. The ISO source must be the verified untouched European original, not a prior
-patched copy. Run the normal season update with both ISO flags:
+patched copy. Use a new output path:
 
 ```powershell
 python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
 ```
 
-Add `--card "<Mcd001.ps2>"` to write the roster as usual (PCSX2 must be closed).
+Add `--card "<Mcd001.ps2>"` to export the same final roster after ISO publication (PCSX2 must be closed).
+The card exporter backs up the card, updates CRC/ECC and verifies read-back; it does not rebuild the roster.
+
+Explicit alternatives, still using the pristine disc as the baseline:
+
+```powershell
+python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --card-only --card "<Mcd001.ps2>"
+python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --build-only
+```
+
+Omitting `--iso-out` without one of these modes now fails with usage guidance, rather than silently
+producing a roster that is not deployed. `--build-only` cannot write a card; neither alternative accepts `--iso-out`.
+
 `--team-palettes PATH` overrides `texture_workspace/team_palettes` for both roster
-and ISO stages (`--lettering-workspace` remains an alias). It also works without ISO
-flags for roster-only runs. A missing/mismatched workspace, invalid palette, compressed edit
+and ISO stages (`--lettering-workspace` remains an alias). It also works in alternative
+modes. A missing/mismatched workspace, invalid palette, compressed edit
 that does not fit, or existing output fails preflight before pipeline side effects.
 
 New assignments require a new workspace and explicit palette migration.
@@ -215,14 +229,27 @@ lettering, or use `outlined` with three base colours. `palette` retains legacy
 swatch editing. Export refreshes previews; the pipeline derives palettes in memory
 from these controls without rewriting them.
 
-The ISO stage patches shared number/name RGB, courts with `court.mode=recolour`,
-and the player-card season-label anchor matching `--season`. It does **not** embed the roster
-or PCSX2 replacement textures into the ISO. Number swatches update court and preview
+The ISO stage embeds the complete final default roster: names, teams, starters, ratings,
+PIDs, accessories, colleges, arena names and historical statistics. It also patches shared
+number/name RGB, courts with `court.mode=recolour`, the player-card season-label anchor
+matching `--season`, and requested model-local skin recipes. It does **not** embed
+PCSX2 portrait/logo/legacy skin replacement PNGs. This is the **roster-portable milestone**,
+not yet a fully portable visual mod. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
-The source remains untouched and an adjacent `.lettering.json` records verified
-patches and source/output hashes. Boot the new ISO **fresh**; F10 reloads replacements,
-not ISO lettering. Omit both ISO flags to preserve the original roster-only workflow.
+The source remains untouched and an adjacent `.season.json` records roster and visual
+patch fingerprints plus full source/output hashes. All changes are composed against the
+same pristine source and published once; never chain patchers over previous outputs.
+Final roster storage and all patch overlaps are validated before publication.
+
+Boot the new ISO **fresh**, with no savestate or old roster loaded. Disable both card
+slots for an unambiguous default-roster test. Existing saved rosters can replace disc
+defaults when loaded; existing franchise/season saves are not migrated. F10 reloads
+replacement textures, not the embedded roster or ISO assets.
+
+Standalone `lettering_workspace.py check/build` remains available for visual-only builds;
+its `.lettering.json` output does not embed a roster. Standalone `build_roster.py --base PATH`
+retains the legacy save-baseline workflow for experiments; season automation never uses it.
 
 ## Ratings website (GitHub Pages)
 
@@ -242,7 +269,8 @@ or the build scripts. Nothing is committed back; the site is a deploy artifact.
 `skin_brighten.py scan` / `embed` are one-off setup steps (rerun only after new face dumps).
 
 Afterwards: review `docs/_face_sheets/` (edit `override_pid` in `proa_pid_map.csv` and re-run steps 6-7 for corrections), then
-press F10 in PCSX2 (textures) and start a new game from the card (roster).
+press F10 in PCSX2 for replacement textures and rebuild/cold-boot the ISO for roster changes.
+For card-only exports, load the updated roster from the card instead.
 
 ## Manual prerequisites when the set of clubs changes
 
@@ -279,7 +307,7 @@ arena names, and reports UI colours in `team_map.csv`. The separate `--arenas` o
 has been removed. Hex UI values must have exactly six digits, optionally prefixed by `#`.
 
 Shared lettering and court settings live in the same documents but are independent
-of jersey/UI values, and use the [opt-in ISO stage](#optional-lettering-iso-stage).
+of jersey/UI values, and use the [combined ISO stage](#iso-first-roster-deployment).
 
 ## Not automated
 

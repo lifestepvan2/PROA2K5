@@ -1,12 +1,15 @@
 # ProA on NBA 2K5 (PS2) - plan and todo list
 
-Workflow: `scripts/build_roster.py` builds a roster payload from `proa_scraped.xlsx` and writes it to the
-virtual memory card; load it in-game (Load/Save > Roster1). Details: `docs/roster_payload_format.md`,
+Workflow: `scripts/update_season.py --iso-source PRISTINE --iso-out NEW` builds from the disc baseline
+and embeds the ProA default roster in one combined ISO. Card export remains optional (`--card`, or
+`--card-only --card`); portraits/logos/legacy skin PNGs still use PCSX2 replacements. Details: `docs/roster_payload_format.md`,
 `docs/player_record_layout.md`, `docs/roster_budget_plan.md`.
 
 ## Done
 - [x] Data pipeline and cached data copied over; PCSX2 attach/inspection (PINE, RAM, screenshots, key input)
 - [x] Memory card roster read/write (in place, ECC + CRC)
+- [x] Native `roster.iff` ISO export without a memory-card baseline; combined roster/visual/year/skin publication,
+      explicit card-only/build-only alternatives and optional verified export of the identical final card payload
 - [x] Team names/abbreviations/cities, player names (relocated strings, longer names work)
 - [x] Rosters and starters for 18 ProA teams in NBA slots 12-29 (final mapping `data/team_slots.csv`; Falcons = Pistons slot 21, Gottingen = Lakers slot 15, so the default Quick Match is a full ProA game)
 - [x] Jersey, position, height, weight, years pro, birthday, 19 ratings written and verified in-game (ratings confirmed correct)
