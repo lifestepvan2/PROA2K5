@@ -1,0 +1,671 @@
+{
+  "schema": 1,
+  "source_sha256": "4cdad2339dbe2828b440ca222f869f234b15c0321c8dcdeac016a30b10678fb7",
+  "images": {
+    "1c316a56a1e54e9002cdd371de241c034cc649da7fb47a0b37cf4ee8a398766c": {
+      "slot": 12,
+      "reference_box": [
+        2,
+        36,
+        254,
+        220
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "929d5bd28eb289092070e58bef04a06739ff36adcec9285822aabf5432e94532": {
+      "slot": 12,
+      "reference_box": [
+        2,
+        36,
+        254,
+        220
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        -0.2422,
+        0.125,
+        0.75,
+        0.75
+      ]
+    },
+    "4c7bd8a715894243fbab82a192a8c76f8ab41e6d03a7208ad40a789142e00d35": {
+      "slot": 12,
+      "reference_box": [
+        2,
+        36,
+        254,
+        220
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.4922,
+        0.1328,
+        0.75,
+        0.75
+      ]
+    },
+    "6f7d55d13535f2b338fe6a3b869ec4dbf4ea41e155ad2775dfe9be32ca9ce8f9": {
+      "slot": 13,
+      "reference_box": [
+        27,
+        1,
+        231,
+        250
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "2890d415d9854f89969b838a6494f233916e26eeecdc9588db73cfeb5ff5db73": {
+      "slot": 13,
+      "reference_box": [
+        27,
+        1,
+        231,
+        250
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0078,
+        -0.0078,
+        1.0,
+        1.0
+      ]
+    },
+    "f58037b33570bdeaa1b5391213cf30f78044780829754d9fb24f1f67a67c46cf": {
+      "slot": 13,
+      "reference_box": [
+        27,
+        1,
+        231,
+        250
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0078,
+        -0.0078,
+        1.0,
+        1.0
+      ]
+    },
+    "5649c6c594ff3656d1825013397a82b00ae2390114726aceb11052aad7c9b5fc": {
+      "slot": 14,
+      "reference_box": [
+        2,
+        28,
+        254,
+        228
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "5fea0e32483cf549264d062a971bd990756fe5528eb16a97af605a6abd55cd78": {
+      "slot": 14,
+      "reference_box": [
+        2,
+        28,
+        254,
+        228
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        -0.1016,
+        1.0,
+        1.0
+      ]
+    },
+    "de883ba4b83c567220633a77a747e57d32969e852b792eec1dcbdead53ccd371": {
+      "slot": 15,
+      "reference_box": [
+        2,
+        50,
+        254,
+        206
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "5f140c98b0bd41d49176fc5fbfc5fa20667498586c986b4de606e53d3ab0dfad": {
+      "slot": 15,
+      "reference_box": [
+        2,
+        50,
+        254,
+        206
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        -0.0312,
+        0.2656,
+        0.5,
+        0.5
+      ]
+    },
+    "1f352bedc19ee118748adca9e1e3f0e90dd645585693cde01b5b0dfff4a83782": {
+      "slot": 15,
+      "reference_box": [
+        2,
+        50,
+        254,
+        206
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.5312,
+        0.2422,
+        0.5,
+        0.5
+      ]
+    },
+    "c6da6a9cecd5f7903fa0d2460e8ad8effe87ed031747e27377e4e0a8c26f1d1a": {
+      "slot": 16,
+      "reference_box": [
+        2,
+        4,
+        254,
+        251
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "7873ec4bb2bebb6341dafafbc01eadd779935f6972f98216865909c52f254c4d": {
+      "slot": 16,
+      "reference_box": [
+        2,
+        4,
+        254,
+        251
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "58ee9fa1db5e03b07b187393eb3b259ef8005002a7e991b40b77e804214c8850": {
+      "slot": 17,
+      "reference_box": [
+        2,
+        2,
+        254,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "c8cee710c4853128fbc8f5c328c382f5721df1c97a2abd74c61d41d9cbb3c9ed": {
+      "slot": 17,
+      "reference_box": [
+        2,
+        2,
+        254,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "ba1e98b0d6ac25a1b11ca7fc03e881fd45b9213c9bc63d001cf2ac8b739a7f60": {
+      "slot": 17,
+      "reference_box": [
+        2,
+        2,
+        254,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "bfc028601bf0ff99345f76b0d911095e795315ead9642bbc5586bcb7d5f4858d": {
+      "slot": 18,
+      "reference_box": [
+        12,
+        2,
+        243,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "9ace2479fef0d7516e0859b98a98584934762aa8775b18e7018b72b7cc93dc88": {
+      "slot": 18,
+      "reference_box": [
+        10,
+        2,
+        246,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "b0b3612a6346e813db79660a80a922343cf11a32528f3c4bf097cceeca13dbc7": {
+      "slot": 19,
+      "reference_box": [
+        2,
+        40,
+        254,
+        216
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "bb73928779ba6eecda1abcc1c5338a2579c19a54780d4ee613f6e35426193fb1": {
+      "slot": 20,
+      "reference_box": [
+        2,
+        13,
+        254,
+        243
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "041c7448339a294be7a0f905776e4ed21f594fd3b81afe5098991b7f46eb5574": {
+      "slot": 21,
+      "reference_box": [
+        0,
+        23,
+        256,
+        233
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "05cb1ff0287ed252bf2bed0cac106234202d42c732544d7bd354e931154c41d4": {
+      "slot": 21,
+      "reference_box": [
+        2,
+        3,
+        254,
+        253
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "cc15459d528ba7c0d6a634e96a719d6932dac96e14ff054ff593e67baf0860fe": {
+      "slot": 22,
+      "reference_box": [
+        2,
+        16,
+        254,
+        240
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "ea41e16dc161f2a72d5ee4f2461ecbad6cb42e68c61b5abf5b94e99dde36cfed": {
+      "slot": 23,
+      "reference_box": [
+        32,
+        1,
+        223,
+        255
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "46ba8f479b8c6970a238c737dc9c622be841c4af0d64c39f7b18e8cebbaef198": {
+      "slot": 23,
+      "reference_box": [
+        32,
+        1,
+        223,
+        255
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0078,
+        1.0,
+        1.0
+      ]
+    },
+    "102ab277934e05e6c57a41f4e88aabbae9cdcba0bbbe5dc95dfd159486e227e2": {
+      "slot": 24,
+      "reference_box": [
+        2,
+        2,
+        254,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "ebe557c28b53fd98f28f7883d55be26646af91d6543a10ba00d44c0341947e28": {
+      "slot": 24,
+      "reference_box": [
+        2,
+        2,
+        254,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "1b79307b9e2a0f7f4e4433179074ed630d76407ab5b29948e91174b732b638e9": {
+      "slot": 25,
+      "reference_box": [
+        2,
+        65,
+        254,
+        191
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "13c56b898707c742306abea34a58f24536e36373b93ec8fa23876b9f842ac3b0": {
+      "slot": 26,
+      "reference_box": [
+        4,
+        2,
+        252,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "9e2f0cae38f00f295b8de76cbe282347ea36b7f343a63986e3ca2283623a1bda": {
+      "slot": 27,
+      "reference_box": [
+        11,
+        2,
+        244,
+        254
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "b200ecba0c54da794c18d1703aa5aeab981962a51aba1c81c2f364d93813b84e": {
+      "slot": 28,
+      "reference_box": [
+        2,
+        6,
+        254,
+        250
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "656f6aec0a675d1037cdeabf1f10a7c6b5efc53f87dda2f669f5e412035fc954": {
+      "slot": 28,
+      "reference_box": [
+        2,
+        6,
+        254,
+        250
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0078,
+        1.0,
+        1.0
+      ]
+    },
+    "6c55217938cc37e87ded371e2a4ad2651bb02b4eace04531a7a25eed0847f6ca": {
+      "slot": 29,
+      "reference_box": [
+        2,
+        47,
+        254,
+        209
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    "6b1a9954c0066bbc935525a8efa92297c1fdafede2fefa86522b84b2e91d59da": {
+      "slot": 29,
+      "reference_box": [
+        2,
+        47,
+        254,
+        209
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        0.5078,
+        0.1875,
+        0.625,
+        0.625
+      ]
+    },
+    "787de0a675b51a8bc74daef8505453f2387fd58decd8f0ac5947dea1b8313af3": {
+      "slot": 29,
+      "reference_box": [
+        2,
+        47,
+        254,
+        209
+      ],
+      "reference_size": [
+        256,
+        256
+      ],
+      "window": [
+        -0.125,
+        0.1875,
+        0.625,
+        0.625
+      ]
+    }
+  }
+}

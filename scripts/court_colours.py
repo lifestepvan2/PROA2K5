@@ -126,9 +126,9 @@ def recolour(source: bytes, arena: dict, controls: dict) -> tuple[bytes, dict]:
     return bytes(target), roles
 
 
-def prepare(stream: BinaryIO, workspace: Path) -> tuple[list[tuple[int, bytes, bytes]], list[dict]]:
+def decoded_edits(stream: BinaryIO, workspace: Path) -> list[tuple]:
     from team_palettes import load
-    patches, reports = [], []
+    edits = []
     for arena in source_catalogue()["arenas"]:
         config = load(workspace, arena["slot"])["court"]
         if config["mode"] == "original":
@@ -152,17 +152,25 @@ def prepare(stream: BinaryIO, workspace: Path) -> tuple[list[tuple[int, bytes, b
         changed = [i for i, (a, b) in enumerate(zip(decoded, target)) if a != b]
         if not changed:
             continue
+        report = {"nba_slot": arena["slot"], "asset": arena["asset"], "settings": config,
+                  "profile": roles, "changed_bytes": len(changed), "stored": stored, "scratch": scratch,
+                  "original_sha256": digest(body), "offset": offset + 32, "size": stored}
+        edits.append((offset + 32, body, decoded, target, scratch, report))
+    return edits
+
+
+def prepare(stream: BinaryIO, workspace: Path) -> tuple[list[tuple[int, bytes, bytes]], list[dict]]:
+    patches, reports = [], []
+    for offset, body, decoded, target, scratch, report in decoded_edits(stream, workspace):
+        first = next(index for index, (a, b) in enumerate(zip(decoded, target)) if a != b)
         try:
-            rebuilt = rebuild_tail(body, len(decoded), target[min(changed):], scratch)
+            rebuilt = rebuild_tail(body, len(decoded), target[first:], scratch)
         except ValueError as error:
-            raise ValueError(f"Slot {arena['slot']:03} {arena['nba_team']} court: {error}. "
+            raise ValueError(f"Slot {report['nba_slot']:03} {report['asset']} court: {error}. "
                              "Try different colours or court.mode=original; no ISO was published.") from error
         verified, _, used = decode(rebuilt, len(decoded))
-        if verified != target or len(rebuilt) != stored:
+        if verified != target or len(rebuilt) != len(body):
             raise ValueError("Court rebuild failed exact fixed-span verification")
-        patches.append((offset + 32, body, rebuilt))
-        reports.append({"nba_slot": arena["slot"], "asset": arena["asset"], "settings": config,
-                        "profile": roles, "changed_bytes": len(changed), "used": used,
-                        "stored": stored, "scratch": scratch, "original_sha256": digest(body),
-                        "patched_sha256": digest(rebuilt), "offset": offset + 32, "size": stored})
+        patches.append((offset, body, rebuilt))
+        reports.append({**report, "used": used, "patched_sha256": digest(rebuilt)})
     return patches, reports

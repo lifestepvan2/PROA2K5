@@ -8,7 +8,7 @@ Manual prerequisites (see docs/SeasonUpdateWorkflow.md): when the league's team 
 scrape_proa_roster.py, data/proa_teams.csv (including arenas), data/team_slots.csv and run fetch_team_logos.py once for
 the new clubs. Without --card the card is left alone (writing needs PCSX2 closed).
 The default roster is embedded alongside lettering/court/year/skin patches in one verified new ISO.
-Export/edit the team_palettes workspace first. Portrait/logo/legacy skin replacements remain external.
+Export/edit texture_workspace_ISO first. Portrait/legacy skin replacements remain external.
 Card-only/build-only modes are explicit alternatives; nonzero Skin Tone requires an ISO output.
 """
 import argparse
@@ -16,6 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 import skin_tones
+import team_palettes
+import texture_iso_workspace
 
 ROOT = Path(__file__).parent.parent
 PY = sys.executable
@@ -45,7 +47,13 @@ def main():
     mode.add_argument("--card-only", action="store_true", help="export the roster to --card without building an ISO")
     mode.add_argument("--build-only", action="store_true", help="build roster/replacement artifacts without publishing an ISO or card")
     ap.add_argument("--team-palettes", "--lettering-workspace", dest="team_palettes",
-                    help="shared team palette workspace (default: texture_workspace/team_palettes)")
+                    help="ISO team palette workspace (default: texture_workspace_ISO/team_palettes)")
+    ap.add_argument("--texture-workspace", default=str(texture_iso_workspace.DEFAULT_WS),
+                    help="native ISO logo masters (default: texture_workspace_ISO)")
+    ap.add_argument("--legacy-logo-replacements", action="store_true",
+                    help="also generate legacy PCSX2 logo PNGs when building an ISO")
+    ap.add_argument("--repack-archive", action="store_true",
+                    help="experimental native archive sector pooling; requires --iso-out")
     a = ap.parse_args()
     parts = a.season.split("_")
     if (len(parts) != 2 or not all(len(p) == 4 and p.isdecimal() for p in parts)
@@ -60,14 +68,18 @@ def main():
             ap.error("--build-only cannot write --card")
     elif not a.iso_out:
         ap.error("--iso-out is required; use --card-only or --build-only for an explicit alternative")
+    if a.repack_archive and not a.iso_out:
+        ap.error("--repack-archive requires --iso-out")
     if a.card and pcsx2_running():
         sys.exit("PCSX2 is running - close it first (it holds the memory card), then re-run.")
 
     iso_args = []
+    workspace = a.team_palettes or str(Path(a.texture_workspace) / "team_palettes")
     if a.iso_out:
-        workspace = a.team_palettes or str(ROOT / "texture_workspace" / "team_palettes")
         iso_args = ["--iso-source", a.iso_source, "--iso-out", a.iso_out, "--workspace", workspace,
-                    "--stats-year", a.season.split("_")[0]]
+                    "--stats-year", a.season.split("_")[0], "--texture-workspace", a.texture_workspace]
+        if a.repack_archive:
+            iso_args.append("--repack-archive")
         run("season_iso.py", "check", *iso_args)
     else:
         # Verify the same baseline before scrape/workbook side effects, without requiring visual ISO controls.
@@ -82,8 +94,8 @@ def main():
         sys.exit("Nonzero Skin Tone requires --iso-source and --iso-out; no roster or card has been built.")
     run("crop_headshots.py", "--season", a.season)
     roster_args = ["--season", a.season, "--iso-source", a.iso_source]
-    if a.team_palettes:
-        roster_args.extend(["--team-palettes", a.team_palettes])
+    if a.team_palettes or a.iso_out:
+        roster_args.extend(["--team-palettes", workspace])
     run("build_roster.py", *roster_args, "--prepare-faces")  # provisional map; no manual leg changes yet
     run("face_embed.py")
     run("face_match.py", *(["--rematch"] if a.rematch_faces else []),
@@ -91,7 +103,8 @@ def main():
     run("build_roster.py", *roster_args)
     run("gen_replacements.py")
     run("gen_skin_replacements.py")
-    run("gen_logo_replacements.py")
+    if not a.iso_out or a.legacy_logo_replacements:
+        run("gen_logo_replacements.py")
     if a.iso_out:
         run("season_iso.py", "build", *iso_args, "--skin-plan", str(skin_tones.PLAN),
             "--roster", str(ROOT / "data" / "roster_build" / "payload_proa.bin"))
@@ -100,8 +113,8 @@ def main():
         run("card_patch.py", "--bin", str(ROOT / "data" / "roster_build" / "payload_proa.bin"), "--card", a.card)
     print("\nDone. Review data/roster_build/report.md and docs/_face_sheets/, press F10 in PCSX2 to reload textures.")
     if a.iso_out:
-        print(f"Roster-portable ISO written to {a.iso_out}. Boot fresh without loading an old roster or savestate; "
-              "F10 does not reload the embedded roster/lettering/courts/skin assets.")
+        print(f"Portable roster/logo ISO written to {a.iso_out}. Boot fresh without loading an old roster or savestate; "
+              "F10 does not reload embedded assets. Disable old logo replacements to inspect the ISO result.")
     if not a.card:
         print("Card not written (no --card given).")
 

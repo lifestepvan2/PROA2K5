@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import season_iso as season
-from iso_copy import hash_stream
+from iso_copy import CopySpan, hash_stream
 
 
 class SeasonCompositionTests(unittest.TestCase):
@@ -51,12 +51,51 @@ class SeasonCompositionTests(unittest.TestCase):
         self.assertIsNone(visuals.call_args.args[-1])
         self.assertEqual(list(self.root.iterdir()), [self.source])
 
+    def test_native_logos_take_over_court_composition_in_the_same_copy(self):
+        logo_patch = (16, b"AA", b"LL")
+        court_edits = [("decoded-court-edit",)]
+        native_workspace = self.root / "native"
+        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([self.visual_patch], {"sources": 1})) as visual, \
+                patch.object(season.court_colours, "decoded_edits", return_value=court_edits), \
+                patch.object(season.texture_iso_workspace, "prepare",
+                             return_value=([logo_patch], {"courts": [{"asset": "s021.iff"}]})) as logos, \
+                patch.object(season, "ISO_SIZE", 32), \
+                patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
+            report = season.build(self.source, self.output, self.roster, self.workspace,
+                                  texture_workspace=native_workspace)
+        self.assertEqual(visual.call_args.kwargs, {"include_courts": False})
+        self.assertEqual(logos.call_args.args[1:], (native_workspace, court_edits))
+        self.assertEqual(report["visuals"]["courts"], report["logos"]["courts"])
+        self.assertEqual(self.output.read_bytes()[16:18], b"LL")
+
     def test_overlapping_components_fail_before_publication(self):
         with patch.object(season.roster_iso, "prepare", return_value=([self.roster_patch], {})), \
                 patch.object(season.lettering_workspace, "prepare", return_value=([(1, b"AA", b"VV")], {})):
             with self.assertRaisesRegex(ValueError, "disjoint"):
                 season.check(self.source, self.output, self.workspace, roster=self.roster)
         self.assertFalse(self.output.exists())
+
+    def test_repack_absorbs_all_archive_edits_and_preserves_outside_patches(self):
+        logo_patch = (16, b"AA", b"LLL")
+        rendered = b"A" * 16 + b"LLL" + b"A" * 13
+        copy_plan = [CopySpan(0, 32, data=rendered)]
+        archive_report = {"changed_assets": 2}
+        with patch.object(season.roster_iso, "prepare", return_value=([self.roster_patch], {})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([self.visual_patch], {"sources": 1})), \
+                patch.object(season.court_colours, "decoded_edits", return_value=[]), \
+                patch.object(season.texture_iso_workspace, "prepare",
+                             return_value=([logo_patch], {"courts": []})) as logos, \
+                patch.object(season.archive_iso, "plan",
+                             return_value=(copy_plan, [self.roster_patch, self.visual_patch], archive_report)) as plan, \
+                patch.object(season, "ISO_SIZE", 32), \
+                patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
+            report = season.build(self.source, self.output, self.roster, self.workspace,
+                                  texture_workspace=self.root / "native", repack_archive=True)
+        self.assertEqual(logos.call_args.kwargs, {"repack_archive": True})
+        self.assertEqual(plan.call_args.args[1], [self.roster_patch, self.visual_patch, logo_patch])
+        self.assertEqual(report["archive"], archive_report)
+        self.assertEqual(self.output.read_bytes(), b"RR" + b"A" * 6 + b"VV" + b"A" * 6 + b"LLL" + b"A" * 13)
 
     def test_component_failure_does_not_publish(self):
         with patch.object(season.roster_iso, "prepare", side_effect=ValueError("Invalid roster")), \
@@ -85,6 +124,17 @@ class SeasonCompositionTests(unittest.TestCase):
             self.assertEqual(year.call_args.args[1:], (2026, 0x0C05E998))
             season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv", roster=self.roster)
             self.assertEqual(year.call_args.args[1:], (2004, 0x0C05E998))
+
+    def test_cli_derives_palettes_from_native_workspace_and_preserves_override(self):
+        for extra, expected in (([], Path("native") / "team_palettes"),
+                                (["--workspace", "custom"], Path("custom"))):
+            with patch.object(sys, "argv", ["season_iso.py", "check", "--iso-source", "source.iso",
+                                            "--iso-out", "new.iso", "--texture-workspace", "native", *extra]), \
+                    patch.object(season, "check", return_value={"visuals": {"sources": 0}}) as check, \
+                    patch("builtins.print"):
+                season.main()
+            self.assertEqual(check.call_args.args[2], expected)
+            self.assertEqual(check.call_args.args[-1], Path("native"))
 
 
 if __name__ == "__main__":

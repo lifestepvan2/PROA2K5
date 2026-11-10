@@ -238,7 +238,7 @@ def validate_output(source: Path, output: Path, workspace: Path) -> Path:
 
 
 def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None,
-            skin_plan: Path | None = None) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+            skin_plan: Path | None = None, *, include_courts: bool = True) -> tuple[list[tuple[int, bytes, bytes]], dict]:
     expected, originals = expected_manifest(stream, slots)
     validate_manifest(workspace, expected)
     edited = {}
@@ -289,7 +289,7 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         "colour_controls": colour_reports,
         "changes": changes, "restore": "Boot the untouched pristine source ISO, or rebuild from it.",
     }
-    court_patches, court_reports = court_colours.prepare(stream, workspace)
+    court_patches, court_reports = court_colours.prepare(stream, workspace) if include_courts else ([], [])
     patches.extend(court_patches)
     report["courts"] = court_reports
     if stats_year is not None:

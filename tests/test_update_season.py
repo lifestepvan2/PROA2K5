@@ -34,12 +34,13 @@ class SeasonIsoTests(unittest.TestCase):
         with patch.object(season, "run") as runner:
             self.invoke(args, runner)
             expected = ("--iso-source", "clean.iso", "--iso-out", "new.iso", "--workspace", "palettes",
-                        "--stats-year", "2026")
+                        "--stats-year", "2026", "--texture-workspace", str(season.texture_iso_workspace.DEFAULT_WS))
             self.assertEqual(runner.call_args_list[0].args, ("season_iso.py", "check", *expected))
             self.assertEqual(runner.call_args_list[-1].args, ("season_iso.py", "build", *expected,
                                                             "--skin-plan", str(season.skin_tones.PLAN),
                                                             "--roster", str(season.ROOT / "data" / "roster_build" / "payload_proa.bin")))
-            self.assertEqual(runner.call_args_list[-2].args, ("gen_logo_replacements.py",))
+            self.assertEqual(runner.call_args_list[-2].args, ("gen_skin_replacements.py",))
+            self.assertFalse(any(call.args[0] == "gen_logo_replacements.py" for call in runner.call_args_list))
             casting = next(call.args for call in runner.call_args_list if call.args[0] == "face_match.py")
             self.assertEqual(casting, ("face_match.py", "--iso-source", "clean.iso"))
 
@@ -52,6 +53,39 @@ class SeasonIsoTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     self.invoke(args, runner)
                 runner.assert_not_called()
+
+    def test_native_workspace_selects_matching_palettes_without_redirecting_legacy_tools(self):
+        self.assertEqual(season.team_palettes.DEFAULT_WS,
+                         season.ROOT / "texture_workspace" / "team_palettes")
+        for extra, expected in (([], str(Path("native") / "team_palettes")),
+                                (["--team-palettes", "custom"], "custom")):
+            with patch.object(season, "run") as runner:
+                self.invoke(["--skip-scrape", "--iso-source", "clean.iso", "--iso-out", "new.iso",
+                             "--texture-workspace", "native", *extra], runner)
+            for call in runner.call_args_list:
+                if call.args[0] == "season_iso.py":
+                    self.assertEqual(call.args[call.args.index("--workspace") + 1], expected)
+                elif call.args[0] == "build_roster.py":
+                    self.assertEqual(call.args[call.args.index("--team-palettes") + 1], expected)
+
+    def test_legacy_logo_generation_is_explicit_in_iso_mode(self):
+        with patch.object(season, "run") as runner:
+            self.invoke(["--skip-scrape", "--iso-source", "clean.iso", "--iso-out", "new.iso",
+                         "--legacy-logo-replacements"], runner)
+        self.assertEqual(sum(call.args[0] == "gen_logo_replacements.py"
+                             for call in runner.call_args_list), 1)
+
+    def test_archive_repack_is_explicit_and_forwarded_to_check_and_build(self):
+        with patch.object(season, "run") as runner:
+            self.invoke(["--skip-scrape", "--iso-source", "clean.iso", "--iso-out", "new.iso",
+                         "--repack-archive"], runner)
+        calls = [call.args for call in runner.call_args_list if call.args[0] == "season_iso.py"]
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(all("--repack-archive" in call for call in calls))
+        with patch.object(season, "run") as runner, contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                self.invoke(["--iso-source", "clean.iso", "--build-only", "--repack-archive"], runner)
+        runner.assert_not_called()
 
     def test_shared_workspace_is_used_for_both_roster_builds_without_iso(self):
         with patch.object(season, "run") as runner:

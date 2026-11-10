@@ -21,6 +21,7 @@ texture_workspace/team_palettes/*
 texture_workspace/team_palettes/[0-9][0-9][0-9]/*
 !texture_workspace/team_palettes/[0-9][0-9][0-9]/colours.json
 texture_workspace_ISO/*
+!texture_workspace_ISO/_iso_encoding.json
 !texture_workspace_ISO/team_palettes/
 texture_workspace_ISO/team_palettes/*
 !texture_workspace_ISO/team_palettes/README.md

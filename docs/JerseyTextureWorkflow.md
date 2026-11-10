@@ -210,8 +210,11 @@ python scripts\lettering_workspace.py build --iso-source "C:\Tools\isos\ESPN NBA
 python scripts\lettering_workspace.py reset --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --slot 20
 ```
 
-The default workspace is `texture_workspace/team_palettes`; `--workspace PATH` selects
-another workspace. Keep alternate workspaces outside ordinary replacement folders.
+These standalone tools retain `texture_workspace/team_palettes` as their default;
+`--workspace texture_workspace_ISO\team_palettes` selects the copied controls used by
+the [native logo/season workflow](./NativeLogoWorkflow.md). That workflow defaults to
+the selected native workspace's `team_palettes` subfolder. Keep alternate workspaces
+outside ordinary replacement folders.
 `--slots PATH` selects another assignment CSV. A changed assignment/source manifest
 is rejected: export a new workspace and migrate the desired RGB swatches explicitly.
 

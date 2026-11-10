@@ -217,10 +217,14 @@ python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\E
 Omitting `--iso-out` without one of these modes now fails with usage guidance, rather than silently
 producing a roster that is not deployed. `--build-only` cannot write a card; neither alternative accepts `--iso-out`.
 
-`--team-palettes PATH` overrides `texture_workspace/team_palettes` for both roster
+ISO mode now reads [native logo masters](./NativeLogoWorkflow.md) from
+`texture_workspace_ISO`; export that workspace before running the pipeline.
+`--texture-workspace PATH` selects another native workspace and its `team_palettes`
+subfolder. `--team-palettes PATH` overrides those palettes for both roster
 and ISO stages (`--lettering-workspace` remains an alias). It also works in alternative
 modes. A missing/mismatched workspace, invalid palette, compressed edit
 that does not fit, or existing output fails preflight before pipeline side effects.
+Alternative modes and standalone legacy tools retain their original palette defaults.
 
 New assignments require a new workspace and explicit palette migration.
 
@@ -232,8 +236,8 @@ from these controls without rewriting them.
 The ISO stage embeds the complete final default roster: names, teams, starters, ratings,
 PIDs, accessories, colleges, arena names and historical statistics. It also patches shared
 number/name RGB, courts with `court.mode=recolour`, the player-card season-label anchor
-matching `--season`, and requested model-local skin recipes. It does **not** embed
-PCSX2 portrait/logo/legacy skin replacement PNGs. This is the **roster-portable milestone**,
+matching `--season`, requested model-local skin recipes, and the native logo/centerlogo
+masters. It does **not** embed PCSX2 portrait/legacy skin replacement PNGs. This extends the **roster-portable milestone**,
 not yet a fully portable visual mod. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
@@ -241,6 +245,14 @@ The source remains untouched and an adjacent `.season.json` records roster and v
 patch fingerprints plus full source/output hashes. All changes are composed against the
 same pristine source and published once; never chain patchers over previous outputs.
 Final roster storage and all patch overlaps are validated before publication.
+Legacy logo PNG generation is skipped in ISO mode unless
+`--legacy-logo-replacements` is supplied. Existing replacement files are left
+alone; disable them when reviewing the native result. The fixed-span logo defaults
+have compression-capacity blockers. Experimental `--repack-archive` instead pools
+native package sectors without changing filesystem extents or image size; it is
+forwarded to preflight and final composition. It currently fits the complete logo
+set without further artwork reductions, but remains opt-in pending the batched
+runtime review in [archive repacking](./ArchiveRepacking.md).
 
 Boot the new ISO **fresh**, with no savestate or old roster loaded. Disable both card
 slots for an unambiguous default-roster test. Existing saved rosters can replace disc
@@ -280,7 +292,7 @@ For card-only exports, load the updated roster from the card instead.
    Row order = logo asset index (`nba2k_editor/assets/<38+row>.png`), so a new club takes the row of the club it replaces.
 3. `data/team_slots.csv`: sheet -> NBA slot. The new club inherits the slot of the replaced club (textures are keyed by NBA slot);
    keep the default-matchup club (Falcons, slot 21) where it is.
-   Edit the corresponding `texture_workspace/team_palettes/<slot>/colours.json`
+   Edit the corresponding `texture_workspace_ISO/team_palettes/<slot>/colours.json`
    for jersey/UI, uniform lettering and approximate court colours.
 4. `python scripts/fetch_team_logos.py --sheets <new sheets>`: downloads the club logo. The site only has ~100 px logos
    (upscaled): replace `nba2k_editor/assets/<38+row>.png` with a high-res logo when available.
@@ -296,8 +308,10 @@ no longer maintained in a separate CSV. Text written into the game should be ASC
 | `arena,verified` | Home arena name; `verified=yes` only when that name has been checked in-game |
 
 Colour fields have moved to the `team` section of each
-[team palette document](../texture_workspace/team_palettes/README.md).
-`colorjersey1/2` feed the baseline cloth generator; `colorui1/2` feed roster RGB
+[ISO team palette document](../texture_workspace_ISO/team_palettes/README.md).
+`colorjersey1/2` remain available for the future native cloth workflow; the legacy
+baseline cloth generator still reads the original workspace's palette documents.
+`colorui1/2` feed roster RGB
 triplets at `+0x62` / `+0x65` (UI/accessories and secondary backgrounds).
 The UI colours were initially copied exactly from the jersey colours, but can now be
 edited independently. Review light `colorui2` defaults (especially white) for text
@@ -311,7 +325,7 @@ of jersey/UI values, and use the [combined ISO stage](#iso-first-roster-deployme
 
 ## Not automated
 
-- New clubs' **jerseys** (and court/arena artwork): court colours can now be approximated via team palettes, but logos/layout still come from the original slot.
+- New clubs' **jerseys** (and non-logo court/arena artwork): court colours can now be approximated via team palettes; native logo masters are wired, while other layouts still come from the original slot.
   Needs texture dumps + the LOD pipeline, see `JerseyTextureWorkflow.md`.
 - **Arena names** of new clubs (unverified guesses).
 - **Player corrections** (`data/overrides.csv`): preferred shortened names, handedness, accessories and fixed ratings. Apply with `player_database.py` or re-scrape.
