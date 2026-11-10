@@ -3,6 +3,17 @@
 How to replace jersey / shorts / warm-up / cloth textures and keep their low-res LODs and duplicates in sync.
 Background and file formats: [pcsx2_texture_mapping.md](./pcsx2_texture_mapping.md).
 
+For native source identification and possible old-label mistakes, run the
+[read-only ISO catalogue/audit](./TextureISOMigrationPlan.md#milestone-1-implemented-inspection-workflow).
+It preserves every artist file and reports label suggestions separately. COPY/LOD
+labels alone are not verified ISO ownership. Native texture importing/patching is
+not implemented yet; the editing and PCSX2 sync workflow below is unchanged.
+
+The [native uniform format investigation](./UniformISOFormat.md) now maps all
+834 formerly blocked uniform targets exactly, including their stored mip levels.
+It explains the separate game/preview layouts and warmup bundles. This is
+read-only source evidence, not a change to `sync` or an ISO texture publisher.
+
 ## The naming scheme
 
 Clearly labelled uniform textures live in `texture_workspace/uniforms/<Team>/`.

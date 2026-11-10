@@ -1,5 +1,17 @@
 # PCSX2 texture mapping (empirical method)
 
+**Native ISO inspection is now available:** see the implemented
+[catalogue and non-destructive workspace audit](./TextureISOMigrationPlan.md#milestone-1-implemented-inspection-workflow).
+It matches original dump pixels against native resources, retains all aliases,
+and reports old-label conflicts without changing the workspace. Prefer this
+before new live scans. Texture ISO publication is not implemented yet; the
+procedures below remain the legacy replacement workflow and historical evidence.
+
+The [native logo investigation](./LogoISOFormat.md) identifies all 90 previously
+blocked generated variants, including split floor logos and misleading material
+names. Prefer its exact native sources and mesh/material context over the older
+large-logo guesses below; the historical dump-family table is not a source map.
+
 Texture keys cannot be derived from roster data, so they are measured: for each team the game is put on a
 screen that shows the textures, a screenshot is taken, and the on-screen crops are matched against the
 files PCSX2 dumps. The dump file name (`<hash1>-<hash2>-<family>.png`) is the replacement key; a PNG with
@@ -37,8 +49,11 @@ Matching scores are 0.88-0.98 for the right dump and clearly lower for others; t
 and low scores. Matching must run after the scans because PCSX2 writes dump files with a delay.
 
 ## All 792 player records (exact, no per-team scrolling)
-The dump key is a content hash of the image and the ISO archive (`/VC_53022/*.`) is hashed and compressed, so the
-game's record -> texture link cannot be derived statically. Instead, the live injection scan reads it directly:
+The original scan predated the native archive decoder and exact-pixel catalogue.
+Hashing/compression no longer prevents static matching: the portrait collection
+(archive hash `35cb8d72`, 822 TXTRs) has numeric names that cross-check against PID.
+Exact aliases and exceptional shared/PID-conflicting images are recorded by the
+native audit. The historical live injection scan measured the link directly:
 the Start Game screen draws the faces of the team's *starter pointers* (team record +0x90), so writing 10 arbitrary
 player-record pointers there shows 10 arbitrary faces.
 
@@ -59,7 +74,8 @@ second generic face (122, 172, 242, 315, 342), and some NBA players share their 
 legend-team reference (335 records). A ProA team first uses the qualifying records of its own NBA slot (final
 mapping: ProA teams on slots 12-29, `data/team_slots.csv`); missing records are borrowed from the donor teams on
 slots 0-11, which shrink. Legend and conference teams stay untouched, so historic
-players keep their faces. `gen_replacements.py` writes one face per ProA player keyed by its record.
+players keep their faces. The current `gen_replacements.py` follows the final PID,
+not the record alone, and reports conflicts when players share one PID.
 
 ## Team logos
 The 32x32 icons are zoomed crops of the full logos, so a multi-scale `cv2.matchTemplate` of each icon finds the

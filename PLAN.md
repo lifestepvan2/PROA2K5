@@ -48,6 +48,9 @@ and embeds the ProA default roster in one combined ISO. Card export remains opti
 - [ ] Years pro: currently estimated from the birth year
 
 ### Textures
+ISO migration: [Texture workspace to portable ISO plan](docs/TextureISOMigrationPlan.md)
+- [x] Native catalogue/legacy bridge milestone: read-only ISO inventory, complete workspace/active-target audit, exact aliases, portrait-source evidence and batched label/sharing review. Unsupported transfers and PID conflicts remain explicit; no texture ISO publication yet.
+records the native archive survey, staged implementation and batched human review.
 Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per team, match crops offline against the dump folder).
 - [x] Starter faces (90, 18 teams): superseded by `record_faces.csv` (`starter_faces.csv` is stale), `scripts/gen_replacements.py`
 - [x] Small team icons on Start Game (32x32 `-00001553`): `data/texture_map/team_icons.csv` keyed by NBA slot, all 30 slots mapped (scores 0.90-0.99)
