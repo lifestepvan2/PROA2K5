@@ -9,7 +9,7 @@ import openpyxl
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, EXTRA_BYTE_COLS, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
+from rating_map_2k5 import ATTR_OFFSETS, EXTRA_BYTE_COLS, EXTRA_CANONICAL, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
 
 ATTRS = list(ATTR_OFFSETS)
 POS = ["PG", "SG", "SF", "PF", "C"]
@@ -44,6 +44,21 @@ def default_extras(attrs):
     return ex
 
 
+def player_extras(row, attrs):
+    """Named hidden values with legacy defaults for historical calibration datasets."""
+    extras = default_extras(attrs)
+    for alias, name in EXTRA_CANONICAL.items():
+        value = row.get(name)
+        legacy = row.get(alias)
+        if isinstance(value, (int, float)):
+            extras[alias] = value
+            if isinstance(legacy, (int, float)) and legacy != value:
+                raise ValueError(f"{alias} conflicts with {name}")
+        elif isinstance(legacy, (int, float)):
+            extras[alias] = int(max(0, min(99, legacy)))
+    return extras
+
+
 def load_players(path):
     """{proa_id: dict(pos, sec, height m, weight kg, attrs {name: int}, extras {name: byte}, sheet, name)} from a roster workbook."""
     out = {}
@@ -56,10 +71,7 @@ def load_players(path):
             if d.get("ProA ID") is None:
                 continue
             attrs = read_attrs(d)
-            extras = default_extras(attrs)
-            for name in EXTRAS:
-                if isinstance(d.get(name), (int, float)):
-                    extras[name] = int(max(0, min(99, d[name])))
+            extras = player_extras(d, attrs)
             out[int(d["ProA ID"])] = dict(pos=d["Position"], sec=d["Secondary Position"], h=float(d["Height"]), w=float(d["Weight"]),
                                           attrs=attrs, extras=extras, sheet=ws.title, name=f'{d["First Name"]} {d["Last Name"]}')
     return out

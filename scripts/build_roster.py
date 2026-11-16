@@ -29,7 +29,8 @@ import openpyxl
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from rating_map_2k5 import ATTR_OFFSETS, DUNK_FLAG, EXTRA_BYTE_COLS, NEUTRAL_BYTES, dunk_flag, read_attrs  # noqa: E402
+from rating_map_2k5 import ATTR_OFFSETS, HIDDEN_ATTR_OFFSETS, EXTRA_BYTE_COLS, EXTRA_CANONICAL, read_attrs  # noqa: E402
+from overall_data import player_extras  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
@@ -270,7 +271,8 @@ def load_proa(path):
             field_value("Last Name", rowd.get("Last Name"))
             attrs = read_attrs(rowd)
             pos = POS.get(str(r[2]), 2)
-            ovr = predict_overall(pos, attrs, _num(rowd.get("Height"), 1.96), _num(rowd.get("Weight"), 92))
+            ovr = predict_overall(pos, attrs, _num(rowd.get("Height"), 1.96), _num(rowd.get("Weight"), 92),
+                                  extras=player_extras(rowd, attrs))
             players.append({
                 "attrs": attrs, "rowd": rowd,
                 "first": str(r[0] or ""), "last": str(r[1] or ""), "pos": pos,
@@ -294,7 +296,7 @@ def birthday_text(row):
 
 
 def write_record_fields(buf, off, p):
-    """Jersey, position, size, years pro and the 19 ratings (see docs/player_record_layout.md)."""
+    """Write identity and all 28 attribute bytes, including validated hidden values."""
     row = p["rowd"]
     buf[off + P_JERSEY] = int(_num(p["jersey"], 0)) & 0xFF
     buf[off + P_POS] = p["pos"]
@@ -306,12 +308,15 @@ def write_record_fields(buf, off, p):
     buf[off + P_FAME] = p.get("fame", 20)
     for k, o in ATTR_OFFSETS.items():
         buf[off + o] = p["attrs"][k]
-    for o, v in NEUTRAL_BYTES.items():
-        buf[off + o] = v
-    buf[off + DUNK_FLAG] = dunk_flag(p["attrs"]["Dunk"])
+    for name, offset in HIDDEN_ATTR_OFFSETS.items():
+        if row.get(name) in (None, ""):
+            raise ValueError(f"{name}: missing hidden attribute; regenerate or migrate the workbook")
+        buf[off + offset] = field_value(name, row[name])
     for col, o in EXTRA_BYTE_COLS.items():
         if isinstance(row.get(col), (int, float)):
-            buf[off + o] = int(max(0, min(99, row[col])))
+            value = field_value(EXTRA_CANONICAL[col], row[col])
+            if value != buf[off + o]:
+                raise ValueError(f"{col}: legacy calibration value conflicts with {EXTRA_CANONICAL[col]}")
 
 
 def order_roster(players):

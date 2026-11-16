@@ -1,8 +1,8 @@
 """Calibration roster for the Overall formula (see fit_overall.py).
 
 Takes the real roster (proa_scraped.xlsx: same teams, players, names, faces) and replaces everything the formula could depend on
-with random, independent values: position (balanced per team), height, weight, the 19 ratings and the unknown/derived record
-bytes (columns DunkFlag, B4F, B50, B55, B5A, B5C, B5F, B60, which build_roster.py writes when present).
+with random, independent values: position (balanced per team), height, weight, the 19 visible ratings and eight hidden
+attributes. Named hidden columns and legacy aliases DunkFlag/Bxx are kept equal; Dunk Range stays 10.
 
     python scripts/make_calibration.py            # writes data/calibration/proa_calibration.xlsx
     python scripts/build_roster.py --proa data/calibration/proa_calibration.xlsx --out data/calibration/build [--card CARD]
@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CAL = ROOT / "data" / "calibration"
 POS = ["PG", "SG", "SF", "PF", "C"]
 RATING_LO, RATING_HI = 40, 95
-EXTRA_CHOICES = {  # observed value sets of the unknown bytes in NBA records (docs/player_record_layout.md)
+EXTRA_CHOICES = {  # observed value sets of hidden attributes in NBA records (docs/player_record_layout.md)
     "DunkFlag": [0, 50, 99], "B4F": [50, 75, 99], "B55": [50, 75, 99], "B5F": [75, 99], "B60": [75, 85, 95],
 }
 EXTRA_RANGES = {"B50": (50, 99), "B5A": (0, 15), "B5C": (40, 99)}
@@ -33,7 +33,7 @@ EXTRA_COLS = ["DunkFlag", "B4F", "B50", "B55", "B5A", "B5C", "B5F", "B60"]
 def make(a):
     import sys
     sys.path.insert(0, str(ROOT / "scripts"))
-    from rating_map_2k5 import ATTR_OFFSETS
+    from rating_map_2k5 import ATTR_OFFSETS, HIDDEN_ATTR_OFFSETS, EXTRA_CANONICAL
 
     rng = random.Random(a.seed)
     wb = openpyxl.load_workbook(a.source)
@@ -50,6 +50,10 @@ def make(a):
         for k, name in enumerate(EXTRA_COLS):
             col.setdefault(name, len(hdr) + 1 + k)
             ws.cell(1, col[name], name)
+        for name in HIDDEN_ATTR_OFFSETS:
+            if name not in col:
+                col[name] = ws.max_column + 1
+                ws.cell(1, col[name], name)
         rows = [r for r in range(2, ws.max_row + 1) if ws.cell(r, col["Last Name"]).value]
         cycle = []
         for r in rows:
@@ -65,6 +69,8 @@ def make(a):
             for name in EXTRA_COLS:
                 v = rng.choice(EXTRA_CHOICES[name]) if name in EXTRA_CHOICES else rng.randint(*EXTRA_RANGES[name])
                 ws.cell(r, col[name], v)
+                ws.cell(r, col[EXTRA_CANONICAL[name]], v)
+            ws.cell(r, col["Dunk Range"], 10)
             n += 1
     wb.save(a.out)
     print(f"{n} calibration players in {len(wb.sheetnames)} teams -> {a.out}")

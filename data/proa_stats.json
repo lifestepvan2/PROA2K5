@@ -5,6 +5,8 @@
    "blocks_avg": 0.15,
    "fg3_pct": 37.8,
    "fg_pct": 42.0,
+   "fga_avg": 6.42233,
+   "fouls_per_min": 0.09575294736930055,
    "ft_pct": 74.8,
    "games": 63,
    "history": {
@@ -181,6 +183,7 @@
     }
    },
    "minutes_avg_str": "19:21",
+   "minutes_total_sec": 73204,
    "points_avg": 8.82,
    "rebounds_avg": 1.612,
    "rebounds_def_avg": 1.291,
@@ -200,6 +203,8 @@
    "blocks_avg": 0.032,
    "fg3_pct": 33.7,
    "fg_pct": 39.9,
+   "fga_avg": 10.809322,
+   "fouls_per_min": 0.06487644506723436,
    "ft_pct": 80.9,
    "games": 58,
    "history": {
@@ -333,6 +338,7 @@
     }
    },
    "minutes_avg_str": "31:26",
+   "minutes_total_sec": 109440,
    "points_avg": 12.43,
    "rebounds_avg": 3.907,
    "rebounds_def_avg": 2.989,
@@ -351,6 +357,8 @@
    "blocks_avg": 0.067,
    "fg3_pct": 36.0,
    "fg_pct": 38.5,
+   "fga_avg": 5.820669,
+   "fouls_per_min": 0.09058891405247611,
    "ft_pct": 63.2,
    "games": 44,
    "history": {
@@ -521,6 +529,7 @@
     }
    },
    "minutes_avg_str": "17:38",
+   "minutes_total_sec": 46593,
    "points_avg": 6.389,
    "rebounds_avg": 2.419,
    "rebounds_def_avg": 1.793,
@@ -538,6 +547,8 @@
    "blocks_avg": 0.75,
    "fg3_pct": 0.0,
    "fg_pct": 40.5,
+   "fga_avg": 5.25,
+   "fouls_per_min": 0.0900380930393628,
    "ft_pct": 55.0,
    "games": 8,
    "history": {
@@ -634,6 +645,7 @@
     }
    },
    "minutes_avg_str": "18:02",
+   "minutes_total_sec": 8663,
    "points_avg": 5.625,
    "rebounds_avg": 5.25,
    "rebounds_def_avg": 2.875,
@@ -649,6 +661,8 @@
    "blocks_avg": 0.195,
    "fg3_pct": 38.4,
    "fg_pct": 49.6,
+   "fga_avg": 4.816568,
+   "fouls_per_min": 0.05791787882410765,
    "ft_pct": 72.3,
    "games": 25,
    "history": {
@@ -893,6 +907,7 @@
     }
    },
    "minutes_avg_str": "22:16",
+   "minutes_total_sec": 33408,
    "points_avg": 5.994,
    "rebounds_avg": 2.74,
    "rebounds_def_avg": 1.722,
@@ -911,6 +926,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 28.6,
    "fg_pct": 45.5,
+   "fga_avg": 5.5,
+   "fouls_per_min": 0.018981335020563112,
    "ft_pct": 100.0,
    "games": 2,
    "history": {
@@ -1007,6 +1024,7 @@
     }
    },
    "minutes_avg_str": "26:20",
+   "minutes_total_sec": 3161,
    "points_avg": 11.0,
    "rebounds_avg": 4.0,
    "rebounds_def_avg": 3.0,
@@ -1022,6 +1040,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 23.1,
    "fg_pct": 33.4,
+   "fga_avg": 7.734043,
+   "fouls_per_min": 0.17032896869443928,
    "ft_pct": 78.7,
    "games": 21,
    "history": {
@@ -1124,6 +1144,7 @@
     }
    },
    "minutes_avg_str": "18:03",
+   "minutes_total_sec": 22743,
    "points_avg": 8.457,
    "rebounds_avg": 2.574,
    "rebounds_def_avg": 1.543,
@@ -1142,6 +1163,8 @@
    "blocks_avg": 0.176,
    "fg3_pct": 33.3,
    "fg_pct": 43.5,
+   "fga_avg": 18.117647,
+   "fouls_per_min": 0.0631363931787936,
    "ft_pct": 79.0,
    "games": 17,
    "history": {
@@ -1244,6 +1267,7 @@
     }
    },
    "minutes_avg_str": "31:40",
+   "minutes_total_sec": 32311,
    "points_avg": 23.412,
    "rebounds_avg": 4.471,
    "rebounds_def_avg": 3.0,
@@ -1260,6 +1284,8 @@
    "blocks_avg": 0.194,
    "fg3_pct": 28.6,
    "fg_pct": 36.4,
+   "fga_avg": 11.627692,
+   "fouls_per_min": 0.08653721496377176,
    "ft_pct": 61.5,
    "games": 39,
    "history": {
@@ -1318,6 +1344,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "28:28",
+   "minutes_total_sec": 66644,
    "points_avg": 12.375,
    "rebounds_avg": 3.175,
    "rebounds_def_avg": 2.166,
@@ -1335,6 +1362,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -1393,6 +1422,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -1406,6 +1436,8 @@
    "blocks_avg": 0.056,
    "fg3_pct": 38.2,
    "fg_pct": 41.4,
+   "fga_avg": 6.235955,
+   "fouls_per_min": 0.08778302457924689,
    "ft_pct": 72.7,
    "games": 18,
    "history": {
@@ -1539,6 +1571,7 @@
     }
    },
    "minutes_avg_str": "18:33",
+   "minutes_total_sec": 20044,
    "points_avg": 7.247,
    "rebounds_avg": 2.36,
    "rebounds_def_avg": 1.517,
@@ -1556,6 +1589,8 @@
    "blocks_avg": 0.422,
    "fg3_pct": 26.9,
    "fg_pct": 40.9,
+   "fga_avg": 3.498127,
+   "fouls_per_min": 0.13857509437463994,
    "ft_pct": 61.2,
    "games": 109,
    "history": {
@@ -1763,6 +1798,7 @@
     }
    },
    "minutes_avg_str": "16:08",
+   "minutes_total_sec": 105584,
    "points_avg": 3.783,
    "rebounds_avg": 3.176,
    "rebounds_def_avg": 2.055,
@@ -1782,6 +1818,8 @@
    "blocks_avg": 0.206,
    "fg3_pct": 32.4,
    "fg_pct": 43.0,
+   "fga_avg": 5.214781,
+   "fouls_per_min": 0.13983514426687987,
    "ft_pct": 67.6,
    "games": 78,
    "history": {
@@ -1915,6 +1953,7 @@
     }
    },
    "minutes_avg_str": "15:56",
+   "minutes_total_sec": 74588,
    "points_avg": 6.171,
    "rebounds_avg": 1.559,
    "rebounds_def_avg": 0.961,
@@ -1935,6 +1974,8 @@
    "blocks_avg": 0.194,
    "fg3_pct": 35.6,
    "fg_pct": 46.4,
+   "fga_avg": 6.301402,
+   "fouls_per_min": 0.11247761796279326,
    "ft_pct": 71.9,
    "games": 131,
    "history": {
@@ -2105,6 +2146,7 @@
     }
    },
    "minutes_avg_str": "23:09",
+   "minutes_total_sec": 182049,
    "points_avg": 8.343,
    "rebounds_avg": 3.876,
    "rebounds_def_avg": 2.488,
@@ -2124,6 +2166,8 @@
    "blocks_avg": 0.034,
    "fg3_pct": 36.0,
    "fg_pct": 36.7,
+   "fga_avg": 7.486301,
+   "fouls_per_min": 0.1058425258503558,
    "ft_pct": 47.3,
    "games": 60,
    "history": {
@@ -2220,6 +2264,7 @@
     }
    },
    "minutes_avg_str": "24:47",
+   "minutes_total_sec": 89225,
    "points_avg": 7.462,
    "rebounds_avg": 1.99,
    "rebounds_def_avg": 1.185,
@@ -2240,6 +2285,8 @@
    "blocks_avg": 0.024,
    "fg3_pct": 31.2,
    "fg_pct": 29.9,
+   "fga_avg": 0.995283,
+   "fouls_per_min": 0.17104703793543224,
    "ft_pct": 73.7,
    "games": 46,
    "history": {
@@ -2373,6 +2420,7 @@
     }
    },
    "minutes_avg_str": "6:17",
+   "minutes_total_sec": 17354,
    "points_avg": 0.915,
    "rebounds_avg": 0.505,
    "rebounds_def_avg": 0.358,
@@ -2389,6 +2437,8 @@
    "blocks_avg": 0.045,
    "fg3_pct": 36.5,
    "fg_pct": 46.5,
+   "fga_avg": 8.211702,
+   "fouls_per_min": 0.10459634299136746,
    "ft_pct": 86.4,
    "games": 135,
    "history": {
@@ -2633,6 +2683,7 @@
     }
    },
    "minutes_avg_str": "29:49",
+   "minutes_total_sec": 241631,
    "points_avg": 11.561,
    "rebounds_avg": 3.278,
    "rebounds_def_avg": 2.37,
@@ -2652,6 +2703,8 @@
    "blocks_avg": 0.374,
    "fg3_pct": 20.8,
    "fg_pct": 46.1,
+   "fga_avg": 1.646018,
+   "fouls_per_min": 0.13978601824984133,
    "ft_pct": 68.1,
    "games": 57,
    "history": {
@@ -2748,6 +2801,7 @@
     }
    },
    "minutes_avg_str": "14:03",
+   "minutes_total_sec": 48066,
    "points_avg": 2.595,
    "rebounds_avg": 4.206,
    "rebounds_def_avg": 2.239,
@@ -2766,6 +2820,8 @@
    "blocks_avg": 0.154,
    "fg3_pct": 32.5,
    "fg_pct": 56.1,
+   "fga_avg": 6.03169,
+   "fouls_per_min": 0.10964381332221558,
    "ft_pct": 69.7,
    "games": 125,
    "history": {
@@ -2936,6 +2992,7 @@
     }
    },
    "minutes_avg_str": "19:28",
+   "minutes_total_sec": 146039,
    "points_avg": 9.352,
    "rebounds_avg": 3.95,
    "rebounds_def_avg": 2.311,
@@ -2955,6 +3012,8 @@
    "blocks_avg": 0.034,
    "fg3_pct": 22.0,
    "fg_pct": 59.5,
+   "fga_avg": 6.104938,
+   "fouls_per_min": 0.11018938364990145,
    "ft_pct": 62.3,
    "games": 102,
    "history": {
@@ -3088,6 +3147,7 @@
     }
    },
    "minutes_avg_str": "22:09",
+   "minutes_total_sec": 135595,
    "points_avg": 9.463,
    "rebounds_avg": 5.093,
    "rebounds_def_avg": 3.769,
@@ -3107,6 +3167,8 @@
    "blocks_avg": 0.16,
    "fg3_pct": 26.4,
    "fg_pct": 51.9,
+   "fga_avg": 7.474412,
+   "fouls_per_min": 0.09253817321277746,
    "ft_pct": 67.4,
    "games": 118,
    "history": {
@@ -3351,6 +3413,7 @@
     }
    },
    "minutes_avg_str": "23:41",
+   "minutes_total_sec": 167727,
    "points_avg": 10.277,
    "rebounds_avg": 4.957,
    "rebounds_def_avg": 3.375,
@@ -3370,6 +3433,8 @@
    "blocks_avg": 1.195,
    "fg3_pct": 0.0,
    "fg_pct": 57.1,
+   "fga_avg": 3.432308,
+   "fouls_per_min": 0.14058170623025196,
    "ft_pct": 62.4,
    "games": 103,
    "history": {
@@ -3466,6 +3531,7 @@
     }
    },
    "minutes_avg_str": "15:49",
+   "minutes_total_sec": 97795,
    "points_avg": 5.803,
    "rebounds_avg": 6.222,
    "rebounds_def_avg": 3.277,
@@ -3486,6 +3552,8 @@
    "blocks_avg": 0.254,
    "fg3_pct": 30.9,
    "fg_pct": 38.7,
+   "fga_avg": 5.874036,
+   "fouls_per_min": 0.12905136230446893,
    "ft_pct": 83.6,
    "games": 126,
    "history": {
@@ -3730,6 +3798,7 @@
     }
    },
    "minutes_avg_str": "18:39",
+   "minutes_total_sec": 141107,
    "points_avg": 7.145,
    "rebounds_avg": 3.878,
    "rebounds_def_avg": 2.835,
@@ -3750,6 +3819,8 @@
    "blocks_avg": 0.289,
    "fg3_pct": 35.8,
    "fg_pct": 47.8,
+   "fga_avg": 7.474667,
+   "fouls_per_min": 0.07622581208041365,
    "ft_pct": 70.5,
    "games": 93,
    "history": {
@@ -3957,6 +4028,7 @@
     }
    },
    "minutes_avg_str": "21:46",
+   "minutes_total_sec": 121518,
    "points_avg": 9.3,
    "rebounds_avg": 3.592,
    "rebounds_def_avg": 2.905,
@@ -3975,6 +4047,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 33.3,
    "fg_pct": 20.0,
+   "fga_avg": 1.0,
+   "fouls_per_min": 0.10291595197255575,
    "ft_pct": 0.0,
    "games": 5,
    "history": {
@@ -4108,6 +4182,7 @@
     }
    },
    "minutes_avg_str": "1:56",
+   "minutes_total_sec": 583,
    "points_avg": 0.6,
    "rebounds_avg": 0.4,
    "rebounds_def_avg": 0.2,
@@ -4124,6 +4199,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 12.5,
    "fg_pct": 8.3,
+   "fga_avg": 0.8,
+   "fouls_per_min": 0.1615798922800718,
    "ft_pct": 75.0,
    "games": 15,
    "history": {
@@ -4257,6 +4334,7 @@
     }
    },
    "minutes_avg_str": "3:42",
+   "minutes_total_sec": 3342,
    "points_avg": 0.4,
    "rebounds_avg": 0.2,
    "rebounds_def_avg": 0.133,
@@ -4273,6 +4351,8 @@
    "blocks_avg": 0.064,
    "fg3_pct": 0.0,
    "fg_pct": 64.5,
+   "fga_avg": 1.078014,
+   "fouls_per_min": 0.15146051208077893,
    "ft_pct": 62.5,
    "games": 19,
    "history": {
@@ -4443,6 +4523,7 @@
     }
    },
    "minutes_avg_str": "3:56",
+   "minutes_total_sec": 4484,
    "points_avg": 1.851,
    "rebounds_avg": 0.454,
    "rebounds_def_avg": 0.418,
@@ -4460,6 +4541,8 @@
    "blocks_avg": 0.433,
    "fg3_pct": 33.3,
    "fg_pct": 48.5,
+   "fga_avg": 2.047414,
+   "fouls_per_min": 0.14501675014741425,
    "ft_pct": 68.0,
    "games": 55,
    "history": {
@@ -4593,6 +4676,7 @@
     }
    },
    "minutes_avg_str": "11:05",
+   "minutes_total_sec": 36586,
    "points_avg": 2.731,
    "rebounds_avg": 2.825,
    "rebounds_def_avg": 1.603,
@@ -4610,6 +4694,8 @@
    "blocks_avg": 0.054,
    "fg3_pct": 22.4,
    "fg_pct": 42.9,
+   "fga_avg": 5.625,
+   "fouls_per_min": 0.11494047086205353,
    "ft_pct": 57.0,
    "games": 32,
    "history": {
@@ -4706,6 +4792,7 @@
     }
    },
    "minutes_avg_str": "16:37",
+   "minutes_total_sec": 31917,
    "points_avg": 6.393,
    "rebounds_avg": 2.571,
    "rebounds_def_avg": 1.625,
@@ -4722,6 +4809,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 52.6,
    "fg_pct": 54.7,
+   "fga_avg": 1.641026,
+   "fouls_per_min": 0.18838304552590268,
    "ft_pct": 0.0,
    "games": 8,
    "history": {
@@ -4892,6 +4981,7 @@
     }
    },
    "minutes_avg_str": "5:26",
+   "minutes_total_sec": 2613,
    "points_avg": 2.051,
    "rebounds_avg": 0.256,
    "rebounds_def_avg": 0.128,
@@ -4909,6 +4999,8 @@
    "blocks_avg": 0.483,
    "fg3_pct": 32.6,
    "fg_pct": 50.1,
+   "fga_avg": 8.270332,
+   "fouls_per_min": 0.11893092668101224,
    "ft_pct": 66.0,
    "games": 149,
    "history": {
@@ -5338,6 +5430,7 @@
     }
    },
    "minutes_avg_str": "26:19",
+   "minutes_total_sec": 235411,
    "points_avg": 12.426,
    "rebounds_avg": 7.323,
    "rebounds_def_avg": 4.628,
@@ -5358,6 +5451,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -5454,6 +5549,7 @@
     }
    },
    "minutes_avg_str": "1:03",
+   "minutes_total_sec": 63,
    "points_avg": 0.0,
    "rebounds_avg": 1.0,
    "rebounds_def_avg": 0.0,
@@ -5469,6 +5565,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 21.3,
    "fg_pct": 36.0,
+   "fga_avg": 11.5,
+   "fouls_per_min": 0.07705986959098993,
    "ft_pct": 66.7,
    "games": 14,
    "history": {
@@ -5527,6 +5625,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "24:06",
+   "minutes_total_sec": 20244,
    "points_avg": 12.857,
    "rebounds_avg": 4.929,
    "rebounds_def_avg": 4.0,
@@ -5542,6 +5641,8 @@
    "blocks_avg": 0.394,
    "fg3_pct": 0.0,
    "fg_pct": 67.1,
+   "fga_avg": 2.393939,
+   "fouls_per_min": 0.12698412698412698,
    "ft_pct": 58.9,
    "games": 20,
    "history": {
@@ -5638,6 +5739,7 @@
     }
    },
    "minutes_avg_str": "12:24",
+   "minutes_total_sec": 14891,
    "points_avg": 4.212,
    "rebounds_avg": 3.394,
    "rebounds_def_avg": 1.939,
@@ -5654,6 +5756,8 @@
    "blocks_avg": 0.194,
    "fg3_pct": 27.0,
    "fg_pct": 42.1,
+   "fga_avg": 6.364055,
+   "fouls_per_min": 0.08119986644915146,
    "ft_pct": 66.2,
    "games": 106,
    "history": {
@@ -5824,6 +5928,7 @@
     }
    },
    "minutes_avg_str": "21:32",
+   "minutes_total_sec": 137039,
    "points_avg": 7.356,
    "rebounds_avg": 3.619,
    "rebounds_def_avg": 2.696,
@@ -5844,6 +5949,8 @@
    "blocks_avg": 0.333,
    "fg3_pct": 0.0,
    "fg_pct": 22.2,
+   "fga_avg": 1.5,
+   "fouls_per_min": 0.045345761430910694,
    "ft_pct": 68.8,
    "games": 12,
    "history": {
@@ -5977,6 +6084,7 @@
     }
    },
    "minutes_avg_str": "11:01",
+   "minutes_total_sec": 7939,
    "points_avg": 1.583,
    "rebounds_avg": 1.75,
    "rebounds_def_avg": 1.25,
@@ -5993,6 +6101,8 @@
    "blocks_avg": 0.042,
    "fg3_pct": 37.0,
    "fg_pct": 42.7,
+   "fga_avg": 3.172794,
+   "fouls_per_min": 0.11580244912583014,
    "ft_pct": 80.8,
    "games": 106,
    "history": {
@@ -6348,6 +6458,7 @@
     }
    },
    "minutes_avg_str": "14:21",
+   "minutes_total_sec": 91367,
    "points_avg": 4.002,
    "rebounds_avg": 1.415,
    "rebounds_def_avg": 1.02,
@@ -6368,6 +6479,8 @@
    "blocks_avg": 0.389,
    "fg3_pct": 31.6,
    "fg_pct": 50.5,
+   "fga_avg": 7.41541,
+   "fouls_per_min": 0.08423923388673735,
    "ft_pct": 68.4,
    "games": 81,
    "history": {
@@ -6575,6 +6688,7 @@
     }
    },
    "minutes_avg_str": "24:11",
+   "minutes_total_sec": 117608,
    "points_avg": 10.193,
    "rebounds_avg": 4.203,
    "rebounds_def_avg": 3.322,
@@ -6594,6 +6708,8 @@
    "blocks_avg": 0.14,
    "fg3_pct": 31.7,
    "fg_pct": 44.7,
+   "fga_avg": 9.051597,
+   "fouls_per_min": 0.0722303498678073,
    "ft_pct": 75.7,
    "games": 60,
    "history": {
@@ -6770,6 +6886,7 @@
     }
    },
    "minutes_avg_str": "24:58",
+   "minutes_total_sec": 89884,
    "points_avg": 11.59,
    "rebounds_avg": 2.319,
    "rebounds_def_avg": 1.907,
@@ -6788,6 +6905,8 @@
    "blocks_avg": 0.068,
    "fg3_pct": 32.3,
    "fg_pct": 41.9,
+   "fga_avg": 8.25154,
+   "fouls_per_min": 0.1363405654240043,
    "ft_pct": 73.7,
    "games": 158,
    "history": {
@@ -7032,6 +7151,7 @@
     }
    },
    "minutes_avg_str": "24:10",
+   "minutes_total_sec": 229155,
    "points_avg": 9.957,
    "rebounds_avg": 2.218,
    "rebounds_def_avg": 1.583,
@@ -7052,6 +7172,8 @@
    "blocks_avg": 0.135,
    "fg3_pct": 23.8,
    "fg_pct": 59.9,
+   "fga_avg": 3.676535,
+   "fouls_per_min": 0.1255362033127434,
    "ft_pct": 73.7,
    "games": 158,
    "history": {
@@ -7561,6 +7683,7 @@
     }
    },
    "minutes_avg_str": "17:23",
+   "minutes_total_sec": 164860,
    "points_avg": 5.567,
    "rebounds_avg": 3.766,
    "rebounds_def_avg": 2.375,
@@ -7581,6 +7704,8 @@
    "blocks_avg": 0.959,
    "fg3_pct": 40.0,
    "fg_pct": 60.9,
+   "fga_avg": 4.09589,
+   "fouls_per_min": 0.11864406779661017,
    "ft_pct": 66.2,
    "games": 40,
    "history": {
@@ -7714,6 +7839,7 @@
     }
    },
    "minutes_avg_str": "21:49",
+   "minutes_total_sec": 52373,
    "points_avg": 6.356,
    "rebounds_avg": 5.315,
    "rebounds_def_avg": 2.753,
@@ -7730,6 +7856,8 @@
    "blocks_avg": 0.093,
    "fg3_pct": 27.0,
    "fg_pct": 64.1,
+   "fga_avg": 5.857788,
+   "fouls_per_min": 0.09581519480235381,
    "ft_pct": 66.2,
    "games": 73,
    "history": {
@@ -8054,6 +8182,7 @@
     }
    },
    "minutes_avg_str": "17:11",
+   "minutes_total_sec": 75328,
    "points_avg": 8.932,
    "rebounds_avg": 3.325,
    "rebounds_def_avg": 1.946,
@@ -8072,6 +8201,8 @@
    "blocks_avg": 0.133,
    "fg3_pct": 34.8,
    "fg_pct": 41.5,
+   "fga_avg": 6.712471,
+   "fouls_per_min": 0.09149906323667632,
    "ft_pct": 84.4,
    "games": 124,
    "history": {
@@ -8390,6 +8521,7 @@
     }
    },
    "minutes_avg_str": "21:28",
+   "minutes_total_sec": 159808,
    "points_avg": 8.12,
    "rebounds_avg": 2.12,
    "rebounds_def_avg": 1.882,
@@ -8409,6 +8541,8 @@
    "blocks_avg": 0.079,
    "fg3_pct": 37.3,
    "fg_pct": 51.6,
+   "fga_avg": 9.206349,
+   "fouls_per_min": 0.07535627108000527,
    "ft_pct": 78.9,
    "games": 35,
    "history": {
@@ -8542,6 +8676,7 @@
     }
    },
    "minutes_avg_str": "26:07",
+   "minutes_total_sec": 54851,
    "points_avg": 12.921,
    "rebounds_avg": 3.921,
    "rebounds_def_avg": 2.794,
@@ -8558,6 +8693,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 40.0,
    "fg_pct": 45.0,
+   "fga_avg": 1.666667,
+   "fouls_per_min": 0.14634146341463414,
    "ft_pct": 77.8,
    "games": 12,
    "history": {
@@ -8654,6 +8791,7 @@
     }
    },
    "minutes_avg_str": "9:06",
+   "minutes_total_sec": 6560,
    "points_avg": 2.417,
    "rebounds_avg": 0.917,
    "rebounds_def_avg": 0.583,
@@ -8669,6 +8807,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 11.1,
    "fg_pct": 41.5,
+   "fga_avg": 6.625,
+   "fouls_per_min": 0.1102814474439977,
    "ft_pct": 75.0,
    "games": 8,
    "history": {
@@ -8765,6 +8905,7 @@
     }
    },
    "minutes_avg_str": "18:08",
+   "minutes_total_sec": 8705,
    "points_avg": 7.25,
    "rebounds_avg": 2.625,
    "rebounds_def_avg": 2.125,
@@ -8780,6 +8921,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 40.0,
+   "fga_avg": 1.0,
+   "fouls_per_min": 0.291970802919708,
    "ft_pct": 100.0,
    "games": 5,
    "history": {
@@ -8913,6 +9056,7 @@
     }
    },
    "minutes_avg_str": "4:06",
+   "minutes_total_sec": 1233,
    "points_avg": 1.4,
    "rebounds_avg": 0.4,
    "rebounds_def_avg": 0.2,
@@ -8929,6 +9073,8 @@
    "blocks_avg": 0.058,
    "fg3_pct": 17.5,
    "fg_pct": 24.3,
+   "fga_avg": 2.794737,
+   "fouls_per_min": 0.14205626770058513,
    "ft_pct": 56.0,
    "games": 33,
    "history": {
@@ -9062,6 +9208,7 @@
     }
    },
    "minutes_avg_str": "13:35",
+   "minutes_total_sec": 26923,
    "points_avg": 2.384,
    "rebounds_avg": 2.079,
    "rebounds_def_avg": 1.458,
@@ -9079,6 +9226,8 @@
    "blocks_avg": 0.551,
    "fg3_pct": 0.0,
    "fg_pct": 51.3,
+   "fga_avg": 2.231884,
+   "fouls_per_min": 0.21631815408508515,
    "ft_pct": 72.4,
    "games": 35,
    "history": {
@@ -9212,6 +9361,7 @@
     }
    },
    "minutes_avg_str": "13:03",
+   "minutes_total_sec": 27435,
    "points_avg": 3.696,
    "rebounds_avg": 1.754,
    "rebounds_def_avg": 0.928,
@@ -9228,6 +9378,8 @@
    "blocks_avg": 0.515,
    "fg3_pct": 27.6,
    "fg_pct": 44.3,
+   "fga_avg": 3.353153,
+   "fouls_per_min": 0.19255666902713106,
    "ft_pct": 71.1,
    "games": 83,
    "history": {
@@ -9398,6 +9550,7 @@
     }
    },
    "minutes_avg_str": "12:35",
+   "minutes_total_sec": 62722,
    "points_avg": 4.398,
    "rebounds_avg": 2.42,
    "rebounds_def_avg": 1.838,
@@ -9416,6 +9569,8 @@
    "blocks_avg": 0.164,
    "fg3_pct": 28.0,
    "fg_pct": 43.2,
+   "fga_avg": 5.957275,
+   "fouls_per_min": 0.10930825070779013,
    "ft_pct": 72.3,
    "games": 140,
    "history": {
@@ -9586,6 +9741,7 @@
     }
    },
    "minutes_avg_str": "24:02",
+   "minutes_total_sec": 201967,
    "points_avg": 7.643,
    "rebounds_avg": 3.881,
    "rebounds_def_avg": 2.552,
@@ -9606,6 +9762,8 @@
    "blocks_avg": 0.442,
    "fg3_pct": 28.0,
    "fg_pct": 48.3,
+   "fga_avg": 7.769231,
+   "fouls_per_min": 0.0524741431758264,
    "ft_pct": 64.2,
    "games": 30,
    "history": {
@@ -9745,6 +9903,7 @@
     }
    },
    "minutes_avg_str": "25:17",
+   "minutes_total_sec": 45517,
    "points_avg": 9.731,
    "rebounds_avg": 6.0,
    "rebounds_def_avg": 3.25,
@@ -9761,6 +9920,8 @@
    "blocks_avg": 0.02,
    "fg3_pct": 33.9,
    "fg_pct": 38.4,
+   "fga_avg": 6.598253,
+   "fouls_per_min": 0.08975911687142703,
    "ft_pct": 81.2,
    "games": 153,
    "history": {
@@ -10042,6 +10203,7 @@
     }
    },
    "minutes_avg_str": "21:35",
+   "minutes_total_sec": 198183,
    "points_avg": 7.227,
    "rebounds_avg": 1.968,
    "rebounds_def_avg": 1.48,
@@ -10062,6 +10224,8 @@
    "blocks_avg": 0.119,
    "fg3_pct": 18.6,
    "fg_pct": 56.6,
+   "fga_avg": 4.048009,
+   "fouls_per_min": 0.16699847155682854,
    "ft_pct": 62.5,
    "games": 142,
    "history": {
@@ -10349,6 +10513,7 @@
     }
    },
    "minutes_avg_str": "15:11",
+   "minutes_total_sec": 129458,
    "points_avg": 5.669,
    "rebounds_avg": 3.136,
    "rebounds_def_avg": 1.69,
@@ -10369,6 +10534,8 @@
    "blocks_avg": 0.424,
    "fg3_pct": 31.0,
    "fg_pct": 38.9,
+   "fga_avg": 5.946581,
+   "fouls_per_min": 0.11249703381690863,
    "ft_pct": 75.2,
    "games": 155,
    "history": {
@@ -10724,6 +10891,7 @@
     }
    },
    "minutes_avg_str": "22:03",
+   "minutes_total_sec": 205171,
    "points_avg": 6.592,
    "rebounds_avg": 3.315,
    "rebounds_def_avg": 2.566,
@@ -10744,6 +10912,8 @@
    "blocks_avg": 0.611,
    "fg3_pct": 30.7,
    "fg_pct": 46.1,
+   "fga_avg": 5.291022,
+   "fouls_per_min": 0.16716355730299043,
    "ft_pct": 70.0,
    "games": 102,
    "history": {
@@ -10914,6 +11084,7 @@
     }
    },
    "minutes_avg_str": "17:50",
+   "minutes_total_sec": 109152,
    "points_avg": 6.933,
    "rebounds_avg": 4.395,
    "rebounds_def_avg": 3.08,
@@ -10934,6 +11105,8 @@
    "blocks_avg": 0.269,
    "fg3_pct": 29.5,
    "fg_pct": 48.2,
+   "fga_avg": 5.032503,
+   "fouls_per_min": 0.11348611103296556,
    "ft_pct": 69.9,
    "games": 155,
    "history": {
@@ -11252,6 +11425,7 @@
     }
    },
    "minutes_avg_str": "19:15",
+   "minutes_total_sec": 179079,
    "points_avg": 6.235,
    "rebounds_avg": 3.85,
    "rebounds_def_avg": 2.668,
@@ -11272,6 +11446,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -11330,6 +11506,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -11343,6 +11520,8 @@
    "blocks_avg": 0.052,
    "fg3_pct": 34.1,
    "fg_pct": 36.1,
+   "fga_avg": 8.825472,
+   "fouls_per_min": 0.11171699796927154,
    "ft_pct": 81.9,
    "games": 64,
    "history": {
@@ -11624,6 +11803,7 @@
     }
    },
    "minutes_avg_str": "21:53",
+   "minutes_total_sec": 84067,
    "points_avg": 11.335,
    "rebounds_avg": 1.7,
    "rebounds_def_avg": 1.474,
@@ -11641,6 +11821,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 20.0,
    "fg_pct": 20.0,
+   "fga_avg": 0.384615,
+   "fouls_per_min": 0.12705134992059292,
    "ft_pct": 0.0,
    "games": 13,
    "history": {
@@ -11737,6 +11919,7 @@
     }
    },
    "minutes_avg_str": "2:25",
+   "minutes_total_sec": 1889,
    "points_avg": 0.231,
    "rebounds_avg": 0.231,
    "rebounds_def_avg": 0.231,
@@ -11752,6 +11935,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 25.0,
+   "fga_avg": 0.8,
+   "fouls_per_min": 0.12422360248447205,
    "ft_pct": 0.0,
    "games": 5,
    "history": {
@@ -11885,6 +12070,7 @@
     }
    },
    "minutes_avg_str": "3:13",
+   "minutes_total_sec": 966,
    "points_avg": 0.4,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -11901,6 +12087,8 @@
    "blocks_avg": 0.044,
    "fg3_pct": 31.5,
    "fg_pct": 42.0,
+   "fga_avg": 6.804067,
+   "fouls_per_min": 0.11913683174617526,
    "ft_pct": 65.7,
    "games": 75,
    "history": {
@@ -12034,6 +12222,7 @@
     }
    },
    "minutes_avg_str": "17:43",
+   "minutes_total_sec": 79732,
    "points_avg": 7.989,
    "rebounds_avg": 1.715,
    "rebounds_def_avg": 1.458,
@@ -12053,6 +12242,8 @@
    "blocks_avg": 0.187,
    "fg3_pct": 33.4,
    "fg_pct": 40.6,
+   "fga_avg": 4.372699,
+   "fouls_per_min": 0.10362794194907289,
    "ft_pct": 81.9,
    "games": 76,
    "history": {
@@ -12223,6 +12414,7 @@
     }
    },
    "minutes_avg_str": "15:54",
+   "minutes_total_sec": 72552,
    "points_avg": 4.925,
    "rebounds_avg": 1.939,
    "rebounds_def_avg": 1.544,
@@ -12240,6 +12432,8 @@
    "blocks_avg": 0.084,
    "fg3_pct": 31.5,
    "fg_pct": 48.6,
+   "fga_avg": 9.447479,
+   "fouls_per_min": 0.05781049334377447,
    "ft_pct": 81.5,
    "games": 64,
    "history": {
@@ -12373,6 +12567,7 @@
     }
    },
    "minutes_avg_str": "27:56",
+   "minutes_total_sec": 107311,
    "points_avg": 13.609,
    "rebounds_avg": 3.777,
    "rebounds_def_avg": 2.828,
@@ -12390,6 +12585,8 @@
    "blocks_avg": 0.176,
    "fg3_pct": 31.4,
    "fg_pct": 38.8,
+   "fga_avg": 7.845714,
+   "fouls_per_min": 0.10270434099769932,
    "ft_pct": 76.0,
    "games": 109,
    "history": {
@@ -12486,6 +12683,7 @@
     }
    },
    "minutes_avg_str": "20:44",
+   "minutes_total_sec": 135634,
    "points_avg": 9.101,
    "rebounds_avg": 3.123,
    "rebounds_def_avg": 1.946,
@@ -12506,6 +12704,8 @@
    "blocks_avg": 0.469,
    "fg3_pct": 33.0,
    "fg_pct": 48.9,
+   "fga_avg": 5.936321,
+   "fouls_per_min": 0.12468256524241192,
    "ft_pct": 58.0,
    "games": 149,
    "history": {
@@ -12713,6 +12913,7 @@
     }
    },
    "minutes_avg_str": "18:36",
+   "minutes_total_sec": 166403,
    "points_avg": 7.619,
    "rebounds_avg": 4.381,
    "rebounds_def_avg": 3.15,
@@ -12733,6 +12934,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 5,
    "history": {
@@ -12829,6 +13032,7 @@
     }
    },
    "minutes_avg_str": "0:50",
+   "minutes_total_sec": 253,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -12844,6 +13048,8 @@
    "blocks_avg": 0.066,
    "fg3_pct": 29.9,
    "fg_pct": 38.5,
+   "fga_avg": 7.324645,
+   "fouls_per_min": 0.07356370857043859,
    "ft_pct": 62.1,
    "games": 51,
    "history": {
@@ -12940,6 +13146,7 @@
     }
    },
    "minutes_avg_str": "17:46",
+   "minutes_total_sec": 54411,
    "points_avg": 8.026,
    "rebounds_avg": 2.604,
    "rebounds_def_avg": 1.841,
@@ -12958,6 +13165,8 @@
    "blocks_avg": 0.286,
    "fg3_pct": 18.1,
    "fg_pct": 28.1,
+   "fga_avg": 3.428571,
+   "fouls_per_min": 0.14431749849669273,
    "ft_pct": 86.7,
    "games": 17,
    "history": {
@@ -13054,6 +13263,7 @@
     }
    },
    "minutes_avg_str": "9:53",
+   "minutes_total_sec": 10097,
    "points_avg": 2.857,
    "rebounds_avg": 1.607,
    "rebounds_def_avg": 1.321,
@@ -13070,6 +13280,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 20.0,
    "fg_pct": 45.3,
+   "fga_avg": 1.306122,
+   "fouls_per_min": 0.0852192027270145,
    "ft_pct": 100.0,
    "games": 10,
    "history": {
@@ -13166,6 +13378,7 @@
     }
    },
    "minutes_avg_str": "7:11",
+   "minutes_total_sec": 4311,
    "points_avg": 1.49,
    "rebounds_avg": 0.204,
    "rebounds_def_avg": 0.204,
@@ -13183,6 +13396,8 @@
    "blocks_avg": 0.238,
    "fg3_pct": 34.0,
    "fg_pct": 38.7,
+   "fga_avg": 14.380952,
+   "fouls_per_min": 0.07560137457044673,
    "ft_pct": 71.6,
    "games": 21,
    "history": {
@@ -13241,6 +13456,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "27:42",
+   "minutes_total_sec": 34920,
    "points_avg": 16.143,
    "rebounds_avg": 4.048,
    "rebounds_def_avg": 3.095,
@@ -13256,6 +13472,8 @@
    "blocks_avg": 0.074,
    "fg3_pct": 32.0,
    "fg_pct": 38.7,
+   "fga_avg": 2.99409,
+   "fouls_per_min": 0.1356830315924692,
    "ft_pct": 58.9,
    "games": 142,
    "history": {
@@ -13580,6 +13798,7 @@
     }
    },
    "minutes_avg_str": "14:43",
+   "minutes_total_sec": 125438,
    "points_avg": 3.39,
    "rebounds_avg": 1.767,
    "rebounds_def_avg": 1.35,
@@ -13600,6 +13819,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 26.6,
    "fg_pct": 27.8,
+   "fga_avg": 1.844538,
+   "fouls_per_min": 0.14052036447469538,
    "ft_pct": 0.0,
    "games": 29,
    "history": {
@@ -13770,6 +13991,7 @@
     }
    },
    "minutes_avg_str": "7:39",
+   "minutes_total_sec": 13319,
    "points_avg": 1.349,
    "rebounds_avg": 0.71,
    "rebounds_def_avg": 0.382,
@@ -13788,6 +14010,8 @@
    "blocks_avg": 0.091,
    "fg3_pct": 15.4,
    "fg_pct": 36.0,
+   "fga_avg": 2.272727,
+   "fouls_per_min": 0.13936330099740402,
    "ft_pct": 66.7,
    "games": 11,
    "history": {
@@ -13921,6 +14145,7 @@
     }
    },
    "minutes_avg_str": "11:05",
+   "minutes_total_sec": 7319,
    "points_avg": 2.182,
    "rebounds_avg": 1.273,
    "rebounds_def_avg": 1.091,
@@ -13937,6 +14162,8 @@
    "blocks_avg": 0.56,
    "fg3_pct": 27.5,
    "fg_pct": 45.9,
+   "fga_avg": 5.887372,
+   "fouls_per_min": 0.10416893945297279,
    "ft_pct": 79.3,
    "games": 35,
    "history": {
@@ -14113,6 +14340,7 @@
     }
    },
    "minutes_avg_str": "18:14",
+   "minutes_total_sec": 38324,
    "points_avg": 7.116,
    "rebounds_avg": 4.891,
    "rebounds_def_avg": 3.382,
@@ -14131,6 +14359,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -14189,6 +14419,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -14202,6 +14433,8 @@
    "blocks_avg": 0.135,
    "fg3_pct": 11.4,
    "fg_pct": 22.9,
+   "fga_avg": 2.594595,
+   "fouls_per_min": 0.14501450145014502,
    "ft_pct": 51.6,
    "games": 19,
    "history": {
@@ -14335,6 +14568,7 @@
     }
    },
    "minutes_avg_str": "13:30",
+   "minutes_total_sec": 15404,
    "points_avg": 1.743,
    "rebounds_avg": 1.662,
    "rebounds_def_avg": 0.878,
@@ -14351,6 +14585,8 @@
    "blocks_avg": 0.09,
    "fg3_pct": 30.4,
    "fg_pct": 36.5,
+   "fga_avg": 7.562147,
+   "fouls_per_min": 0.08988941387316197,
    "ft_pct": 80.9,
    "games": 94,
    "history": {
@@ -14521,6 +14757,7 @@
     }
    },
    "minutes_avg_str": "18:29",
+   "minutes_total_sec": 104307,
    "points_avg": 8.831,
    "rebounds_avg": 2.648,
    "rebounds_def_avg": 2.165,
@@ -14540,6 +14777,8 @@
    "blocks_avg": 0.306,
    "fg3_pct": 24.0,
    "fg_pct": 57.9,
+   "fga_avg": 6.392208,
+   "fouls_per_min": 0.13938225783328287,
    "ft_pct": 71.0,
    "games": 127,
    "history": {
@@ -14784,6 +15023,7 @@
     }
    },
    "minutes_avg_str": "16:18",
+   "minutes_total_sec": 124250,
    "points_avg": 9.192,
    "rebounds_avg": 3.338,
    "rebounds_def_avg": 2.247,
@@ -14803,6 +15043,8 @@
    "blocks_avg": 0.043,
    "fg3_pct": 29.2,
    "fg_pct": 39.7,
+   "fga_avg": 7.12729,
+   "fouls_per_min": 0.09302318166383161,
    "ft_pct": 74.7,
    "games": 165,
    "history": {
@@ -15158,6 +15400,7 @@
     }
    },
    "minutes_avg_str": "20:09",
+   "minutes_total_sec": 199611,
    "points_avg": 8.122,
    "rebounds_avg": 1.635,
    "rebounds_def_avg": 1.135,
@@ -15178,6 +15421,8 @@
    "blocks_avg": 0.25,
    "fg3_pct": 22.8,
    "fg_pct": 45.5,
+   "fga_avg": 2.439868,
+   "fouls_per_min": 0.11235735424624012,
    "ft_pct": 54.2,
    "games": 94,
    "history": {
@@ -15348,6 +15593,7 @@
     }
    },
    "minutes_avg_str": "14:02",
+   "minutes_total_sec": 79224,
    "points_avg": 2.913,
    "rebounds_avg": 2.634,
    "rebounds_def_avg": 1.689,
@@ -15367,6 +15613,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 40.0,
    "fg_pct": 44.6,
+   "fga_avg": 12.169231,
+   "fouls_per_min": 0.06850977747808497,
    "ft_pct": 83.5,
    "games": 37,
    "history": {
@@ -15500,6 +15748,7 @@
     }
    },
    "minutes_avg_str": "28:31",
+   "minutes_total_sec": 63313,
    "points_avg": 15.262,
    "rebounds_avg": 2.908,
    "rebounds_def_avg": 2.431,
@@ -15516,6 +15765,8 @@
    "blocks_avg": 0.071,
    "fg3_pct": 33.2,
    "fg_pct": 44.5,
+   "fga_avg": 12.987203,
+   "fouls_per_min": 0.08774542656440043,
    "ft_pct": 79.5,
    "games": 63,
    "history": {
@@ -15686,6 +15937,7 @@
     }
    },
    "minutes_avg_str": "29:27",
+   "minutes_total_sec": 111360,
    "points_avg": 16.154,
    "rebounds_avg": 2.133,
    "rebounds_def_avg": 1.782,
@@ -15703,6 +15955,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 25.0,
    "fg_pct": 40.0,
+   "fga_avg": 0.5,
+   "fouls_per_min": 0.12569832402234637,
    "ft_pct": 0.0,
    "games": 10,
    "history": {
@@ -15836,6 +16090,7 @@
     }
    },
    "minutes_avg_str": "2:23",
+   "minutes_total_sec": 1432,
    "points_avg": 0.5,
    "rebounds_avg": 0.1,
    "rebounds_def_avg": 0.1,
@@ -15852,6 +16107,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 53.8,
+   "fga_avg": 1.3,
+   "fouls_per_min": 0.14077163712200208,
    "ft_pct": 0.0,
    "games": 10,
    "history": {
@@ -15985,6 +16242,7 @@
     }
    },
    "minutes_avg_str": "6:23",
+   "minutes_total_sec": 3836,
    "points_avg": 1.4,
    "rebounds_avg": 1.0,
    "rebounds_def_avg": 0.6,
@@ -16001,6 +16259,8 @@
    "blocks_avg": 0.458,
    "fg3_pct": 31.6,
    "fg_pct": 54.5,
+   "fga_avg": 7.461864,
+   "fouls_per_min": 0.08451864105583287,
    "ft_pct": 55.6,
    "games": 58,
    "history": {
@@ -16171,6 +16431,7 @@
     }
    },
    "minutes_avg_str": "24:26",
+   "minutes_total_sec": 85053,
    "points_avg": 10.25,
    "rebounds_avg": 6.246,
    "rebounds_def_avg": 4.47,
@@ -16188,6 +16449,8 @@
    "blocks_avg": 0.528,
    "fg3_pct": 24.2,
    "fg_pct": 45.7,
+   "fga_avg": 3.498684,
+   "fouls_per_min": 0.08679108009181312,
    "ft_pct": 57.8,
    "games": 120,
    "history": {
@@ -16432,6 +16695,7 @@
     }
    },
    "minutes_avg_str": "20:26",
+   "minutes_total_sec": 147141,
    "points_avg": 4.07,
    "rebounds_avg": 3.638,
    "rebounds_def_avg": 2.462,
@@ -16451,6 +16715,8 @@
    "blocks_avg": 0.351,
    "fg3_pct": 25.8,
    "fg_pct": 36.7,
+   "fga_avg": 7.432432,
+   "fouls_per_min": 0.08798223103961357,
    "ft_pct": 63.0,
    "games": 22,
    "history": {
@@ -16584,6 +16850,7 @@
     }
    },
    "minutes_avg_str": "20:53",
+   "minutes_total_sec": 27573,
    "points_avg": 8.486,
    "rebounds_avg": 3.757,
    "rebounds_def_avg": 2.865,
@@ -16600,6 +16867,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -16658,6 +16927,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -16671,6 +16941,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -16729,6 +17001,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -16742,6 +17015,8 @@
    "blocks_avg": 0.391,
    "fg3_pct": 35.3,
    "fg_pct": 60.3,
+   "fga_avg": 4.250429,
+   "fouls_per_min": 0.1714130294986433,
    "ft_pct": 68.2,
    "games": 107,
    "history": {
@@ -17023,6 +17298,7 @@
     }
    },
    "minutes_avg_str": "13:33",
+   "minutes_total_sec": 87049,
    "points_avg": 6.233,
    "rebounds_avg": 3.856,
    "rebounds_def_avg": 2.508,
@@ -17043,6 +17319,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 50.0,
+   "fga_avg": 1.555556,
+   "fouls_per_min": 0.09872029250457039,
    "ft_pct": 100.0,
    "games": 9,
    "history": {
@@ -17176,6 +17454,7 @@
     }
    },
    "minutes_avg_str": "10:07",
+   "minutes_total_sec": 5470,
    "points_avg": 2.0,
    "rebounds_avg": 2.444,
    "rebounds_def_avg": 1.889,
@@ -17192,6 +17471,8 @@
    "blocks_avg": 0.069,
    "fg3_pct": 44.5,
    "fg_pct": 43.7,
+   "fga_avg": 7.631034,
+   "fouls_per_min": 0.09087187883749488,
    "ft_pct": 70.0,
    "games": 32,
    "history": {
@@ -17362,6 +17643,7 @@
     }
    },
    "minutes_avg_str": "21:03",
+   "minutes_total_sec": 40436,
    "points_avg": 9.555,
    "rebounds_avg": 1.879,
    "rebounds_def_avg": 1.397,
@@ -17380,6 +17662,8 @@
    "blocks_avg": 0.314,
    "fg3_pct": 17.7,
    "fg_pct": 59.1,
+   "fga_avg": 4.18299,
+   "fouls_per_min": 0.14077239044729292,
    "ft_pct": 62.9,
    "games": 107,
    "history": {
@@ -17476,6 +17760,7 @@
     }
    },
    "minutes_avg_str": "18:43",
+   "minutes_total_sec": 120243,
    "points_avg": 6.394,
    "rebounds_avg": 4.706,
    "rebounds_def_avg": 3.003,
@@ -17494,6 +17779,8 @@
    "blocks_avg": 0.063,
    "fg3_pct": 29.2,
    "fg_pct": 34.3,
+   "fga_avg": 6.197337,
+   "fouls_per_min": 0.09547053587827241,
    "ft_pct": 81.5,
    "games": 131,
    "history": {
@@ -17923,6 +18210,7 @@
     }
    },
    "minutes_avg_str": "22:51",
+   "minutes_total_sec": 179609,
    "points_avg": 6.511,
    "rebounds_avg": 2.192,
    "rebounds_def_avg": 1.705,
@@ -17943,6 +18231,8 @@
    "blocks_avg": 0.055,
    "fg3_pct": 36.9,
    "fg_pct": 41.3,
+   "fga_avg": 6.65184,
+   "fouls_per_min": 0.12729069425679967,
    "ft_pct": 87.9,
    "games": 85,
    "history": {
@@ -18150,6 +18440,7 @@
     }
    },
    "minutes_avg_str": "21:08",
+   "minutes_total_sec": 107784,
    "points_avg": 8.336,
    "rebounds_avg": 2.508,
    "rebounds_def_avg": 2.005,
@@ -18168,6 +18459,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 33.3,
    "fg_pct": 40.7,
+   "fga_avg": 14.75,
+   "fouls_per_min": 0.08555539711963496,
    "ft_pct": 84.8,
    "games": 8,
    "history": {
@@ -18264,6 +18557,7 @@
     }
    },
    "minutes_avg_str": "29:13",
+   "minutes_total_sec": 14026,
    "points_avg": 19.5,
    "rebounds_avg": 5.25,
    "rebounds_def_avg": 4.375,
@@ -18279,6 +18573,8 @@
    "blocks_avg": 0.133,
    "fg3_pct": 36.3,
    "fg_pct": 42.1,
+   "fga_avg": 9.496868,
+   "fouls_per_min": 0.1000462166066821,
    "ft_pct": 86.1,
    "games": 155,
    "history": {
@@ -18560,6 +18856,7 @@
     }
    },
    "minutes_avg_str": "23:54",
+   "minutes_total_sec": 222301,
    "points_avg": 12.45,
    "rebounds_avg": 1.831,
    "rebounds_def_avg": 1.148,
@@ -18580,6 +18877,8 @@
    "blocks_avg": 0.118,
    "fg3_pct": 31.8,
    "fg_pct": 36.8,
+   "fga_avg": 9.400891,
+   "fouls_per_min": 0.09044810693339989,
    "ft_pct": 75.1,
    "games": 110,
    "history": {
@@ -18824,6 +19123,7 @@
     }
    },
    "minutes_avg_str": "27:12",
+   "minutes_total_sec": 179581,
    "points_avg": 11.004,
    "rebounds_avg": 2.203,
    "rebounds_def_avg": 1.728,
@@ -18844,6 +19144,8 @@
    "blocks_avg": 0.143,
    "fg3_pct": 31.0,
    "fg_pct": 45.1,
+   "fga_avg": 8.838742,
+   "fouls_per_min": 0.09762900976290097,
    "ft_pct": 67.9,
    "games": 155,
    "history": {
@@ -19051,6 +19353,7 @@
     }
    },
    "minutes_avg_str": "25:22",
+   "minutes_total_sec": 236021,
    "points_avg": 10.787,
    "rebounds_avg": 4.033,
    "rebounds_def_avg": 3.498,
@@ -19071,6 +19374,8 @@
    "blocks_avg": 0.23,
    "fg3_pct": 37.1,
    "fg_pct": 48.4,
+   "fga_avg": 7.054945,
+   "fouls_per_min": 0.10016278880888735,
    "ft_pct": 80.4,
    "games": 148,
    "history": {
@@ -19315,6 +19620,7 @@
     }
    },
    "minutes_avg_str": "20:44",
+   "minutes_total_sec": 184228,
    "points_avg": 9.288,
    "rebounds_avg": 4.338,
    "rebounds_def_avg": 3.168,
@@ -19335,6 +19641,8 @@
    "blocks_avg": 0.035,
    "fg3_pct": 33.8,
    "fg_pct": 41.8,
+   "fga_avg": 7.211224,
+   "fouls_per_min": 0.10711203647812569,
    "ft_pct": 77.9,
    "games": 142,
    "history": {
@@ -19579,6 +19887,7 @@
     }
    },
    "minutes_avg_str": "25:50",
+   "minutes_total_sec": 220123,
    "points_avg": 9.252,
    "rebounds_avg": 3.034,
    "rebounds_def_avg": 2.458,
@@ -19598,6 +19907,8 @@
    "blocks_avg": 0.232,
    "fg3_pct": 27.2,
    "fg_pct": 38.0,
+   "fga_avg": 7.806789,
+   "fouls_per_min": 0.11859053931559287,
    "ft_pct": 67.5,
    "games": 59,
    "history": {
@@ -19805,6 +20116,7 @@
     }
    },
    "minutes_avg_str": "22:36",
+   "minutes_total_sec": 80043,
    "points_avg": 9.018,
    "rebounds_avg": 3.812,
    "rebounds_def_avg": 3.0,
@@ -19823,6 +20135,8 @@
    "blocks_avg": 0.073,
    "fg3_pct": 35.7,
    "fg_pct": 49.7,
+   "fga_avg": 3.472727,
+   "fouls_per_min": 0.09073482428115016,
    "ft_pct": 67.6,
    "games": 29,
    "history": {
@@ -19956,6 +20270,7 @@
     }
    },
    "minutes_avg_str": "14:13",
+   "minutes_total_sec": 24755,
    "points_avg": 4.509,
    "rebounds_avg": 2.818,
    "rebounds_def_avg": 2.018,
@@ -19972,6 +20287,8 @@
    "blocks_avg": 0.143,
    "fg3_pct": 37.2,
    "fg_pct": 41.5,
+   "fga_avg": 9.285714,
+   "fouls_per_min": 0.11200628807231283,
    "ft_pct": 95.5,
    "games": 7,
    "history": {
@@ -20074,6 +20391,7 @@
     }
    },
    "minutes_avg_str": "24:14",
+   "minutes_total_sec": 10178,
    "points_avg": 13.0,
    "rebounds_avg": 3.0,
    "rebounds_def_avg": 2.286,
@@ -20089,6 +20407,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 31.4,
    "fg_pct": 43.2,
+   "fga_avg": 10.125,
+   "fouls_per_min": 0.10823220728107576,
    "ft_pct": 81.0,
    "games": 8,
    "history": {
@@ -20191,6 +20511,7 @@
     }
    },
    "minutes_avg_str": "25:24",
+   "minutes_total_sec": 12196,
    "points_avg": 12.25,
    "rebounds_avg": 7.5,
    "rebounds_def_avg": 5.25,
@@ -20206,6 +20527,8 @@
    "blocks_avg": 1.375,
    "fg3_pct": 0.0,
    "fg_pct": 82.1,
+   "fga_avg": 7.0,
+   "fouls_per_min": 0.13462617196890778,
    "ft_pct": 62.5,
    "games": 8,
    "history": {
@@ -20302,6 +20625,7 @@
     }
    },
    "minutes_avg_str": "25:59",
+   "minutes_total_sec": 12479,
    "points_avg": 13.375,
    "rebounds_avg": 6.875,
    "rebounds_def_avg": 5.0,
@@ -20317,6 +20641,8 @@
    "blocks_avg": 0.187,
    "fg3_pct": 40.1,
    "fg_pct": 43.1,
+   "fga_avg": 5.538168,
+   "fouls_per_min": 0.10746363144775195,
    "ft_pct": 81.4,
    "games": 78,
    "history": {
@@ -20604,6 +20930,7 @@
     }
    },
    "minutes_avg_str": "24:06",
+   "minutes_total_sec": 112863,
    "points_avg": 7.187,
    "rebounds_avg": 2.397,
    "rebounds_def_avg": 1.76,
@@ -20624,6 +20951,8 @@
    "blocks_avg": 0.521,
    "fg3_pct": 28.8,
    "fg_pct": 62.5,
+   "fga_avg": 6.309278,
+   "fouls_per_min": 0.12476316961674018,
    "ft_pct": 54.5,
    "games": 57,
    "history": {
@@ -20800,6 +21129,7 @@
     }
    },
    "minutes_avg_str": "20:55",
+   "minutes_total_sec": 71568,
    "points_avg": 9.57,
    "rebounds_avg": 5.149,
    "rebounds_def_avg": 3.057,
@@ -20818,6 +21148,8 @@
    "blocks_avg": 0.108,
    "fg3_pct": 35.9,
    "fg_pct": 49.7,
+   "fga_avg": 5.324324,
+   "fouls_per_min": 0.13679639792399437,
    "ft_pct": 64.6,
    "games": 41,
    "history": {
@@ -20951,6 +21283,7 @@
     }
    },
    "minutes_avg_str": "19:39",
+   "minutes_total_sec": 48360,
    "points_avg": 7.041,
    "rebounds_avg": 6.73,
    "rebounds_def_avg": 4.838,
@@ -20967,6 +21300,8 @@
    "blocks_avg": 0.182,
    "fg3_pct": 21.3,
    "fg_pct": 37.6,
+   "fga_avg": 6.310136,
+   "fouls_per_min": 0.11324959305007878,
    "ft_pct": 56.9,
    "games": 96,
    "history": {
@@ -21137,6 +21472,7 @@
     }
    },
    "minutes_avg_str": "17:22",
+   "minutes_total_sec": 100106,
    "points_avg": 6.297,
    "rebounds_avg": 2.599,
    "rebounds_def_avg": 1.769,
@@ -21156,6 +21492,8 @@
    "blocks_avg": 0.74,
    "fg3_pct": 38.8,
    "fg_pct": 49.9,
+   "fga_avg": 11.4125,
+   "fouls_per_min": 0.11876440413352166,
    "ft_pct": 85.9,
    "games": 57,
    "history": {
@@ -21289,6 +21627,7 @@
     }
    },
    "minutes_avg_str": "26:09",
+   "minutes_total_sec": 89449,
    "points_avg": 15.669,
    "rebounds_avg": 4.673,
    "rebounds_def_avg": 2.613,
@@ -21306,6 +21645,8 @@
    "blocks_avg": 0.05,
    "fg3_pct": 46.0,
    "fg_pct": 47.1,
+   "fga_avg": 6.702479,
+   "fouls_per_min": 0.08640572437924013,
    "ft_pct": 87.7,
    "games": 73,
    "history": {
@@ -21476,6 +21817,7 @@
     }
    },
    "minutes_avg_str": "20:24",
+   "minutes_total_sec": 89373,
    "points_avg": 9.862,
    "rebounds_avg": 1.088,
    "rebounds_def_avg": 0.84,
@@ -21493,6 +21835,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 50.0,
    "fg_pct": 53.2,
+   "fga_avg": 5.875,
+   "fouls_per_min": 0.18376722817764166,
    "ft_pct": 92.3,
    "games": 8,
    "history": {
@@ -21589,6 +21933,7 @@
     }
    },
    "minutes_avg_str": "14:57",
+   "minutes_total_sec": 7183,
    "points_avg": 8.375,
    "rebounds_avg": 1.5,
    "rebounds_def_avg": 0.75,
@@ -21604,6 +21949,8 @@
    "blocks_avg": 0.375,
    "fg3_pct": 20.0,
    "fg_pct": 31.4,
+   "fga_avg": 4.375,
+   "fouls_per_min": 0.14366197183098592,
    "ft_pct": 94.1,
    "games": 8,
    "history": {
@@ -21700,6 +22047,7 @@
     }
    },
    "minutes_avg_str": "14:47",
+   "minutes_total_sec": 7100,
    "points_avg": 5.0,
    "rebounds_avg": 3.0,
    "rebounds_def_avg": 1.75,
@@ -21715,6 +22063,8 @@
    "blocks_avg": 0.308,
    "fg3_pct": 33.1,
    "fg_pct": 44.2,
+   "fga_avg": 10.920091,
+   "fouls_per_min": 0.08569980124083655,
    "ft_pct": 83.6,
    "games": 101,
    "history": {
@@ -21885,6 +22235,7 @@
     }
    },
    "minutes_avg_str": "28:22",
+   "minutes_total_sec": 171937,
    "points_avg": 13.731,
    "rebounds_avg": 4.16,
    "rebounds_def_avg": 3.475,
@@ -21905,6 +22256,8 @@
    "blocks_avg": 0.625,
    "fg3_pct": 42.9,
    "fg_pct": 41.9,
+   "fga_avg": 9.25,
+   "fouls_per_min": 0.10286783042394015,
    "ft_pct": 86.7,
    "games": 8,
    "history": {
@@ -22001,6 +22354,7 @@
     }
    },
    "minutes_avg_str": "26:44",
+   "minutes_total_sec": 12832,
    "points_avg": 10.875,
    "rebounds_avg": 3.25,
    "rebounds_def_avg": 2.375,
@@ -22016,6 +22370,8 @@
    "blocks_avg": 0.266,
    "fg3_pct": 35.4,
    "fg_pct": 52.3,
+   "fga_avg": 12.512097,
+   "fouls_per_min": 0.0735662780203652,
    "ft_pct": 75.4,
    "games": 34,
    "history": {
@@ -22112,6 +22468,7 @@
     }
    },
    "minutes_avg_str": "29:29",
+   "minutes_total_sec": 60156,
    "points_avg": 17.581,
    "rebounds_avg": 5.565,
    "rebounds_def_avg": 4.528,
@@ -22128,6 +22485,8 @@
    "blocks_avg": 0.302,
    "fg3_pct": 36.9,
    "fg_pct": 57.4,
+   "fga_avg": 5.981322,
+   "fouls_per_min": 0.13571774722800659,
    "ft_pct": 64.0,
    "games": 132,
    "history": {
@@ -22409,6 +22768,7 @@
     }
    },
    "minutes_avg_str": "18:08",
+   "minutes_total_sec": 143627,
    "points_avg": 9.112,
    "rebounds_avg": 3.841,
    "rebounds_def_avg": 2.585,
@@ -22429,6 +22789,8 @@
    "blocks_avg": 0.625,
    "fg3_pct": 34.5,
    "fg_pct": 50.0,
+   "fga_avg": 8.75,
+   "fouls_per_min": 0.09828814808747645,
    "ft_pct": 75.0,
    "games": 8,
    "history": {
@@ -22525,6 +22887,7 @@
     }
    },
    "minutes_avg_str": "25:26",
+   "minutes_total_sec": 12209,
    "points_avg": 13.0,
    "rebounds_avg": 5.25,
    "rebounds_def_avg": 3.75,
@@ -22540,6 +22903,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 30.8,
    "fg_pct": 50.0,
+   "fga_avg": 0.382979,
+   "fouls_per_min": 0.05450581395348837,
    "ft_pct": 25.0,
    "games": 10,
    "history": {
@@ -22710,6 +23075,7 @@
     }
    },
    "minutes_avg_str": "1:57",
+   "minutes_total_sec": 1171,
    "points_avg": 0.574,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -22727,6 +23093,8 @@
    "blocks_avg": 0.091,
    "fg3_pct": 35.2,
    "fg_pct": 46.5,
+   "fga_avg": 10.727273,
+   "fouls_per_min": 0.0884387847187406,
    "ft_pct": 79.1,
    "games": 37,
    "history": {
@@ -22866,6 +23234,7 @@
     }
    },
    "minutes_avg_str": "25:11",
+   "minutes_total_sec": 55909,
    "points_avg": 13.561,
    "rebounds_avg": 3.197,
    "rebounds_def_avg": 2.667,
@@ -22882,6 +23251,8 @@
    "blocks_avg": 1.541,
    "fg3_pct": 23.6,
    "fg_pct": 53.4,
+   "fga_avg": 8.052805,
+   "fouls_per_min": 0.13172143574396028,
    "ft_pct": 73.8,
    "games": 57,
    "history": {
@@ -23061,6 +23432,7 @@
     }
    },
    "minutes_avg_str": "22:20",
+   "minutes_total_sec": 76435,
    "points_avg": 10.931,
    "rebounds_avg": 5.604,
    "rebounds_def_avg": 4.294,
@@ -23078,6 +23450,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 41.2,
    "fg_pct": 54.2,
+   "fga_avg": 3.0,
+   "fouls_per_min": 0.10747551946501074,
    "ft_pct": 78.8,
    "games": 8,
    "history": {
@@ -23174,6 +23548,7 @@
     }
    },
    "minutes_avg_str": "17:26",
+   "minutes_total_sec": 8374,
    "points_avg": 7.375,
    "rebounds_avg": 1.375,
    "rebounds_def_avg": 1.0,
@@ -23189,6 +23564,8 @@
    "blocks_avg": 0.375,
    "fg3_pct": 45.2,
    "fg_pct": 50.0,
+   "fga_avg": 7.75,
+   "fouls_per_min": 0.09860312243221035,
    "ft_pct": 84.2,
    "games": 8,
    "history": {
@@ -23285,6 +23662,7 @@
     }
    },
    "minutes_avg_str": "20:17",
+   "minutes_total_sec": 9736,
    "points_avg": 12.125,
    "rebounds_avg": 1.625,
    "rebounds_def_avg": 1.5,
@@ -23300,6 +23678,8 @@
    "blocks_avg": 0.907,
    "fg3_pct": 22.7,
    "fg_pct": 49.4,
+   "fga_avg": 4.651972,
+   "fouls_per_min": 0.11867728023173617,
    "ft_pct": 58.5,
    "games": 52,
    "history": {
@@ -23396,6 +23776,7 @@
     }
    },
    "minutes_avg_str": "16:47",
+   "minutes_total_sec": 52397,
    "points_avg": 6.497,
    "rebounds_avg": 3.343,
    "rebounds_def_avg": 2.148,
@@ -23413,6 +23794,8 @@
    "blocks_avg": 0.358,
    "fg3_pct": 30.3,
    "fg_pct": 39.5,
+   "fga_avg": 9.230179,
+   "fouls_per_min": 0.07231897916932033,
    "ft_pct": 79.6,
    "games": 54,
    "history": {
@@ -23509,6 +23892,7 @@
     }
    },
    "minutes_avg_str": "22:25",
+   "minutes_total_sec": 72645,
    "points_avg": 9.724,
    "rebounds_avg": 3.133,
    "rebounds_def_avg": 2.171,
@@ -23528,6 +23912,8 @@
    "blocks_avg": 0.188,
    "fg3_pct": 52.9,
    "fg_pct": 49.7,
+   "fga_avg": 2.652174,
+   "fouls_per_min": 0.13809505542982087,
    "ft_pct": 79.7,
    "games": 21,
    "history": {
@@ -23661,6 +24047,7 @@
     }
    },
    "minutes_avg_str": "12:35",
+   "minutes_total_sec": 15868,
    "points_avg": 4.13,
    "rebounds_avg": 3.13,
    "rebounds_def_avg": 1.507,
@@ -23677,6 +24064,8 @@
    "blocks_avg": 0.125,
    "fg3_pct": 15.6,
    "fg_pct": 37.8,
+   "fga_avg": 11.25,
+   "fouls_per_min": 0.10154002369267219,
    "ft_pct": 54.5,
    "games": 8,
    "history": {
@@ -23773,6 +24162,7 @@
     }
    },
    "minutes_avg_str": "24:37",
+   "minutes_total_sec": 11818,
    "points_avg": 11.375,
    "rebounds_avg": 3.375,
    "rebounds_def_avg": 2.625,
@@ -23788,6 +24178,8 @@
    "blocks_avg": 0.5,
    "fg3_pct": 29.6,
    "fg_pct": 51.9,
+   "fga_avg": 10.125,
+   "fouls_per_min": 0.1907790143084261,
    "ft_pct": 64.3,
    "games": 8,
    "history": {
@@ -23884,6 +24276,7 @@
     }
    },
    "minutes_avg_str": "20:58",
+   "minutes_total_sec": 10064,
    "points_avg": 12.625,
    "rebounds_avg": 4.375,
    "rebounds_def_avg": 2.75,
@@ -23899,6 +24292,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -23995,6 +24390,7 @@
     }
    },
    "minutes_avg_str": "2:31",
+   "minutes_total_sec": 151,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -24010,6 +24406,8 @@
    "blocks_avg": 0.972,
    "fg3_pct": 8.8,
    "fg_pct": 40.1,
+   "fga_avg": 8.388889,
+   "fouls_per_min": 0.11922567411649075,
    "ft_pct": 73.4,
    "games": 22,
    "history": {
@@ -24143,6 +24541,7 @@
     }
    },
    "minutes_avg_str": "21:40",
+   "minutes_total_sec": 28601,
    "points_avg": 10.028,
    "rebounds_avg": 4.528,
    "rebounds_def_avg": 3.028,
@@ -24159,6 +24558,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 55.6,
+   "fga_avg": 0.692308,
+   "fouls_per_min": 0.0,
    "ft_pct": 100.0,
    "games": 3,
    "history": {
@@ -24292,6 +24693,7 @@
     }
    },
    "minutes_avg_str": "1:36",
+   "minutes_total_sec": 290,
    "points_avg": 1.154,
    "rebounds_avg": 0.308,
    "rebounds_def_avg": 0.0,
@@ -24308,6 +24710,8 @@
    "blocks_avg": 0.208,
    "fg3_pct": 36.6,
    "fg_pct": 45.9,
+   "fga_avg": 5.102479,
+   "fouls_per_min": 0.08992485600579792,
    "ft_pct": 50.6,
    "games": 75,
    "history": {
@@ -24515,6 +24919,7 @@
     }
    },
    "minutes_avg_str": "17:19",
+   "minutes_total_sec": 77999,
    "points_avg": 6.364,
    "rebounds_avg": 1.507,
    "rebounds_def_avg": 0.825,
@@ -24534,6 +24939,8 @@
    "blocks_avg": 0.149,
    "fg3_pct": 30.7,
    "fg_pct": 44.5,
+   "fga_avg": 7.590909,
+   "fouls_per_min": 0.09411551017871907,
    "ft_pct": 73.7,
    "games": 149,
    "history": {
@@ -24969,6 +25376,7 @@
     }
    },
    "minutes_avg_str": "24:23",
+   "minutes_total_sec": 217989,
    "points_avg": 9.27,
    "rebounds_avg": 5.838,
    "rebounds_def_avg": 4.147,
@@ -24989,6 +25397,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 32.1,
    "fg_pct": 36.4,
+   "fga_avg": 11.0,
+   "fouls_per_min": 0.08783344176968119,
    "ft_pct": 71.4,
    "games": 8,
    "history": {
@@ -25085,6 +25495,7 @@
     }
    },
    "minutes_avg_str": "25:37",
+   "minutes_total_sec": 12296,
    "points_avg": 12.625,
    "rebounds_avg": 1.625,
    "rebounds_def_avg": 0.875,
@@ -25100,6 +25511,8 @@
    "blocks_avg": 0.522,
    "fg3_pct": 15.4,
    "fg_pct": 60.7,
+   "fga_avg": 3.509121,
+   "fouls_per_min": 0.15988396437197055,
    "ft_pct": 44.5,
    "games": 113,
    "history": {
@@ -25344,6 +25757,7 @@
     }
    },
    "minutes_avg_str": "16:30",
+   "minutes_total_sec": 111886,
    "points_avg": 4.831,
    "rebounds_avg": 4.267,
    "rebounds_def_avg": 2.713,
@@ -25364,6 +25778,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 33.3,
    "fg_pct": 42.1,
+   "fga_avg": 9.5,
+   "fouls_per_min": 0.022034520749173704,
    "ft_pct": 88.9,
    "games": 2,
    "history": {
@@ -25460,6 +25876,7 @@
     }
    },
    "minutes_avg_str": "22:41",
+   "minutes_total_sec": 2723,
    "points_avg": 13.0,
    "rebounds_avg": 3.5,
    "rebounds_def_avg": 1.5,
@@ -25475,6 +25892,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 20.0,
    "fg_pct": 34.9,
+   "fga_avg": 7.166667,
+   "fouls_per_min": 0.0810591731964334,
    "ft_pct": 75.0,
    "games": 6,
    "history": {
@@ -25571,6 +25990,7 @@
     }
    },
    "minutes_avg_str": "20:33",
+   "minutes_total_sec": 7402,
    "points_avg": 7.167,
    "rebounds_avg": 6.0,
    "rebounds_def_avg": 4.833,
@@ -25586,6 +26006,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -25644,6 +26066,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -25657,6 +26080,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -25715,6 +26140,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -25728,6 +26154,8 @@
    "blocks_avg": 1.444,
    "fg3_pct": 43.9,
    "fg_pct": 55.7,
+   "fga_avg": 8.777778,
+   "fouls_per_min": 0.07773205304069501,
    "ft_pct": 72.7,
    "games": 9,
    "history": {
@@ -25824,6 +26252,7 @@
     }
    },
    "minutes_avg_str": "24:18",
+   "minutes_total_sec": 13122,
    "points_avg": 13.556,
    "rebounds_avg": 3.667,
    "rebounds_def_avg": 2.889,
@@ -25839,6 +26268,8 @@
    "blocks_avg": 0.14,
    "fg3_pct": 31.8,
    "fg_pct": 57.1,
+   "fga_avg": 2.767442,
+   "fouls_per_min": 0.15817802350701182,
    "ft_pct": 66.7,
    "games": 26,
    "history": {
@@ -25972,6 +26403,7 @@
     }
    },
    "minutes_avg_str": "10:35",
+   "minutes_total_sec": 16514,
    "points_avg": 3.93,
    "rebounds_avg": 2.628,
    "rebounds_def_avg": 1.465,
@@ -25988,6 +26420,8 @@
    "blocks_avg": 0.064,
    "fg3_pct": 28.6,
    "fg_pct": 40.8,
+   "fga_avg": 10.707889,
+   "fouls_per_min": 0.09060493271708454,
    "ft_pct": 78.4,
    "games": 90,
    "history": {
@@ -26046,6 +26480,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "21:43",
+   "minutes_total_sec": 117293,
    "points_avg": 12.659,
    "rebounds_avg": 3.802,
    "rebounds_def_avg": 2.923,
@@ -26065,6 +26500,8 @@
    "blocks_avg": 0.111,
    "fg3_pct": 43.9,
    "fg_pct": 46.2,
+   "fga_avg": 11.777778,
+   "fouls_per_min": 0.05363299706295492,
    "ft_pct": 66.0,
    "games": 9,
    "history": {
@@ -26161,6 +26598,7 @@
     }
    },
    "minutes_avg_str": "29:00",
+   "minutes_total_sec": 15662,
    "points_avg": 16.556,
    "rebounds_avg": 4.333,
    "rebounds_def_avg": 4.111,
@@ -26176,6 +26614,8 @@
    "blocks_avg": 0.333,
    "fg3_pct": 36.4,
    "fg_pct": 45.5,
+   "fga_avg": 2.653543,
+   "fouls_per_min": 0.10802122427069842,
    "ft_pct": 69.8,
    "games": 100,
    "history": {
@@ -26420,6 +26860,7 @@
     }
    },
    "minutes_avg_str": "14:30",
+   "minutes_total_sec": 87035,
    "points_avg": 3.289,
    "rebounds_avg": 1.929,
    "rebounds_def_avg": 1.336,
@@ -26439,6 +26880,8 @@
    "blocks_avg": 0.526,
    "fg3_pct": 23.3,
    "fg_pct": 51.9,
+   "fga_avg": 6.052632,
+   "fouls_per_min": 0.09340844808119843,
    "ft_pct": 44.4,
    "games": 30,
    "history": {
@@ -26572,6 +27015,7 @@
     }
    },
    "minutes_avg_str": "21:31",
+   "minutes_total_sec": 38758,
    "points_avg": 7.278,
    "rebounds_avg": 3.515,
    "rebounds_def_avg": 1.842,
@@ -26590,6 +27034,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -26648,6 +27094,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -26661,6 +27108,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 37.3,
    "fg_pct": 43.5,
+   "fga_avg": 11.5,
+   "fouls_per_min": 0.1434622216149747,
    "ft_pct": 84.6,
    "games": 8,
    "history": {
@@ -26757,6 +27206,7 @@
     }
    },
    "minutes_avg_str": "30:29",
+   "minutes_total_sec": 14638,
    "points_avg": 15.125,
    "rebounds_avg": 3.625,
    "rebounds_def_avg": 3.625,
@@ -26772,6 +27222,8 @@
    "blocks_avg": 0.111,
    "fg3_pct": 34.4,
    "fg_pct": 40.9,
+   "fga_avg": 8.534568,
+   "fouls_per_min": 0.096750283476858,
    "ft_pct": 69.6,
    "games": 124,
    "history": {
@@ -26942,6 +27394,7 @@
     }
    },
    "minutes_avg_str": "25:09",
+   "minutes_total_sec": 187121,
    "points_avg": 10.39,
    "rebounds_avg": 3.035,
    "rebounds_def_avg": 1.83,
@@ -26962,6 +27415,8 @@
    "blocks_avg": 0.571,
    "fg3_pct": 32.0,
    "fg_pct": 35.7,
+   "fga_avg": 6.0,
+   "fouls_per_min": 0.10153605831814631,
    "ft_pct": 90.9,
    "games": 7,
    "history": {
@@ -27058,6 +27513,7 @@
     }
    },
    "minutes_avg_str": "18:17",
+   "minutes_total_sec": 7682,
    "points_avg": 6.857,
    "rebounds_avg": 4.143,
    "rebounds_def_avg": 2.857,
@@ -27073,6 +27529,8 @@
    "blocks_avg": 0.714,
    "fg3_pct": 0.0,
    "fg_pct": 69.0,
+   "fga_avg": 8.285714,
+   "fouls_per_min": 0.07722717661119793,
    "ft_pct": 80.0,
    "games": 7,
    "history": {
@@ -27169,6 +27627,7 @@
     }
    },
    "minutes_avg_str": "25:53",
+   "minutes_total_sec": 10877,
    "points_avg": 15.429,
    "rebounds_avg": 7.143,
    "rebounds_def_avg": 5.143,
@@ -27184,6 +27643,8 @@
    "blocks_avg": 0.375,
    "fg3_pct": 36.0,
    "fg_pct": 56.1,
+   "fga_avg": 7.125,
+   "fouls_per_min": 0.1134020618556701,
    "ft_pct": 73.9,
    "games": 8,
    "history": {
@@ -27280,6 +27741,7 @@
     }
    },
    "minutes_avg_str": "24:15",
+   "minutes_total_sec": 11640,
    "points_avg": 11.25,
    "rebounds_avg": 3.875,
    "rebounds_def_avg": 3.375,
@@ -27295,6 +27757,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -27353,6 +27817,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -27366,6 +27831,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 2.5,
+   "fouls_per_min": 0.24316109422492402,
    "ft_pct": 75.0,
    "games": 2,
    "history": {
@@ -27462,6 +27929,7 @@
     }
    },
    "minutes_avg_str": "8:13",
+   "minutes_total_sec": 987,
    "points_avg": 1.5,
    "rebounds_avg": 1.5,
    "rebounds_def_avg": 1.0,
@@ -27477,6 +27945,8 @@
    "blocks_avg": 1.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.5,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 2,
    "history": {
@@ -27573,6 +28043,7 @@
     }
    },
    "minutes_avg_str": "4:58",
+   "minutes_total_sec": 596,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -27588,6 +28059,8 @@
    "blocks_avg": 1.0,
    "fg3_pct": 0.0,
    "fg_pct": 57.1,
+   "fga_avg": 7.0,
+   "fouls_per_min": 0.09916444770911761,
    "ft_pct": 47.8,
    "games": 8,
    "history": {
@@ -27684,6 +28157,7 @@
     }
    },
    "minutes_avg_str": "22:41",
+   "minutes_total_sec": 10891,
    "points_avg": 9.375,
    "rebounds_avg": 3.5,
    "rebounds_def_avg": 2.25,
@@ -27699,6 +28173,8 @@
    "blocks_avg": 0.423,
    "fg3_pct": 29.5,
    "fg_pct": 45.6,
+   "fga_avg": 5.898601,
+   "fouls_per_min": 0.14016176711463316,
    "ft_pct": 64.8,
    "games": 82,
    "history": {
@@ -27832,6 +28308,7 @@
     }
    },
    "minutes_avg_str": "22:24",
+   "minutes_total_sec": 110278,
    "points_avg": 7.839,
    "rebounds_avg": 4.802,
    "rebounds_def_avg": 3.32,
@@ -27850,6 +28327,8 @@
    "blocks_avg": 0.976,
    "fg3_pct": 29.4,
    "fg_pct": 51.3,
+   "fga_avg": 9.493976,
+   "fouls_per_min": 0.08144197481667552,
    "ft_pct": 66.2,
    "games": 127,
    "history": {
@@ -28057,6 +28536,7 @@
     }
    },
    "minutes_avg_str": "25:05",
+   "minutes_total_sec": 191135,
    "points_avg": 12.452,
    "rebounds_avg": 7.324,
    "rebounds_def_avg": 5.131,
@@ -28077,6 +28557,8 @@
    "blocks_avg": 0.266,
    "fg3_pct": 35.9,
    "fg_pct": 40.7,
+   "fga_avg": 11.73029,
+   "fouls_per_min": 0.08278117494762302,
    "ft_pct": 84.5,
    "games": 32,
    "history": {
@@ -28210,6 +28692,7 @@
     }
    },
    "minutes_avg_str": "28:25",
+   "minutes_total_sec": 54568,
    "points_avg": 15.929,
    "rebounds_avg": 3.336,
    "rebounds_def_avg": 3.029,
@@ -28226,6 +28709,8 @@
    "blocks_avg": 0.023,
    "fg3_pct": 37.8,
    "fg_pct": 41.9,
+   "fga_avg": 6.260377,
+   "fouls_per_min": 0.08391482965076058,
    "ft_pct": 82.7,
    "games": 102,
    "history": {
@@ -28581,6 +29066,7 @@
     }
    },
    "minutes_avg_str": "19:38",
+   "minutes_total_sec": 120176,
    "points_avg": 8.263,
    "rebounds_avg": 2.096,
    "rebounds_def_avg": 1.564,
@@ -28599,6 +29085,8 @@
    "blocks_avg": 0.099,
    "fg3_pct": 37.1,
    "fg_pct": 41.8,
+   "fga_avg": 7.796512,
+   "fouls_per_min": 0.07428285904493889,
    "ft_pct": 76.6,
    "games": 135,
    "history": {
@@ -28732,6 +29220,7 @@
     }
    },
    "minutes_avg_str": "26:08",
+   "minutes_total_sec": 211746,
    "points_avg": 9.872,
    "rebounds_avg": 3.444,
    "rebounds_def_avg": 2.765,
@@ -28752,6 +29241,8 @@
    "blocks_avg": 0.167,
    "fg3_pct": 20.0,
    "fg_pct": 31.1,
+   "fga_avg": 7.5,
+   "fouls_per_min": 0.1172291296625222,
    "ft_pct": 36.4,
    "games": 6,
    "history": {
@@ -28848,6 +29339,7 @@
     }
    },
    "minutes_avg_str": "15:38",
+   "minutes_total_sec": 5630,
    "points_avg": 6.0,
    "rebounds_avg": 2.5,
    "rebounds_def_avg": 2.0,
@@ -28863,6 +29355,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -28921,6 +29415,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -28934,6 +29429,8 @@
    "blocks_avg": 0.651,
    "fg3_pct": 43.5,
    "fg_pct": 49.6,
+   "fga_avg": 6.471698,
+   "fouls_per_min": 0.12515464165175302,
    "ft_pct": 87.9,
    "games": 33,
    "history": {
@@ -29067,6 +29564,7 @@
     }
    },
    "minutes_avg_str": "19:38",
+   "minutes_total_sec": 38879,
    "points_avg": 8.618,
    "rebounds_avg": 4.009,
    "rebounds_def_avg": 3.123,
@@ -29084,6 +29582,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -29180,6 +29680,7 @@
     }
    },
    "minutes_avg_str": "0:40",
+   "minutes_total_sec": 40,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -29195,6 +29696,8 @@
    "blocks_avg": 0.286,
    "fg3_pct": 0.0,
    "fg_pct": 33.3,
+   "fga_avg": 0.428571,
+   "fouls_per_min": 0.22882048488150367,
    "ft_pct": 100.0,
    "games": 7,
    "history": {
@@ -29291,6 +29794,7 @@
     }
    },
    "minutes_avg_str": "8:44",
+   "minutes_total_sec": 3671,
    "points_avg": 0.571,
    "rebounds_avg": 1.429,
    "rebounds_def_avg": 0.857,
@@ -29306,6 +29810,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -29364,6 +29870,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -29377,6 +29884,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -29435,6 +29944,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -29448,6 +29958,8 @@
    "blocks_avg": 0.507,
    "fg3_pct": 29.5,
    "fg_pct": 52.8,
+   "fga_avg": 6.556897,
+   "fouls_per_min": 0.14770706055216148,
    "ft_pct": 66.4,
    "games": 85,
    "history": {
@@ -29618,6 +30130,7 @@
     }
    },
    "minutes_avg_str": "22:17",
+   "minutes_total_sec": 113704,
    "points_avg": 9.081,
    "rebounds_avg": 5.248,
    "rebounds_def_avg": 3.497,
@@ -29637,6 +30150,8 @@
    "blocks_avg": 0.194,
    "fg3_pct": 30.4,
    "fg_pct": 50.7,
+   "fga_avg": 12.513889,
+   "fouls_per_min": 0.09480790231311427,
    "ft_pct": 70.4,
    "games": 40,
    "history": {
@@ -29770,6 +30285,7 @@
     }
    },
    "minutes_avg_str": "27:58",
+   "minutes_total_sec": 67153,
    "points_avg": 16.583,
    "rebounds_avg": 3.0,
    "rebounds_def_avg": 2.319,
@@ -29786,6 +30302,8 @@
    "blocks_avg": 0.222,
    "fg3_pct": 30.8,
    "fg_pct": 48.3,
+   "fga_avg": 6.666667,
+   "fouls_per_min": 0.11911379337727308,
    "ft_pct": 100.0,
    "games": 9,
    "history": {
@@ -29882,6 +30400,7 @@
     }
    },
    "minutes_avg_str": "23:19",
+   "minutes_total_sec": 12593,
    "points_avg": 8.333,
    "rebounds_avg": 4.0,
    "rebounds_def_avg": 3.222,
@@ -29897,6 +30416,8 @@
    "blocks_avg": 0.222,
    "fg3_pct": 29.0,
    "fg_pct": 50.5,
+   "fga_avg": 10.111111,
+   "fouls_per_min": 0.06889622506100186,
    "ft_pct": 60.9,
    "games": 9,
    "history": {
@@ -29993,6 +30514,7 @@
     }
    },
    "minutes_avg_str": "25:48",
+   "minutes_total_sec": 13934,
    "points_avg": 12.778,
    "rebounds_avg": 4.778,
    "rebounds_def_avg": 3.556,
@@ -30008,6 +30530,8 @@
    "blocks_avg": 0.233,
    "fg3_pct": 0.0,
    "fg_pct": 38.9,
+   "fga_avg": 1.395349,
+   "fouls_per_min": 0.13278876526567812,
    "ft_pct": 50.0,
    "games": 14,
    "history": {
@@ -30104,6 +30628,7 @@
     }
    },
    "minutes_avg_str": "6:25",
+   "minutes_total_sec": 5394,
    "points_avg": 1.705,
    "rebounds_avg": 2.791,
    "rebounds_def_avg": 1.783,
@@ -30121,6 +30646,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 35.4,
    "fg_pct": 44.6,
+   "fga_avg": 4.424893,
+   "fouls_per_min": 0.10119701613369572,
    "ft_pct": 83.3,
    "games": 56,
    "history": {
@@ -30179,6 +30706,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "14:50",
+   "minutes_total_sec": 49875,
    "points_avg": 6.395,
    "rebounds_avg": 2.412,
    "rebounds_def_avg": 1.652,
@@ -30196,6 +30724,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": 0.23076923076923078,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -30292,6 +30822,7 @@
     }
    },
    "minutes_avg_str": "4:20",
+   "minutes_total_sec": 260,
    "points_avg": 0.0,
    "rebounds_avg": 1.0,
    "rebounds_def_avg": 1.0,
@@ -30307,6 +30838,8 @@
    "blocks_avg": 0.586,
    "fg3_pct": 0.0,
    "fg_pct": 62.6,
+   "fga_avg": 7.17623,
+   "fouls_per_min": 0.13343796679806447,
    "ft_pct": 44.2,
    "games": 42,
    "history": {
@@ -30440,6 +30973,7 @@
     }
    },
    "minutes_avg_str": "22:32",
+   "minutes_total_sec": 56810,
    "points_avg": 11.012,
    "rebounds_avg": 6.082,
    "rebounds_def_avg": 4.049,
@@ -30456,6 +30990,8 @@
    "blocks_avg": 0.199,
    "fg3_pct": 30.2,
    "fg_pct": 37.6,
+   "fga_avg": 5.753666,
+   "fouls_per_min": 0.08100493482341552,
    "ft_pct": 66.3,
    "games": 97,
    "history": {
@@ -30552,6 +31088,7 @@
     }
    },
    "minutes_avg_str": "21:03",
+   "minutes_total_sec": 122520,
    "points_avg": 6.619,
    "rebounds_avg": 2.545,
    "rebounds_def_avg": 2.05,
@@ -30571,6 +31108,8 @@
    "blocks_avg": 0.094,
    "fg3_pct": 23.5,
    "fg_pct": 24.6,
+   "fga_avg": 2.559748,
+   "fouls_per_min": 0.20887026835554362,
    "ft_pct": 65.3,
    "games": 21,
    "history": {
@@ -30667,6 +31206,7 @@
     }
    },
    "minutes_avg_str": "8:34",
+   "minutes_total_sec": 10813,
    "points_avg": 2.044,
    "rebounds_avg": 0.553,
    "rebounds_def_avg": 0.553,
@@ -30684,6 +31224,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -30742,6 +31284,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -30755,6 +31298,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -30813,6 +31358,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -30826,6 +31372,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 100.0,
    "fg_pct": 75.0,
+   "fga_avg": 4.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 50.0,
    "games": 1,
    "history": {
@@ -30922,6 +31470,7 @@
     }
    },
    "minutes_avg_str": "10:26",
+   "minutes_total_sec": 626,
    "points_avg": 8.0,
    "rebounds_avg": 2.0,
    "rebounds_def_avg": 0.0,
@@ -30937,6 +31486,8 @@
    "blocks_avg": 0.016,
    "fg3_pct": 29.9,
    "fg_pct": 41.9,
+   "fga_avg": 12.028939,
+   "fouls_per_min": 0.10861900407512,
    "ft_pct": 87.6,
    "games": 73,
    "history": {
@@ -31107,6 +31658,7 @@
     }
    },
    "minutes_avg_str": "24:35",
+   "minutes_total_sec": 107683,
    "points_avg": 17.449,
    "rebounds_avg": 2.733,
    "rebounds_def_avg": 2.191,
@@ -31124,6 +31676,8 @@
    "blocks_avg": 0.054,
    "fg3_pct": 37.4,
    "fg_pct": 43.8,
+   "fga_avg": 6.372454,
+   "fouls_per_min": 0.10360657705232837,
    "ft_pct": 57.7,
    "games": 165,
    "history": {
@@ -31442,6 +31996,7 @@
     }
    },
    "minutes_avg_str": "21:33",
+   "minutes_total_sec": 213351,
    "points_avg": 7.687,
    "rebounds_avg": 1.597,
    "rebounds_def_avg": 1.077,
@@ -31462,6 +32017,8 @@
    "blocks_avg": 0.375,
    "fg3_pct": 25.0,
    "fg_pct": 54.7,
+   "fga_avg": 8.0,
+   "fouls_per_min": 0.09567990721948391,
    "ft_pct": 56.2,
    "games": 8,
    "history": {
@@ -31558,6 +32115,7 @@
     }
    },
    "minutes_avg_str": "28:44",
+   "minutes_total_sec": 13796,
    "points_avg": 11.25,
    "rebounds_avg": 6.75,
    "rebounds_def_avg": 4.0,
@@ -31573,6 +32131,8 @@
    "blocks_avg": 0.222,
    "fg3_pct": 50.0,
    "fg_pct": 51.5,
+   "fga_avg": 7.555556,
+   "fouls_per_min": 0.10499171118069626,
    "ft_pct": 61.5,
    "games": 9,
    "history": {
@@ -31669,6 +32229,7 @@
     }
    },
    "minutes_avg_str": "20:06",
+   "minutes_total_sec": 10858,
    "points_avg": 10.333,
    "rebounds_avg": 2.0,
    "rebounds_def_avg": 1.444,
@@ -31684,6 +32245,8 @@
    "blocks_avg": 0.459,
    "fg3_pct": 0.0,
    "fg_pct": 54.2,
+   "fga_avg": 3.493671,
+   "fouls_per_min": 0.11455615484563243,
    "ft_pct": 56.2,
    "games": 85,
    "history": {
@@ -31780,6 +32343,7 @@
     }
    },
    "minutes_avg_str": "17:35",
+   "minutes_total_sec": 89744,
    "points_avg": 4.794,
    "rebounds_avg": 4.364,
    "rebounds_def_avg": 2.416,
@@ -31799,6 +32363,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 20.0,
    "fg_pct": 57.4,
+   "fga_avg": 7.625,
+   "fouls_per_min": 0.07292011932383162,
    "ft_pct": 84.0,
    "games": 8,
    "history": {
@@ -31895,6 +32461,7 @@
     }
    },
    "minutes_avg_str": "18:51",
+   "minutes_total_sec": 9051,
    "points_avg": 11.625,
    "rebounds_avg": 4.0,
    "rebounds_def_avg": 2.5,
@@ -31910,6 +32477,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 31.2,
    "fg_pct": 34.0,
+   "fga_avg": 0.806452,
+   "fouls_per_min": 0.06960981864810406,
    "ft_pct": 0.0,
    "games": 18,
    "history": {
@@ -32006,6 +32575,7 @@
     }
    },
    "minutes_avg_str": "4:24",
+   "minutes_total_sec": 4755,
    "points_avg": 0.79,
    "rebounds_avg": 0.065,
    "rebounds_def_avg": 0.065,
@@ -32024,6 +32594,8 @@
    "blocks_avg": 0.26,
    "fg3_pct": 30.9,
    "fg_pct": 46.0,
+   "fga_avg": 7.113573,
+   "fouls_per_min": 0.10202634093895592,
    "ft_pct": 74.6,
    "games": 72,
    "history": {
@@ -32348,6 +32920,7 @@
     }
    },
    "minutes_avg_str": "24:44",
+   "minutes_total_sec": 106852,
    "points_avg": 10.388,
    "rebounds_avg": 3.709,
    "rebounds_def_avg": 2.745,
@@ -32367,6 +32940,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 33.4,
    "fg_pct": 47.1,
+   "fga_avg": 12.77918,
+   "fouls_per_min": 0.08971651247880537,
    "ft_pct": 70.3,
    "games": 43,
    "history": {
@@ -32500,6 +33075,7 @@
     }
    },
    "minutes_avg_str": "26:30",
+   "minutes_total_sec": 68401,
    "points_avg": 15.716,
    "rebounds_avg": 2.322,
    "rebounds_def_avg": 1.987,
@@ -32517,6 +33093,8 @@
    "blocks_avg": 0.125,
    "fg3_pct": 31.2,
    "fg_pct": 47.2,
+   "fga_avg": 6.625,
+   "fouls_per_min": 0.14457831325301204,
    "ft_pct": 75.0,
    "games": 8,
    "history": {
@@ -32613,6 +33191,7 @@
     }
    },
    "minutes_avg_str": "19:53",
+   "minutes_total_sec": 9545,
    "points_avg": 8.375,
    "rebounds_avg": 1.625,
    "rebounds_def_avg": 1.125,
@@ -32628,6 +33207,8 @@
    "blocks_avg": 0.125,
    "fg3_pct": 32.3,
    "fg_pct": 42.6,
+   "fga_avg": 5.875,
+   "fouls_per_min": 0.07280080889787664,
    "ft_pct": 66.7,
    "games": 8,
    "history": {
@@ -32724,6 +33305,7 @@
     }
    },
    "minutes_avg_str": "20:36",
+   "minutes_total_sec": 9890,
    "points_avg": 7.25,
    "rebounds_avg": 4.125,
    "rebounds_def_avg": 3.0,
@@ -32739,6 +33321,8 @@
    "blocks_avg": 0.614,
    "fg3_pct": 27.1,
    "fg_pct": 42.3,
+   "fga_avg": 10.568182,
+   "fouls_per_min": 0.07349918194403658,
    "ft_pct": 76.8,
    "games": 31,
    "history": {
@@ -32835,6 +33419,7 @@
     }
    },
    "minutes_avg_str": "30:05",
+   "minutes_total_sec": 55981,
    "points_avg": 12.712,
    "rebounds_avg": 6.902,
    "rebounds_def_avg": 4.667,
@@ -32851,6 +33436,8 @@
    "blocks_avg": 0.029,
    "fg3_pct": 33.3,
    "fg_pct": 47.6,
+   "fga_avg": 11.441176,
+   "fouls_per_min": 0.1206881794059745,
    "ft_pct": 72.6,
    "games": 21,
    "history": {
@@ -32984,6 +33571,7 @@
     }
    },
    "minutes_avg_str": "22:54",
+   "minutes_total_sec": 28864,
    "points_avg": 13.5,
    "rebounds_avg": 3.088,
    "rebounds_def_avg": 2.529,
@@ -33000,6 +33588,8 @@
    "blocks_avg": 0.091,
    "fg3_pct": 36.1,
    "fg_pct": 48.1,
+   "fga_avg": 7.603306,
+   "fouls_per_min": 0.10098306979087139,
    "ft_pct": 76.0,
    "games": 57,
    "history": {
@@ -33096,6 +33686,7 @@
     }
    },
    "minutes_avg_str": "26:15",
+   "minutes_total_sec": 89776,
    "points_avg": 9.678,
    "rebounds_avg": 5.831,
    "rebounds_def_avg": 4.076,
@@ -33113,6 +33704,8 @@
    "blocks_avg": 0.08,
    "fg3_pct": 31.0,
    "fg_pct": 38.1,
+   "fga_avg": 17.04,
+   "fouls_per_min": 0.07694311419239785,
    "ft_pct": 80.0,
    "games": 29,
    "history": {
@@ -33209,6 +33802,7 @@
     }
    },
    "minutes_avg_str": "33:16",
+   "minutes_total_sec": 57892,
    "points_avg": 21.76,
    "rebounds_avg": 4.12,
    "rebounds_def_avg": 3.14,
@@ -33225,6 +33819,8 @@
    "blocks_avg": 0.486,
    "fg3_pct": 10.0,
    "fg_pct": 52.5,
+   "fga_avg": 6.0,
+   "fouls_per_min": 0.12793993717919253,
    "ft_pct": 43.8,
    "games": 40,
    "history": {
@@ -33358,6 +33954,7 @@
     }
    },
    "minutes_avg_str": "18:07",
+   "minutes_total_sec": 43510,
    "points_avg": 7.264,
    "rebounds_avg": 4.917,
    "rebounds_def_avg": 3.431,
@@ -33374,6 +33971,8 @@
    "blocks_avg": 0.038,
    "fg3_pct": 35.2,
    "fg_pct": 42.8,
+   "fga_avg": 7.892361,
+   "fouls_per_min": 0.09666238278698584,
    "ft_pct": 71.3,
    "games": 80,
    "history": {
@@ -33507,6 +34106,7 @@
     }
    },
    "minutes_avg_str": "20:30",
+   "minutes_total_sec": 98453,
    "points_avg": 9.16,
    "rebounds_avg": 1.651,
    "rebounds_def_avg": 1.156,
@@ -33526,6 +34126,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 39.5,
    "fg_pct": 45.6,
+   "fga_avg": 12.875,
+   "fouls_per_min": 0.09952724558347847,
    "ft_pct": 67.4,
    "games": 8,
    "history": {
@@ -33622,6 +34224,7 @@
     }
    },
    "minutes_avg_str": "25:07",
+   "minutes_total_sec": 12057,
    "points_avg": 17.75,
    "rebounds_avg": 3.375,
    "rebounds_def_avg": 2.375,
@@ -33637,6 +34240,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 33.3,
+   "fga_avg": 1.5,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 2,
    "history": {
@@ -33733,6 +34338,7 @@
     }
    },
    "minutes_avg_str": "7:06",
+   "minutes_total_sec": 852,
    "points_avg": 1.0,
    "rebounds_avg": 1.0,
    "rebounds_def_avg": 0.5,
@@ -33748,6 +34354,8 @@
    "blocks_avg": 1.0,
    "fg3_pct": 40.9,
    "fg_pct": 51.7,
+   "fga_avg": 12.428571,
+   "fouls_per_min": 0.08338101855636393,
    "ft_pct": 50.0,
    "games": 7,
    "history": {
@@ -33844,6 +34452,7 @@
     }
    },
    "minutes_avg_str": "29:07",
+   "minutes_total_sec": 12233,
    "points_avg": 15.857,
    "rebounds_avg": 3.857,
    "rebounds_def_avg": 3.571,
@@ -33859,6 +34468,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 100.0,
+   "fga_avg": 0.5,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 2,
    "history": {
@@ -33955,6 +34566,7 @@
     }
    },
    "minutes_avg_str": "2:11",
+   "minutes_total_sec": 262,
    "points_avg": 1.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -33970,6 +34582,8 @@
    "blocks_avg": 0.108,
    "fg3_pct": 33.1,
    "fg_pct": 39.4,
+   "fga_avg": 8.273381,
+   "fouls_per_min": 0.08940785616572212,
    "ft_pct": 73.4,
    "games": 33,
    "history": {
@@ -34103,6 +34717,7 @@
     }
    },
    "minutes_avg_str": "24:32",
+   "minutes_total_sec": 48593,
    "points_avg": 10.662,
    "rebounds_avg": 2.982,
    "rebounds_def_avg": 2.371,
@@ -34121,6 +34736,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 1.0,
+   "fouls_per_min": 0.0,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -34217,6 +34834,7 @@
     }
    },
    "minutes_avg_str": "1:32",
+   "minutes_total_sec": 92,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -34232,6 +34850,8 @@
    "blocks_avg": 0.119,
    "fg3_pct": 34.8,
    "fg_pct": 40.2,
+   "fga_avg": 3.250542,
+   "fouls_per_min": 0.11182058908112161,
    "ft_pct": 73.5,
    "games": 151,
    "history": {
@@ -34439,6 +35059,7 @@
     }
    },
    "minutes_avg_str": "14:31",
+   "minutes_total_sec": 131552,
    "points_avg": 3.803,
    "rebounds_avg": 1.498,
    "rebounds_def_avg": 0.876,
@@ -34459,6 +35080,8 @@
    "blocks_avg": 0.75,
    "fg3_pct": 0.0,
    "fg_pct": 88.9,
+   "fga_avg": 1.125,
+   "fouls_per_min": 0.18150879183210436,
    "ft_pct": 60.0,
    "games": 8,
    "history": {
@@ -34555,6 +35178,7 @@
     }
    },
    "minutes_avg_str": "11:01",
+   "minutes_total_sec": 5289,
    "points_avg": 2.375,
    "rebounds_avg": 3.0,
    "rebounds_def_avg": 2.5,
@@ -34570,6 +35194,8 @@
    "blocks_avg": 0.05,
    "fg3_pct": 41.0,
    "fg_pct": 45.9,
+   "fga_avg": 10.215983,
+   "fouls_per_min": 0.0704080339605905,
    "ft_pct": 83.9,
    "games": 111,
    "history": {
@@ -34851,6 +35477,7 @@
     }
    },
    "minutes_avg_str": "27:16",
+   "minutes_total_sec": 181624,
    "points_avg": 12.832,
    "rebounds_avg": 4.16,
    "rebounds_def_avg": 3.255,
@@ -34871,6 +35498,8 @@
    "blocks_avg": 0.643,
    "fg3_pct": 47.2,
    "fg_pct": 63.9,
+   "fga_avg": 10.035714,
+   "fouls_per_min": 0.07113372061692336,
    "ft_pct": 78.9,
    "games": 32,
    "history": {
@@ -34967,6 +35596,7 @@
     }
    },
    "minutes_avg_str": "27:36",
+   "minutes_total_sec": 53019,
    "points_avg": 16.75,
    "rebounds_avg": 6.732,
    "rebounds_def_avg": 5.179,
@@ -34983,6 +35613,8 @@
    "blocks_avg": 0.198,
    "fg3_pct": 37.4,
    "fg_pct": 44.7,
+   "fga_avg": 8.895404,
+   "fouls_per_min": 0.12304392646189471,
    "ft_pct": 79.9,
    "games": 82,
    "history": {
@@ -35153,6 +35785,7 @@
     }
    },
    "minutes_avg_str": "21:37",
+   "minutes_total_sec": 106396,
    "points_avg": 12.25,
    "rebounds_avg": 2.279,
    "rebounds_def_avg": 1.702,
@@ -35171,6 +35804,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 37.1,
    "fg_pct": 42.0,
+   "fga_avg": 7.145833,
+   "fouls_per_min": 0.07717245753752906,
    "ft_pct": 85.0,
    "games": 10,
    "history": {
@@ -35267,6 +35902,7 @@
     }
    },
    "minutes_avg_str": "19:42",
+   "minutes_total_sec": 11824,
    "points_avg": 9.542,
    "rebounds_avg": 4.271,
    "rebounds_def_avg": 2.521,
@@ -35283,6 +35919,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 25.0,
    "fg_pct": 66.7,
+   "fga_avg": 1.714286,
+   "fouls_per_min": 0.16145307769929365,
    "ft_pct": 0.0,
    "games": 7,
    "history": {
@@ -35379,6 +36017,7 @@
     }
    },
    "minutes_avg_str": "7:04",
+   "minutes_total_sec": 2973,
    "points_avg": 2.429,
    "rebounds_avg": 1.286,
    "rebounds_def_avg": 0.857,
@@ -35394,6 +36033,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 20.0,
+   "fga_avg": 1.0,
+   "fouls_per_min": 0.15696533682145192,
    "ft_pct": 100.0,
    "games": 5,
    "history": {
@@ -35490,6 +36131,7 @@
     }
    },
    "minutes_avg_str": "5:05",
+   "minutes_total_sec": 1529,
    "points_avg": 0.8,
    "rebounds_avg": 0.4,
    "rebounds_def_avg": 0.4,
@@ -35505,6 +36147,8 @@
    "blocks_avg": 0.154,
    "fg3_pct": 17.4,
    "fg_pct": 32.9,
+   "fga_avg": 1.403846,
+   "fouls_per_min": 0.18910796745583816,
    "ft_pct": 70.0,
    "games": 27,
    "history": {
@@ -35601,6 +36245,7 @@
     }
    },
    "minutes_avg_str": "8:44",
+   "minutes_total_sec": 14168,
    "points_avg": 1.538,
    "rebounds_avg": 1.231,
    "rebounds_def_avg": 0.769,
@@ -35617,6 +36262,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 33.3,
    "fg_pct": 53.2,
+   "fga_avg": 9.625,
+   "fouls_per_min": 0.07879185817465528,
    "ft_pct": 59.3,
    "games": 8,
    "history": {
@@ -35713,6 +36360,7 @@
     }
    },
    "minutes_avg_str": "22:12",
+   "minutes_total_sec": 10661,
    "points_avg": 13.25,
    "rebounds_avg": 4.375,
    "rebounds_def_avg": 3.375,
@@ -35728,6 +36376,8 @@
    "blocks_avg": 0.6,
    "fg3_pct": 0.0,
    "fg_pct": 46.7,
+   "fga_avg": 1.5,
+   "fouls_per_min": 0.14358647096362476,
    "ft_pct": 75.0,
    "games": 10,
    "history": {
@@ -35786,6 +36436,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "10:26",
+   "minutes_total_sec": 6268,
    "points_avg": 1.7,
    "rebounds_avg": 2.0,
    "rebounds_def_avg": 1.2,
@@ -35801,6 +36452,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -35859,6 +36512,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -35872,6 +36526,8 @@
    "blocks_avg": 0.126,
    "fg3_pct": 30.3,
    "fg_pct": 47.3,
+   "fga_avg": 7.303459,
+   "fouls_per_min": 0.08287108898198324,
    "ft_pct": 57.0,
    "games": 106,
    "history": {
@@ -36005,6 +36661,7 @@
     }
    },
    "minutes_avg_str": "20:04",
+   "minutes_total_sec": 127668,
    "points_avg": 8.866,
    "rebounds_avg": 2.156,
    "rebounds_def_avg": 1.472,
@@ -36025,6 +36682,8 @@
    "blocks_avg": 0.473,
    "fg3_pct": 36.9,
    "fg_pct": 44.5,
+   "fga_avg": 7.422939,
+   "fouls_per_min": 0.0871912808719128,
    "ft_pct": 69.5,
    "games": 65,
    "history": {
@@ -36158,6 +36817,7 @@
     }
    },
    "minutes_avg_str": "22:24",
+   "minutes_total_sec": 87374,
    "points_avg": 9.115,
    "rebounds_avg": 4.351,
    "rebounds_def_avg": 3.504,
@@ -36175,6 +36835,8 @@
    "blocks_avg": 0.17,
    "fg3_pct": 36.2,
    "fg_pct": 45.6,
+   "fga_avg": 7.981366,
+   "fouls_per_min": 0.10218581966452202,
    "ft_pct": 78.8,
    "games": 64,
    "history": {
@@ -36271,6 +36933,7 @@
     }
    },
    "minutes_avg_str": "19:19",
+   "minutes_total_sec": 74224,
    "points_avg": 9.557,
    "rebounds_avg": 2.673,
    "rebounds_def_avg": 1.549,
@@ -36289,6 +36952,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 40.0,
    "fg_pct": 46.7,
+   "fga_avg": 1.875,
+   "fouls_per_min": 0.12810248198558846,
    "ft_pct": 85.7,
    "games": 8,
    "history": {
@@ -36385,6 +37050,7 @@
     }
    },
    "minutes_avg_str": "7:48",
+   "minutes_total_sec": 3747,
    "points_avg": 2.75,
    "rebounds_avg": 0.375,
    "rebounds_def_avg": 0.375,
@@ -36400,6 +37066,8 @@
    "blocks_avg": 0.25,
    "fg3_pct": 39.0,
    "fg_pct": 39.8,
+   "fga_avg": 14.125,
+   "fouls_per_min": 0.05308481774212575,
    "ft_pct": 88.9,
    "games": 8,
    "history": {
@@ -36496,6 +37164,7 @@
     }
    },
    "minutes_avg_str": "35:19",
+   "minutes_total_sec": 16954,
    "points_avg": 18.25,
    "rebounds_avg": 3.375,
    "rebounds_def_avg": 2.75,
@@ -36511,6 +37180,8 @@
    "blocks_avg": 0.714,
    "fg3_pct": 35.0,
    "fg_pct": 54.3,
+   "fga_avg": 6.571429,
+   "fouls_per_min": 0.1325581395348837,
    "ft_pct": 75.0,
    "games": 7,
    "history": {
@@ -36607,6 +37278,7 @@
     }
    },
    "minutes_avg_str": "20:28",
+   "minutes_total_sec": 8600,
    "points_avg": 9.857,
    "rebounds_avg": 5.429,
    "rebounds_def_avg": 4.429,
@@ -36622,6 +37294,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 23.8,
    "fg_pct": 48.2,
+   "fga_avg": 7.0,
+   "fouls_per_min": 0.08083282302510716,
    "ft_pct": 80.0,
    "games": 8,
    "history": {
@@ -36718,6 +37392,7 @@
     }
    },
    "minutes_avg_str": "17:00",
+   "minutes_total_sec": 8165,
    "points_avg": 8.875,
    "rebounds_avg": 3.125,
    "rebounds_def_avg": 2.375,
@@ -36733,6 +37408,8 @@
    "blocks_avg": 0.031,
    "fg3_pct": 35.2,
    "fg_pct": 41.8,
+   "fga_avg": 2.90625,
+   "fouls_per_min": 0.13134832647027767,
    "ft_pct": 80.9,
    "games": 33,
    "history": {
@@ -36829,6 +37506,7 @@
     }
    },
    "minutes_avg_str": "9:14",
+   "minutes_total_sec": 18313,
    "points_avg": 3.961,
    "rebounds_avg": 0.641,
    "rebounds_def_avg": 0.508,
@@ -36846,6 +37524,8 @@
    "blocks_avg": 0.134,
    "fg3_pct": 15.4,
    "fg_pct": 50.5,
+   "fga_avg": 2.496815,
+   "fouls_per_min": 0.12122119126010177,
    "ft_pct": 30.8,
    "games": 28,
    "history": {
@@ -36942,6 +37622,7 @@
     }
    },
    "minutes_avg_str": "12:46",
+   "minutes_total_sec": 21450,
    "points_avg": 2.904,
    "rebounds_avg": 2.248,
    "rebounds_def_avg": 1.752,
@@ -36959,6 +37640,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 80.0,
+   "fga_avg": 5.0,
+   "fouls_per_min": 0.17699115044247787,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -37055,6 +37738,7 @@
     }
    },
    "minutes_avg_str": "11:18",
+   "minutes_total_sec": 678,
    "points_avg": 8.0,
    "rebounds_avg": 3.0,
    "rebounds_def_avg": 2.0,
@@ -37070,6 +37754,8 @@
    "blocks_avg": 0.2,
    "fg3_pct": 28.6,
    "fg_pct": 36.7,
+   "fga_avg": 3.0,
+   "fouls_per_min": 0.10313216195569137,
    "ft_pct": 50.0,
    "games": 10,
    "history": {
@@ -37166,6 +37852,7 @@
     }
    },
    "minutes_avg_str": "8:43",
+   "minutes_total_sec": 5236,
    "points_avg": 2.9,
    "rebounds_avg": 1.0,
    "rebounds_def_avg": 0.8,
@@ -37182,6 +37869,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 16.7,
    "fg_pct": 38.8,
+   "fga_avg": 8.375,
+   "fouls_per_min": 0.0730593607305936,
    "ft_pct": 85.0,
    "games": 8,
    "history": {
@@ -37278,6 +37967,7 @@
     }
    },
    "minutes_avg_str": "20:31",
+   "minutes_total_sec": 9855,
    "points_avg": 9.125,
    "rebounds_avg": 1.5,
    "rebounds_def_avg": 1.125,
@@ -37293,6 +37983,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 28.1,
    "fg_pct": 26.7,
+   "fga_avg": 5.625,
+   "fouls_per_min": 0.10657193605683836,
    "ft_pct": 80.0,
    "games": 8,
    "history": {
@@ -37389,6 +38081,7 @@
     }
    },
    "minutes_avg_str": "15:14",
+   "minutes_total_sec": 7319,
    "points_avg": 4.625,
    "rebounds_avg": 1.5,
    "rebounds_def_avg": 1.5,
@@ -37404,6 +38097,8 @@
    "blocks_avg": 0.192,
    "fg3_pct": 18.5,
    "fg_pct": 39.1,
+   "fga_avg": 4.285988,
+   "fouls_per_min": 0.11668692863990127,
    "ft_pct": 52.2,
    "games": 66,
    "history": {
@@ -37611,6 +38306,7 @@
     }
    },
    "minutes_avg_str": "17:25",
+   "minutes_total_sec": 68981,
    "points_avg": 4.426,
    "rebounds_avg": 3.645,
    "rebounds_def_avg": 2.234,
@@ -37629,6 +38325,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 62.5,
+   "fga_avg": 1.333333,
+   "fouls_per_min": 0.17998363785110444,
    "ft_pct": 27.3,
    "games": 6,
    "history": {
@@ -37725,6 +38423,7 @@
     }
    },
    "minutes_avg_str": "10:11",
+   "minutes_total_sec": 3667,
    "points_avg": 2.167,
    "rebounds_avg": 2.333,
    "rebounds_def_avg": 1.167,
@@ -37740,6 +38439,8 @@
    "blocks_avg": 0.314,
    "fg3_pct": 35.7,
    "fg_pct": 45.4,
+   "fga_avg": 8.366397,
+   "fouls_per_min": 0.09873073115542355,
    "ft_pct": 81.5,
    "games": 58,
    "history": {
@@ -37916,6 +38617,7 @@
     }
    },
    "minutes_avg_str": "22:54",
+   "minutes_total_sec": 79699,
    "points_avg": 11.152,
    "rebounds_avg": 4.923,
    "rebounds_def_avg": 3.33,
@@ -37933,6 +38635,8 @@
    "blocks_avg": 0.25,
    "fg3_pct": 22.2,
    "fg_pct": 65.5,
+   "fga_avg": 7.25,
+   "fouls_per_min": 0.115009584132011,
    "ft_pct": 58.8,
    "games": 8,
    "history": {
@@ -38029,6 +38733,7 @@
     }
    },
    "minutes_avg_str": "24:59",
+   "minutes_total_sec": 11999,
    "points_avg": 12.25,
    "rebounds_avg": 4.25,
    "rebounds_def_avg": 3.5,
@@ -38044,6 +38749,8 @@
    "blocks_avg": 0.734,
    "fg3_pct": 38.2,
    "fg_pct": 47.8,
+   "fga_avg": 4.053191,
+   "fouls_per_min": 0.16957212198426297,
    "ft_pct": 81.8,
    "games": 20,
    "history": {
@@ -38177,6 +38884,7 @@
     }
    },
    "minutes_avg_str": "19:45",
+   "minutes_total_sec": 23714,
    "points_avg": 6.457,
    "rebounds_avg": 4.936,
    "rebounds_def_avg": 3.819,
@@ -38195,6 +38903,8 @@
    "blocks_avg": 0.08,
    "fg3_pct": 18.7,
    "fg_pct": 54.0,
+   "fga_avg": 9.434412,
+   "fouls_per_min": 0.07355742049824177,
    "ft_pct": 60.4,
    "games": 93,
    "history": {
@@ -38402,6 +39112,7 @@
     }
    },
    "minutes_avg_str": "28:19",
+   "minutes_total_sec": 158051,
    "points_avg": 12.046,
    "rebounds_avg": 6.0,
    "rebounds_def_avg": 3.807,
@@ -38421,6 +39132,8 @@
    "blocks_avg": 0.095,
    "fg3_pct": 36.9,
    "fg_pct": 46.0,
+   "fga_avg": 8.550162,
+   "fouls_per_min": 0.10066117146768415,
    "ft_pct": 77.5,
    "games": 80,
    "history": {
@@ -38517,6 +39230,7 @@
     }
    },
    "minutes_avg_str": "23:08",
+   "minutes_total_sec": 111110,
    "points_avg": 11.147,
    "rebounds_avg": 2.036,
    "rebounds_def_avg": 1.555,
@@ -38535,6 +39249,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -38593,6 +39309,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -38606,6 +39323,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -38664,6 +39383,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -38677,6 +39397,8 @@
    "blocks_avg": 0.5,
    "fg3_pct": 33.3,
    "fg_pct": 37.7,
+   "fga_avg": 8.625,
+   "fouls_per_min": 0.052468399713808726,
    "ft_pct": 58.3,
    "games": 8,
    "history": {
@@ -38773,6 +39495,7 @@
     }
    },
    "minutes_avg_str": "26:12",
+   "minutes_total_sec": 12579,
    "points_avg": 8.375,
    "rebounds_avg": 5.625,
    "rebounds_def_avg": 3.25,
@@ -38788,6 +39511,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 0.0,
+   "fga_avg": 0.0,
+   "fouls_per_min": null,
    "ft_pct": 0.0,
    "games": 0,
    "history": {
@@ -38846,6 +39571,7 @@
     "seasons": {}
    },
    "minutes_avg_str": "0:00",
+   "minutes_total_sec": 0,
    "points_avg": 0.0,
    "rebounds_avg": 0.0,
    "rebounds_def_avg": 0.0,
@@ -38859,6 +39585,8 @@
    "blocks_avg": 0.307,
    "fg3_pct": 22.8,
    "fg_pct": 46.7,
+   "fga_avg": 6.216718,
+   "fouls_per_min": 0.08100842500717635,
    "ft_pct": 65.0,
    "games": 92,
    "history": {
@@ -38955,6 +39683,7 @@
     }
    },
    "minutes_avg_str": "23:38",
+   "minutes_total_sec": 130481,
    "points_avg": 8.579,
    "rebounds_avg": 5.404,
    "rebounds_def_avg": 3.015,
@@ -38974,6 +39703,8 @@
    "blocks_avg": 0.167,
    "fg3_pct": 24.2,
    "fg_pct": 40.9,
+   "fga_avg": 11.0,
+   "fouls_per_min": 0.07371007371007371,
    "ft_pct": 55.6,
    "games": 6,
    "history": {
@@ -39070,6 +39801,7 @@
     }
    },
    "minutes_avg_str": "24:52",
+   "minutes_total_sec": 8954,
    "points_avg": 12.0,
    "rebounds_avg": 5.167,
    "rebounds_def_avg": 3.333,
@@ -39085,6 +39817,8 @@
    "blocks_avg": 0.395,
    "fg3_pct": 10.5,
    "fg_pct": 58.9,
+   "fga_avg": 6.09068,
+   "fouls_per_min": 0.1154691968572225,
    "ft_pct": 77.5,
    "games": 64,
    "history": {
@@ -39181,6 +39915,7 @@
     }
    },
    "minutes_avg_str": "20:19",
+   "minutes_total_sec": 78071,
    "points_avg": 9.088,
    "rebounds_avg": 5.705,
    "rebounds_def_avg": 3.713,
@@ -39199,6 +39934,8 @@
    "blocks_avg": 0.13,
    "fg3_pct": 35.2,
    "fg_pct": 44.4,
+   "fga_avg": 9.373984,
+   "fouls_per_min": 0.09277423358700738,
    "ft_pct": 81.0,
    "games": 30,
    "history": {
@@ -39406,6 +40143,7 @@
     }
    },
    "minutes_avg_str": "25:45",
+   "minutes_total_sec": 46375,
    "points_avg": 14.024,
    "rebounds_avg": 2.423,
    "rebounds_def_avg": 2.228,
@@ -39423,6 +40161,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 23.5,
    "fg_pct": 46.7,
+   "fga_avg": 15.0,
+   "fouls_per_min": 0.08317449315543234,
    "ft_pct": 66.7,
    "games": 3,
    "history": {
@@ -39519,6 +40259,7 @@
     }
    },
    "minutes_avg_str": "32:03",
+   "minutes_total_sec": 5771,
    "points_avg": 18.0,
    "rebounds_avg": 4.333,
    "rebounds_def_avg": 3.0,
@@ -39534,6 +40275,8 @@
    "blocks_avg": 0.082,
    "fg3_pct": 30.8,
    "fg_pct": 44.5,
+   "fga_avg": 2.244898,
+   "fouls_per_min": 0.08162524941048431,
    "ft_pct": 61.5,
    "games": 12,
    "history": {
@@ -39667,6 +40410,7 @@
     }
    },
    "minutes_avg_str": "7:30",
+   "minutes_total_sec": 5400,
    "points_avg": 2.49,
    "rebounds_avg": 1.653,
    "rebounds_def_avg": 1.0,
@@ -39685,6 +40429,8 @@
    "blocks_avg": 0.333,
    "fg3_pct": 0.0,
    "fg_pct": 23.1,
+   "fga_avg": 4.333333,
+   "fouls_per_min": 0.07220216606498195,
    "ft_pct": 0.0,
    "games": 3,
    "history": {
@@ -39781,6 +40527,7 @@
     }
    },
    "minutes_avg_str": "13:51",
+   "minutes_total_sec": 2493,
    "points_avg": 2.0,
    "rebounds_avg": 1.667,
    "rebounds_def_avg": 1.667,
@@ -39796,6 +40543,8 @@
    "blocks_avg": 0.432,
    "fg3_pct": 26.8,
    "fg_pct": 58.4,
+   "fga_avg": 6.020513,
+   "fouls_per_min": 0.12474969503072711,
    "ft_pct": 65.3,
    "games": 104,
    "history": {
@@ -39966,6 +40715,7 @@
     }
    },
    "minutes_avg_str": "22:16",
+   "minutes_total_sec": 139030,
    "points_avg": 8.988,
    "rebounds_avg": 6.957,
    "rebounds_def_avg": 4.262,
@@ -39985,6 +40735,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 27.3,
    "fg_pct": 48.1,
+   "fga_avg": 13.5,
+   "fouls_per_min": 0.1348819782690146,
    "ft_pct": 100.0,
    "games": 2,
    "history": {
@@ -40081,6 +40833,7 @@
     }
    },
    "minutes_avg_str": "22:14",
+   "minutes_total_sec": 2669,
    "points_avg": 16.5,
    "rebounds_avg": 4.5,
    "rebounds_def_avg": 4.0,
@@ -40096,6 +40849,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 50.0,
    "fg_pct": 46.2,
+   "fga_avg": 9.75,
+   "fouls_per_min": 0.09373169302870533,
    "ft_pct": 57.1,
    "games": 4,
    "history": {
@@ -40192,6 +40947,7 @@
     }
    },
    "minutes_avg_str": "21:20",
+   "minutes_total_sec": 5121,
    "points_avg": 11.75,
    "rebounds_avg": 2.0,
    "rebounds_def_avg": 1.25,
@@ -40207,6 +40963,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 31.2,
+   "fga_avg": 10.666667,
+   "fouls_per_min": 0.0772626931567329,
    "ft_pct": 69.2,
    "games": 3,
    "history": {
@@ -40303,6 +41061,7 @@
     }
    },
    "minutes_avg_str": "30:12",
+   "minutes_total_sec": 5436,
    "points_avg": 9.667,
    "rebounds_avg": 2.0,
    "rebounds_def_avg": 1.333,
@@ -40318,6 +41077,8 @@
    "blocks_avg": 1.093,
    "fg3_pct": 33.3,
    "fg_pct": 58.6,
+   "fga_avg": 5.078358,
+   "fouls_per_min": 0.1268149631642944,
    "ft_pct": 66.7,
    "games": 30,
    "history": {
@@ -40451,6 +41212,7 @@
     }
    },
    "minutes_avg_str": "17:23",
+   "minutes_total_sec": 31301,
    "points_avg": 7.709,
    "rebounds_avg": 6.071,
    "rebounds_def_avg": 3.933,
@@ -40468,6 +41230,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 0.0,
    "fg_pct": 42.9,
+   "fga_avg": 7.0,
+   "fouls_per_min": 0.11583011583011583,
    "ft_pct": 0.0,
    "games": 1,
    "history": {
@@ -40564,6 +41328,7 @@
     }
    },
    "minutes_avg_str": "17:16",
+   "minutes_total_sec": 1036,
    "points_avg": 6.0,
    "rebounds_avg": 5.0,
    "rebounds_def_avg": 4.0,
@@ -40579,6 +41344,8 @@
    "blocks_avg": 0.049,
    "fg3_pct": 30.0,
    "fg_pct": 37.1,
+   "fga_avg": 3.910733,
+   "fouls_per_min": 0.09183041715238696,
    "ft_pct": 72.4,
    "games": 146,
    "history": {
@@ -40897,6 +41664,7 @@
     }
    },
    "minutes_avg_str": "15:52",
+   "minutes_total_sec": 139086,
    "points_avg": 3.995,
    "rebounds_avg": 1.505,
    "rebounds_def_avg": 1.351,
@@ -40917,6 +41685,8 @@
    "blocks_avg": 0.394,
    "fg3_pct": 0.0,
    "fg_pct": 51.6,
+   "fga_avg": 2.580046,
+   "fouls_per_min": 0.18501807750918817,
    "ft_pct": 46.8,
    "games": 140,
    "history": {
@@ -41383,6 +42153,7 @@
     }
    },
    "minutes_avg_str": "16:10",
+   "minutes_total_sec": 135887,
    "points_avg": 3.177,
    "rebounds_avg": 3.195,
    "rebounds_def_avg": 2.111,
@@ -41403,6 +42174,8 @@
    "blocks_avg": 0.119,
    "fg3_pct": 35.4,
    "fg_pct": 46.5,
+   "fga_avg": 8.734581,
+   "fouls_per_min": 0.07429282001344648,
    "ft_pct": 75.8,
    "games": 152,
    "history": {
@@ -41721,6 +42494,7 @@
     }
    },
    "minutes_avg_str": "27:45",
+   "minutes_total_sec": 253221,
    "points_avg": 12.502,
    "rebounds_avg": 3.303,
    "rebounds_def_avg": 2.787,
@@ -41741,6 +42515,8 @@
    "blocks_avg": 0.01,
    "fg3_pct": 35.6,
    "fg_pct": 40.8,
+   "fga_avg": 4.950523,
+   "fouls_per_min": 0.07420930146984281,
    "ft_pct": 83.2,
    "games": 175,
    "history": {
@@ -42059,6 +42835,7 @@
     }
    },
    "minutes_avg_str": "21:07",
+   "minutes_total_sec": 221729,
    "points_avg": 5.637,
    "rebounds_avg": 2.157,
    "rebounds_def_avg": 1.693,
@@ -42079,6 +42856,8 @@
    "blocks_avg": 0.059,
    "fg3_pct": 30.8,
    "fg_pct": 44.4,
+   "fga_avg": 8.803279,
+   "fouls_per_min": 0.10352044909629214,
    "ft_pct": 70.2,
    "games": 135,
    "history": {
@@ -42397,6 +43176,7 @@
     }
    },
    "minutes_avg_str": "25:22",
+   "minutes_total_sec": 205509,
    "points_avg": 11.35,
    "rebounds_avg": 2.561,
    "rebounds_def_avg": 1.938,
@@ -42417,6 +43197,8 @@
    "blocks_avg": 0.472,
    "fg3_pct": 39.2,
    "fg_pct": 43.5,
+   "fga_avg": 3.509434,
+   "fouls_per_min": 0.1423567958422777,
    "ft_pct": 71.8,
    "games": 12,
    "history": {
@@ -42513,6 +43295,7 @@
     }
    },
    "minutes_avg_str": "13:55",
+   "minutes_total_sec": 10020,
    "points_avg": 5.264,
    "rebounds_avg": 1.906,
    "rebounds_def_avg": 1.283,
@@ -42530,6 +43313,8 @@
    "blocks_avg": 0.056,
    "fg3_pct": 43.6,
    "fg_pct": 45.5,
+   "fga_avg": 5.666667,
+   "fouls_per_min": 0.08518462487344497,
    "ft_pct": 87.4,
    "games": 41,
    "history": {
@@ -42669,6 +43454,7 @@
     }
    },
    "minutes_avg_str": "24:04",
+   "minutes_total_sec": 59213,
    "points_avg": 8.739,
    "rebounds_avg": 2.403,
    "rebounds_def_avg": 2.011,
@@ -42687,6 +43473,8 @@
    "blocks_avg": 0.143,
    "fg3_pct": 19.7,
    "fg_pct": 28.8,
+   "fga_avg": 3.857143,
+   "fouls_per_min": 0.1639588058147749,
    "ft_pct": 74.2,
    "games": 14,
    "history": {
@@ -43051,6 +43839,7 @@
     }
    },
    "minutes_avg_str": "14:13",
+   "minutes_total_sec": 11954,
    "points_avg": 3.063,
    "rebounds_avg": 1.667,
    "rebounds_def_avg": 1.159,
@@ -43069,6 +43858,8 @@
    "blocks_avg": 0.049,
    "fg3_pct": 26.1,
    "fg_pct": 34.2,
+   "fga_avg": 4.224111,
+   "fouls_per_min": 0.12387576613180905,
    "ft_pct": 78.0,
    "games": 111,
    "history": {
@@ -43424,6 +44215,7 @@
     }
    },
    "minutes_avg_str": "18:42",
+   "minutes_total_sec": 124562,
    "points_avg": 5.471,
    "rebounds_avg": 2.879,
    "rebounds_def_avg": 2.193,
@@ -43443,6 +44235,8 @@
    "blocks_avg": 0.359,
    "fg3_pct": 31.9,
    "fg_pct": 39.1,
+   "fga_avg": 8.955882,
+   "fouls_per_min": 0.11466945366329714,
    "ft_pct": 82.8,
    "games": 104,
    "history": {
@@ -43650,6 +44444,7 @@
     }
    },
    "minutes_avg_str": "23:36",
+   "minutes_total_sec": 147313,
    "points_avg": 11.56,
    "rebounds_avg": 2.217,
    "rebounds_def_avg": 1.826,
@@ -43668,6 +44463,8 @@
    "blocks_avg": 0.265,
    "fg3_pct": 40.8,
    "fg_pct": 54.3,
+   "fga_avg": 7.840737,
+   "fouls_per_min": 0.14113349710268477,
    "ft_pct": 80.7,
    "games": 153,
    "history": {
@@ -43986,6 +44783,7 @@
     }
    },
    "minutes_avg_str": "21:07",
+   "minutes_total_sec": 193866,
    "points_avg": 12.567,
    "rebounds_avg": 5.091,
    "rebounds_def_avg": 3.346,
@@ -44006,6 +44804,8 @@
    "blocks_avg": 0.0,
    "fg3_pct": 35.4,
    "fg_pct": 45.8,
+   "fga_avg": 1.127517,
+   "fouls_per_min": 0.10559752747252747,
    "ft_pct": 66.7,
    "games": 26,
    "history": {
@@ -44139,6 +44939,7 @@
     }
    },
    "minutes_avg_str": "7:49",
+   "minutes_total_sec": 12195,
    "points_avg": 1.443,
    "rebounds_avg": 0.705,
    "rebounds_def_avg": 0.604,
@@ -44157,6 +44958,8 @@
    "blocks_avg": 0.227,
    "fg3_pct": 35.1,
    "fg_pct": 43.6,
+   "fga_avg": 3.750557,
+   "fouls_per_min": 0.09912114201110625,
    "ft_pct": 69.7,
    "games": 89,
    "history": {
@@ -44327,6 +45130,7 @@
     }
    },
    "minutes_avg_str": "18:24",
+   "minutes_total_sec": 98268,
    "points_avg": 4.548,
    "rebounds_avg": 2.281,
    "rebounds_def_avg": 1.604,
@@ -44346,6 +45150,8 @@
    "blocks_avg": 0.093,
    "fg3_pct": 28.9,
    "fg_pct": 44.5,
+   "fga_avg": 4.492929,
+   "fouls_per_min": 0.12918121366475976,
    "ft_pct": 73.6,
    "games": 167,
    "history": {
@@ -44738,6 +45544,7 @@
     }
    },
    "minutes_avg_str": "17:23",
+   "minutes_total_sec": 174326,
    "points_avg": 6.274,
    "rebounds_avg": 3.082,
    "rebounds_def_avg": 2.142,
@@ -44758,6 +45565,8 @@
    "blocks_avg": 0.081,
    "fg3_pct": 30.9,
    "fg_pct": 37.9,
+   "fga_avg": 4.021591,
+   "fouls_per_min": 0.11536082362346574,
    "ft_pct": 69.2,
    "games": 126,
    "history": {
@@ -44965,6 +45774,7 @@
     }
    },
    "minutes_avg_str": "20:56",
+   "minutes_total_sec": 158323,
    "points_avg": 4.447,
    "rebounds_avg": 1.994,
    "rebounds_def_avg": 1.148,
@@ -44984,6 +45794,8 @@
    "blocks_avg": 0.113,
    "fg3_pct": 36.2,
    "fg_pct": 40.2,
+   "fga_avg": 7.410405,
+   "fouls_per_min": 0.07575646674766875,
    "ft_pct": 81.8,
    "games": 120,
    "history": {
@@ -45265,6 +46077,7 @@
     }
    },
    "minutes_avg_str": "26:19",
+   "minutes_total_sec": 189533,
    "points_avg": 9.217,
    "rebounds_avg": 3.379,
    "rebounds_def_avg": 2.792,

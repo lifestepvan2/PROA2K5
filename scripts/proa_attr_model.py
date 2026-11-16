@@ -30,8 +30,16 @@ rule on "Passing IQ" only moves "Passing" by a third (it was the average of thre
 from __future__ import annotations
 
 import datetime
+import random
+import warnings
 from dataclasses import dataclass
 from typing import Callable
+if __package__:
+    from .rating_map_2k5 import HIDDEN_ATTR_OFFSETS
+else:
+    from rating_map_2k5 import HIDDEN_ATTR_OFFSETS
+
+HIDDEN_ATTRS = tuple(HIDDEN_ATTR_OFFSETS)
 
 # ---------------------------------------------------------------------------
 # Types
@@ -98,6 +106,11 @@ class PlayerContext:
     fg_pct:           float = 0.0  # 0–100 scale as returned by scraper
     fg3_pct:          float = 0.0  # 0–100 scale
     ft_pct:           float = 0.0  # 0–100 scale
+    fga_avg:          float = 0.0
+    fouls_per_min:    float | None = None
+    rating_year:      int | None = None
+    league_steals_avg: float = 0.0
+    league_blocks_avg: float = 0.0
 
     # --- Derived (read-only properties) ---
 
@@ -111,7 +124,7 @@ class PlayerContext:
     @property
     def age(self) -> int:
         """Age as of the current season (prorated from birth year only)."""
-        return datetime.date.today().year - self.birth_year
+        return (self.rating_year or datetime.date.today().year) - self.birth_year
 
     @property
     def height_cm(self) -> float:
@@ -624,6 +637,57 @@ PIPELINE: list[tuple[str, ModifierFn]] = [
 # Public entry point
 # ---------------------------------------------------------------------------
 
+def league_defense_averages(players: list[dict]) -> tuple[float, float]:
+    eligible = {p["proa_id"]: p for p in players
+                if p.get("games", 0) > 0 and p.get("minutes_total_sec", 0) > 0}
+    if not eligible:
+        return 0.0, 0.0
+    return (sum(p.get("steals_avg", 0.0) for p in eligible.values()) / len(eligible),
+            sum(p.get("blocks_avg", 0.0) for p in eligible.values()) / len(eligible))
+
+
+def player_context(player: dict, *, year: int | None = None,
+                   defense_averages: tuple[float, float] = (0.0, 0.0)) -> PlayerContext:
+    fields = ("games", "minutes_total_sec", "points_avg", "assists_avg", "rebounds_avg",
+              "rebounds_off_avg", "rebounds_def_avg", "steals_avg", "blocks_avg",
+              "turnovers_avg", "fg_pct", "fg3_pct", "ft_pct", "fga_avg")
+    return PlayerContext(
+        position=player.get("position") or "PG", birth_year=player.get("birth_year") or 1995,
+        height_m=player.get("height_m") or 1.90, weight_kg=player.get("weight_kg") or 85.0,
+        **{key: player.get(key) or 0 for key in fields},
+        fouls_per_min=player.get("fouls_per_min"), rating_year=year,
+        league_steals_avg=defense_averages[0], league_blocks_avg=defense_averages[1])
+
+
+def hidden_ratings(ctx: PlayerContext, speed: int) -> Ratings:
+    played = ctx.games > 0 and ctx.mpg > 0
+    if played and ctx.fouls_per_min is None:
+        warnings.warn("Recorded minutes but no foul totals: Fouls per Min defaults to 60",
+                      RuntimeWarning, stacklevel=2)
+    offense, defense = 50, 50
+    if played:
+        if ctx.fga_avg > 0:
+            offense = (99 if ctx.fg_pct >= 55 and ctx.turnovers_avg <= 1 else
+                       75 if ctx.fg_pct >= 50 or ctx.turnovers_avg <= 1.5 else 50)
+        steals = ctx.steals_avg > ctx.league_steals_avg
+        blocks = ctx.blocks_avg > ctx.league_blocks_avg
+        defense = 99 if steals and blocks else 75 if steals or blocks else 50
+    return {
+        "Dunk Range": 10,
+        "Standing Dunk": (99 if ctx.position == "C" and ctx.height_cm > 210 else
+                          50 if ctx.position in ("PF", "C") else 0),
+        "Offense Clutch": offense,
+        "Shoot or Pass": (round(99 - 49 * min(ctx.assists_avg / (0.75 * ctx.fga_avg), 1))
+                          if played and ctx.fga_avg > 0 else 75),
+        "Defense Clutch": defense,
+        "Emotion": random.randint(0, 5),
+        "Fouls per Min": (round(20 + 79 * min(max(ctx.fouls_per_min, 0) / 0.20, 1))
+                          if played and ctx.fouls_per_min is not None else 60),
+        "Consistency": 75 if played and ctx.age >= 25 and ctx.mpg >= 20 else 50,
+        "Fastbreak": max(50, min(99, speed)),
+    }
+
+
 def build_ratings(ctx: PlayerContext, *, debug: bool = False) -> Ratings:
     """
     Run the full attribute pipeline for one player and return a Ratings dict.
@@ -633,7 +697,7 @@ def build_ratings(ctx: PlayerContext, *, debug: bool = False) -> Ratings:
         debug: If True, prints the ratings after each pipeline step.
 
     Returns:
-        A dict mapping every attribute name in ALL_ATTRS to an int in [25, 99].
+        Visible ALL_ATTRS ratings in [25, 99], plus HIDDEN_ATTRS in their field-specific ranges.
     """
     ratings = _blank_ratings()
 
@@ -642,13 +706,16 @@ def build_ratings(ctx: PlayerContext, *, debug: bool = False) -> Ratings:
         if debug:
             _print_debug_snapshot(label, ratings)
 
+    ratings.update(hidden_ratings(ctx, ratings["Speed"]))
+    if debug:
+        _print_debug_snapshot("hidden attributes", {name: ratings[name] for name in HIDDEN_ATTRS})
     return ratings
 
 
 def _print_debug_snapshot(label: str, ratings: Ratings) -> None:
     print(f"\n--- After {label} ---")
-    for attr in ALL_ATTRS:
-        print(f"  {attr:<28} {ratings[attr]:>3}")
+    for attr, value in ratings.items():
+        print(f"  {attr:<28} {value:>3}")
 
 
 # ---------------------------------------------------------------------------
@@ -676,11 +743,11 @@ if __name__ == "__main__":
 
     for name, ctx in demo_players:
         r = build_ratings(ctx)
-        ovr = round(sum(r.values()) / len(r))
+        ovr = round(sum(r[attr] for attr in ALL_ATTRS) / len(ALL_ATTRS))
         low = min(r.values())
         high = max(r.values())
         print(f"\n{'='*60}")
         print(f"  {name}  (pos={ctx.position}, age={ctx.age}, mpg={ctx.mpg:.1f})")
         print(f"  avg OVR={ovr}  min={low}  max={high}")
-        for attr in ALL_ATTRS:
+        for attr in (*ALL_ATTRS, *HIDDEN_ATTRS):
             print(f"    {attr:<28} {r[attr]:>3}")

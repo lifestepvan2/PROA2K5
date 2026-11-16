@@ -8,7 +8,7 @@ An optional `--card PATH` exports the same final payload (PCSX2 must be closed f
 
 | # | Step | Script | Output |
 |---|------|--------|--------|
-| 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for the 19 2K5 ratings | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
+| 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for 19 visible and 9 hidden 2K5 attributes | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
 | 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
 | 3 | Provisional payload/player list from the pristine disc; defer manual complexion leg changes | `build_roster.py --iso-source PRISTINE --prepare-faces` | `data/roster_build/player_map.csv` |
 | 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
@@ -63,7 +63,8 @@ appends to, or rewrites this file.
 - Generated names are transliterated (ae/oe/ue/ss, accents removed), whitespace
   normalized and shortened to 12 characters. Manual preferred names apply
   afterwards and must already fit those constraints.
-- Ratings are integers 25..99; accessory values are integers 0..255, using the
+- Visible ratings are integers 25..99; hidden attributes use the ranges below.
+  Accessory values are integers 0..255, using the
   existing preset/raw-index meanings. Height is metres; weight is kg.
 - Duplicate IDs, unknown columns, invalid dates/numbers/names and invalid
   shooting-hand values fail validation before saving. Overrides for players
@@ -96,6 +97,66 @@ manual apply command. `update_season.py --skip-scrape` applies manual edits
 before its other steps. Clearing/removing an override stops future application;
 regenerate the workbook to restore the scraped/model value already overwritten
 by an earlier application.
+
+#### Hidden attributes
+
+The workbook and override CSV contain nine named hidden columns. The builder
+writes their raw bytes unchanged; the visible-rating minimum does not apply.
+The game's generic attribute accessors clamp some low raw values, but stock
+records themselves contain values such as Dunk Range 10 and Standing Dunk 0.
+These are roster generation rules, not experimentally verified gameplay units.
+
+| Column | Generated value | Manual values |
+|--------|-----------------|---------------|
+| Dunk Range | 10 | Integer 0..99 |
+| Standing Dunk | PG/SG/SF: 0; PF/C: 50; C **over** 210 cm: 99 | 0, 50, 99 |
+| Offense Clutch | 99 if FG% >=55 **and** turnovers/game <=1; otherwise 75 if FG% >=50 **or** turnovers/game <=1.5; otherwise 50 | 50, 75, 99 |
+| Shoot or Pass | `round(99 - 49 * min(assists / (0.75 * FGA), 1))`; higher means less passing; 50 at assists/FGA >=0.75 | Integer 50..99 |
+| Defense Clutch | 99 if steals/game **and** blocks/game both strictly exceed league player averages; 75 if either does; otherwise 50 | 50, 75, 99 |
+| Emotion | Fresh random integer 0..5 each time ratings are regenerated | Integer 0..15 |
+| Fouls per Min | `round(20 + 79 * min(fouls/minute / 0.20, 1))` | Integer 20..99 |
+| Consistency | 75 if age >=25 **and** minutes/game >=20; otherwise 50 | 50, 75, 99 |
+| Fastbreak | Final generated Speed, clamped to 50..99 | Integer 50..99 |
+
+Age uses the requested season's start year. Defensive averages use the
+deduplicated scraped player pool, with recorded games and minutes, before the
+per-team workbook player limit. They are means of the pooled per-game numbers,
+not totals divided by league games. FGA and foul rates use the same weighted
+all-league rating inputs as the existing visible attributes, **not** the
+separate ProA-only archived histories. Foul rates divide weighted fouls by
+weighted minutes from seasons with available foul counts; missing counts are
+never treated as zero.
+
+Without recorded games/minutes: clutch 50, Shoot or Pass 75, Fouls per Min 60,
+Consistency 50. Without FGA: Shoot or Pass 75 and Offense Clutch 50. Missing
+foul totals with recorded minutes emit a warning and use 60. Position/height,
+Emotion and Fastbreak can still be generated without statistics.
+
+Permanent manual values, including Emotion 6..15 and Consistency 99, belong in
+`data/overrides.csv`. Overrides apply after generation, just like visible
+ratings. Ordinary override reapplication, roster builds, ISO publication and
+optional card export **never reroll Emotion**.
+
+To migrate an older workbook or deliberately regenerate only its hidden
+attributes, use the enriched cache produced by the current scraper:
+
+```powershell
+python scripts\player_database.py --refresh-hidden --rating-cache cache\proa_2026_2027\all_rosters.json --rating-year 2026
+```
+
+This inserts missing hidden columns before `Headshot ID`, uses the workbook's
+current position, height, birth year and Speed, preserves existing visible
+ratings/identity cells, reapplies persistent overrides and refreshes Overall
+formulas. It fails before saving if a workbook player lacks cached inputs.
+Older caches without FGA must first be regenerated by the current scraper.
+The normal manual-apply command does not add hidden defaults silently.
+
+Overall predictions in the workbook, roster builder, calibration tools and
+website use the actual named hidden values with the existing fitted weights.
+The nineteen-visible-feature vector remains unchanged. Historical calibration
+datasets can still be read through their old aliases; newly generated
+calibration workbooks include matching named values. Conflicting named and
+legacy values are rejected, rather than silently selecting one.
 
 #### Manual complexion workflow
 

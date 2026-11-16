@@ -5,6 +5,7 @@
 """
 import argparse
 import csv
+import json
 from datetime import date
 import math
 import re
@@ -13,7 +14,8 @@ from pathlib import Path
 
 import openpyxl
 
-from proa_attr_model import ALL_ATTRS
+from proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, hidden_ratings, league_defense_averages, player_context
+from rating_map_2k5 import HIDDEN_BOUNDS, HIDDEN_TIERS
 
 ROOT = Path(__file__).resolve().parent.parent
 OVERRIDES = ROOT / "data" / "overrides.csv"
@@ -23,7 +25,7 @@ IDENTITY_COLS = [
     "First Name", "Last Name", "Position", "Secondary Position", "Jersey Number",
     "Birth Year", "Birth Month", "Birth Day", "Years Pro", "Height", "Weight",
 ]
-SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + ["Headshot ID", "College", "Shooting Hand", *ACCESSORIES, "Skin Tone"]
+SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + list(HIDDEN_ATTRS) + ["Headshot ID", "College", "Shooting Hand", *ACCESSORIES, "Skin Tone"]
 PLAYER_COLUMNS = SHEET_COLUMNS + ["ProA ID"]
 OVERRIDE_COLUMNS = ["Team", "ProA ID", *(c for c in SHEET_COLUMNS)]
 TEXT_COLUMNS = {"First Name", "Last Name", "Position", "Secondary Position", "College"}
@@ -156,6 +158,7 @@ def field_value(column, value):
         "Birth Day": (1, 31), "Years Pro": (1, 127), "Height": (1.0, 2.7),
         "Weight": (30, 250), "Headshot ID": (0, 65535), "Shooting Hand": (0, 1), "Skin Tone": (0, 6),
         **dict.fromkeys(ALL_ATTRS, (25, 99)), **dict.fromkeys(ACCESSORIES, (0, 255)),
+        **HIDDEN_BOUNDS,
     }
     if column not in bounds:
         raise ValueError(f"Unknown player column: {column}")
@@ -166,6 +169,8 @@ def field_value(column, value):
         return number
     if not number.is_integer():
         raise ValueError(f"{column}: expected an integer, got {value!r}")
+    if column in HIDDEN_TIERS and int(number) not in HIDDEN_TIERS[column]:
+        raise ValueError(f"{column}: expected one of {HIDDEN_TIERS[column]}, got {value!r}")
     return int(number)
 
 
@@ -256,14 +261,62 @@ def apply_overrides(workbook, overrides, *, blacklist=None):
     return changes
 
 
+def refresh_hidden_attributes(workbook, rosters: dict, year: int) -> int:
+    players = {int(p["proa_id"]): p for team in rosters.values() for p in team}
+    averages = league_defense_averages(list(players.values()))
+    updates = []
+    for ws in workbook:
+        if ws.title.startswith("_"):
+            continue
+        columns = {cell.value: cell.column for cell in ws[1] if cell.value}
+        for index in range(2, ws.max_row + 1):
+            raw = ws.cell(index, columns["ProA ID"]).value
+            if raw is None:
+                continue
+            pid = player_id(raw)
+            if pid not in players:
+                raise ValueError(f"{pid}: missing cached rating inputs; refresh the roster cache")
+            source = dict(players[pid])
+            if source.get("games", 0) > 0 and "fga_avg" not in source:
+                raise ValueError(f"{pid}: cached ratings lack FGA/foul inputs; refresh the roster cache")
+            for name, key in (("Position", "position"), ("Birth Year", "birth_year"), ("Height", "height_m")):
+                source[key] = ws.cell(index, columns[name]).value
+            ctx = player_context(source, year=year, defense_averages=averages)
+            ratings = hidden_ratings(ctx, field_value("Speed", ws.cell(index, columns["Speed"]).value))
+            updates.append((ws, index, ratings))
+    for ws in workbook:
+        if ws.title.startswith("_"):
+            continue
+        columns = {cell.value: cell.column for cell in ws[1] if cell.value}
+        for name in HIDDEN_ATTRS:
+            if name not in columns:
+                column = columns["Headshot ID"]
+                ws.insert_cols(column)
+                ws.cell(1, column, name)
+                columns = {cell.value: cell.column for cell in ws[1] if cell.value}
+    for ws, index, ratings in updates:
+        columns = {cell.value: cell.column for cell in ws[1] if cell.value}
+        for name, value in ratings.items():
+            ws.cell(index, columns[name], value)
+    return len(updates)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workbook", type=Path, default=ROOT / "proa_scraped.xlsx")
     parser.add_argument("--overrides", type=Path, default=OVERRIDES)
     parser.add_argument("--blacklist", type=Path, default=BLACKLIST)
+    parser.add_argument("--refresh-hidden", action="store_true", help="Regenerate hidden attributes, then reapply overrides")
+    parser.add_argument("--rating-cache", type=Path, help="Enriched all_rosters.json from the scraper")
+    parser.add_argument("--rating-year", type=int, help="Season start year used for age thresholds")
     args = parser.parse_args()
+    if args.refresh_hidden and (args.rating_cache is None or args.rating_year is None):
+        parser.error("--refresh-hidden requires --rating-cache and --rating-year")
     wb = openpyxl.load_workbook(args.workbook)
     try:
+        if args.refresh_hidden:
+            count = refresh_hidden_attributes(wb, json.loads(args.rating_cache.read_text(encoding="utf-8")), args.rating_year)
+            print(f"Regenerated hidden attributes for {count} players")
         apply_overrides(wb, load_overrides(args.overrides), blacklist=load_blacklist(args.blacklist))
         from overall_sheet import add_overall
         add_overall(wb)

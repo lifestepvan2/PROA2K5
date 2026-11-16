@@ -26,7 +26,7 @@ import openpyxl
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from overall_data import ATTRS, default_extras  # noqa: E402
+from overall_data import ATTRS, player_extras  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
 from rating_map_2k5 import read_attrs  # noqa: E402
 
@@ -85,7 +85,7 @@ def build_data(xlsx, stats_path, check=False):
                 continue
             attrs = read_attrs(r)
             h, w = float(r["Height"]), float(r["Weight"])
-            ovr = max(0, min(99, round(predict_overall(pos, attrs, h, w, default_extras(attrs)))))
+            ovr = max(0, min(99, round(predict_overall(pos, attrs, h, w, player_extras(r, attrs)))))
             if check and isinstance(r.get("Overall"), (int, float)) and int(r["Overall"]) != ovr:
                 mismatches += 1
                 print(f"  Overall differs: {r['First Name']} {r['Last Name']} sheet {r['Overall']} site {ovr}")

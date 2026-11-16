@@ -14,8 +14,10 @@ def load_model(path=MODEL_PATH):
 
 
 def predict_overall(pos, attrs, height_m=None, weight_kg=None, extras=None, model=None):
-    """pos: 'PG'..'C' (or index 0-4); attrs: {rating: value}; extras: {unknown byte column: value}, defaults to what build_roster
-    writes. Returns the unrounded predicted overall (None without a model)."""
+    """pos: 'PG'..'C' (or index 0-4); attrs: {rating: value}; extras: {legacy hidden alias: value}.
+    Without extras, use named hidden attrs when supplied, otherwise historical calibration defaults.
+    Returns the unrounded predicted overall (None without a model).
+    """
     model = model or load_model()
     if model is None:
         return None
@@ -26,8 +28,8 @@ def predict_overall(pos, attrs, height_m=None, weight_kg=None, extras=None, mode
     ex = model.get("extras")
     if ex:
         if extras is None:
-            from overall_data import default_extras
-            extras = default_extras(attrs)
+            from overall_data import player_extras
+            extras = player_extras(attrs, attrs)
         v += sum(w * extras[n] for n, w in zip(ex["names"], ex["weights"]))
     hw = model.get("height_weight")
     if hw and height_m is not None and weight_kg is not None:

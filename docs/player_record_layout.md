@@ -2,6 +2,9 @@
 
 Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Robinson (record 2)
 (filled in `docs/manual/manual_checks.xlsx`) and by statistics over all 567 roster records.
+The hidden attribute names and byte offsets below were subsequently verified
+offline against the pristine Europe executable's label, getter and setter tables;
+see [Static attribute probe](#static-attribute-probe-europe-iso).
 `scripts/build_roster.py` writes the fields marked **W**.
 
 | Off | Size | Meaning | |
@@ -27,25 +30,28 @@ Decoded by matching the in-game ratings of Allen Iverson (record 0) and Glenn Ro
 | 0x48 | u8 | Free Throw | W |
 | 0x49 | u8 | Layup | W |
 | 0x4A | u8 | Dunk | W |
-| 0x4C | u8 | tier 0/50/99, correlates with dunk (r=0.69) | W (heuristic) |
+| 0x4B | u8 | **Dunk Range**; raw value 10 in all 792 main-table stock records; units/effect not established | W (named column; generated 10) |
+| 0x4C | u8 | **Standing Dunk**; stock tiers 0/50/99 | W (named column; position/height model) |
 | 0x4D | u8 | Ball Handling | W |
 | 0x4E | u8 | Pass | W |
-| 0x4F, 0x55 | u8 | tier 50/75/99, unknown (r~0.6 with average rating) | W (50) |
-| 0x50 | u8 | unknown, 50-99 (Iverson 99) | W (70) |
+| 0x4F | u8 | **Offense Clutch**; stock tiers 50/75/99 | W (named column; FG%/turnover model) |
+| 0x50 | u8 | **Shoot or Pass**; stock 50-99 (Iverson 99); behavioral direction not independently traced | W (named column; assists/FGA model) |
 | 0x51 | u8 | Low Post Offense | W |
 | 0x52 | u8 | Low Post Defense | W |
 | 0x53 | u8 | Block | W |
 | 0x54 | u8 | Steal | W |
+| 0x55 | u8 | **Defense Clutch**; stock tiers 50/75/99 | W (named column; steals/blocks model) |
 | 0x56 | u8 | Offensive Rebounding | W |
 | 0x57 | u8 | Defensive Rebounding | W |
 | 0x58 | u8 | Speed | W |
 | 0x59 | u8 | Stamina | W |
-| 0x5A | u8 | unknown 0-15 | W (0) |
+| 0x5A | u8 | **Emotion**; raw stock values 0-15; scale/effect not established | W (named column; random 0..5 by default) |
 | 0x5B | u8 | Durability | W |
-| 0x5C | u8 | unknown (r=-0.68 with average rating, draft-like) | W (60) |
+| 0x5C | u8 | **Fouls per Min**; raw stock 20-99; scale not established | W (named column; foul-rate model) |
 | 0x5D | u8 | Defensive Awareness | W |
 | 0x5E | u8 | Offensive Awareness | W |
-| 0x5F, 0x60 | u8 | unknown (75/99, 75/85/95) | W (75) |
+| 0x5F | u8 | **Consistency**; raw stock 50-99 | W (named column; age/minutes model) |
+| 0x60 | u8 | **Fastbreak**; raw stock 0-95 | W (named column; Speed clamped to 50..99) |
 | 0x69 | u8 | **skin tone 0-5**: selects `legs00`-`legs05`. Automatic casting inherits the PID's tone; manual workbook `Skin Tone` 1..6 writes `6 - value` with a matching model-local ISO recipe | W |
 
 ### Accessories (verified in game through the memory card)
@@ -74,7 +80,11 @@ Items are indices into one shared pool of model parts (`wristitem01-17`, `armite
 
 "Overall" is not a stored byte; the game computes it at runtime from the ratings and the player's position.
 `scripts/fit_overall.py` fits that formula from displayed values (see "Overall formula" below).
-Ratings are 0-99 bytes (NBA data is quantised to steps of 5, any value should be valid).
+Attributes are stored as unsigned bytes, not packed bitfields. The generic
+attribute getter and setter clamp to **50-100**, even though pristine records
+contain lower raw values. This does not establish that every gameplay consumer
+uses the same clamp or that special fields share a conventional rating scale.
+The workbook currently accepts 25-99; this probe did not change that policy.
 
 Only the first four string pointers (0x0C, 0x10, 0x24, 0x28) are real pointers in the player table;
 other words that look like pointers (e.g. 0x14..0x17) are false positives and are ignored by
@@ -84,9 +94,84 @@ The 19 rating columns of `proa_scraped.xlsx` are the 2K5 attributes themselves (
 overridable via `data/overrides.csv`); `scripts/rating_map_2k5.py` maps column name -> byte offset. The database workflow validates ratings in 25-99 before building.
 Units in the source: height in m, weight in kg.
 
+## Static attribute probe (Europe ISO)
+
+This probe used only the pristine ISO and isolated evaluation of its small
+attribute getter. It did not launch the game, edit RAM, write a card, or patch
+the ISO. Scope: `SLES_530.22`, executable SHA256
+`d60570a00122aac72bdf1b7768308f68ddb5a44b091c2251c20891e6c7a47611`.
+
+The ordering clue is confirmed, but with a discrepancy in the external FAQ's
+separate **Def (Defense)** entry:
+
+- The native UTF-16 label-pointer table at **EE `0x59EFE8`** has 28 attribute
+  names, from Shot-Close through Fastbreak. The diagnostic string after it is
+  `PlayerData_GetAttributeStringByType Error`; the name lookup starts at
+  **EE `0x2474B8`**.
+- The getter at **EE `0x247598`** uses the jump table at **EE `0x59F060`**.
+  Enum `i` in `0..27` reads player byte **`0x45 + i`** with `lbu`.
+  Enum 28 and out-of-range values return zero, not another stored rating.
+- The setter at **EE `0x247960`**, jump table **EE `0x59F0E0`**, independently
+  writes the same byte for every enum. All 28 label/getter/setter mappings were
+  checked; all 19 previously mapped visible offsets agree.
+- Exhaustive isolated evaluation of all 256 possible raw byte values for each
+  of the 28 getter cases (7,168 inputs) confirmed `min(100, max(50, raw))`.
+  This is evidence about that accessor, not a recommendation to normalize
+  special raw values or a complete model of gameplay behavior.
+
+| Hidden field | Enum | Record offset | Getter case EE | Setter case EE |
+|---|---:|---|---|---|
+| Dunk Range | 6 | `+0x4B` | `0x24768C` | `0x247A90` |
+| Standing Dunk | 7 | `+0x4C` | `0x2476AC` | `0x247ABC` |
+| Offense Clutch | 10 | `+0x4F` | `0x24770C` | `0x247B40` |
+| Shoot or Pass | 11 | `+0x50` | `0x24772C` | `0x247B6C` |
+| Defense Clutch | 16 | `+0x55` | `0x2477CC` | `0x247C48` |
+
+For comparison, selected **raw** stock bytes are:
+
+| Player | Dunk Range | Standing Dunk | Offense Clutch | Shoot or Pass | Defense Clutch |
+|---|---:|---:|---:|---:|---:|
+| Allen Iverson | 10 | 0 | 75 | 99 | 75 |
+| Kobe Bryant | 10 | 99 | 99 | 90 | 75 |
+| Shaquille O'Neal | 10 | 99 | 99 | 95 | 50 |
+| Ben Wallace | 10 | 50 | 50 | 55 | 99 |
+| Steve Nash | 10 | 0 | 50 | 60 | 50 |
+
+Four additional formerly unknown fields are directly named by the same tables:
+Emotion (`+0x5A`, enum 21), Fouls per Min (`+0x5C`, enum 23), Consistency
+(`+0x5F`, enum 26), and Fastbreak (`+0x60`, enum 27).
+Their exact effects/scales remain outside this probe.
+
+**No separate Defense attribute exists in this verified 28-entry enum.**
+Low Post Defense at `+0x52` is immediately followed by Block at `+0x53`;
+there is no byte-sized gap for the FAQ's extra entry. A position-dependent
+defensive aggregate routine at EE `0x246EC8` combines Post Defense, Block,
+Steal, Defensive Awareness, Defensive Rebound and Speed; it is called alongside
+offensive and rebound aggregates in the overall calculation at EE `0x246178`.
+That supports a derived-defense interpretation, but does **not** prove that
+the FAQ's Def refers to this routine. A distinct attribute elsewhere in the
+record has not been demonstrated; do not assign one by shifting known offsets.
+
+Raw ranges here cover the 792 primary stock records, excluding 20 auxiliary
+templates. The [stock hidden-attribute CSV](../data/roster_dump/stock_hidden_attributes.csv)
+contains all nine fields for each of those records, with a zero-based record
+index, PID, names and position. Values are raw bytes, not clamped getter values;
+historical, duplicate and placeholder entries are retained.
+Machine-readable evidence is generated at
+`cache/hidden-rating-probe.json`. All offsets are relative to the existing
+`0x94` player record and are unchanged by disc/save header normalization.
+The builder now requires all nine named hidden columns and writes their raw
+values. Generation rules and manual ranges are documented in
+[Season update workflow](SeasonUpdateWorkflow.md#hidden-attributes).
+`DunkFlag` and `Bxx` remain legacy calibration aliases, not an alternative
+source of silently overriding defaults. New calibration workbooks keep those
+aliases equal to their corresponding named columns.
+
 ## Overall formula (displayed overall)
 
-The overall shown in game is computed at runtime from the 19 ratings and the primary position. It is modelled as
+The overall shown in game is computed at runtime. Its fitted model uses the
+19 visible ratings, primary position, selected hidden fields, height and weight.
+Its visible-rating component is
 `overall = intercept[pos] + sum(weight[pos][attr] * rating[attr])`, stored in `data/overall_model.json`
 (`scripts/overall_model.py: predict_overall`). `build_roster.py` uses it for the `ovr` column of `player_map.csv`,
 starter selection and the fame byte.
@@ -116,8 +201,10 @@ Findings with 97 observed players (Dragons, Bremerhaven, Koblenz, Essen, LIONS, 
 ### Calibration round
 
 `scripts/make_calibration.py` takes the real roster and randomises everything the formula could depend on (position, height,
-weight, all 19 ratings, and the unknown record bytes 0x4C/0x4F/0x50/0x55/0x5A/0x5C/0x5F/0x60 via the optional workbook columns
-`DunkFlag, B4F, B50, B55, B5A, B5C, B5F, B60`, which `build_roster.py` writes when present):
+weight, all 19 visible ratings, and eight named hidden attributes at
+0x4C/0x4F/0x50/0x55/0x5A/0x5C/0x5F/0x60. Their legacy calibration aliases
+`DunkFlag, B4F, B50, B55, B5A, B5C, B5F, B60` are kept equal to the named
+columns, so existing fitting datasets remain usable. Dunk Range stays 10):
 
 1. `python scripts/make_calibration.py` -> `data/calibration/proa_calibration.xlsx`
 2. `python scripts/build_roster.py --proa data/calibration/proa_calibration.xlsx --out data/calibration/build --card <card>`
@@ -137,7 +224,8 @@ per-position formula: weights recovered to within 0.01.
 - Height and weight: no effect. Durability, Stamina: about zero weight.
 - Three record bytes matter: **B4F, B50, B55** (about +0.06..0.07 overall per point each; range 50..99 gives about 3 points).
   Leave-one-out error drops from 2.7 to 1.4 when they are included. DunkFlag, B5A, B5C, B5F, B60 carry no weight.
-  Real players get these bytes from `default_extras` (derived from their ratings), so they are consistent for ProA players.
+  At the time of this calibration, real players used neutral `default_extras`.
+  They now use their explicit named hidden values in every Overall prediction.
 - Midrange Shot has the largest weight at every position; Post Defense and Defensive Rebound dominate the C and PF
   weights; Passing, Ball Handling and Steal dominate the PG weights. Weight sums are 1.2 to 1.4 (the overall is spread
   wider than the mean of the ratings).
