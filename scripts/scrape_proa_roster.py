@@ -67,13 +67,13 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
-    from scripts.proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings
+    from scripts.proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, build_ratings, league_defense_averages, player_context
     from scripts.season_stats import available_seasons, parse_season_totals, player_history, pool_seasons
 except ImportError:
     # Allow the scraper to run stand-alone (e.g. from project root via
     # 'python scripts/scrape_proa_roster.py') where the package import
     # path resolves differently.
-    from proa_attr_model import ALL_ATTRS, PlayerContext, build_ratings  # type: ignore[no-redef]
+    from proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, build_ratings, league_defense_averages, player_context  # type: ignore[no-redef]
     from season_stats import available_seasons, parse_season_totals, player_history, pool_seasons  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ VALID_HEADSHOT_IDS_PATH = PROJECT_ROOT / "nba2k_editor" / "assets" / "headshot_p
 VALID_POSITIONS: frozenset[str] = frozenset({"PG", "SG", "SF", "PF", "C"})
 
 # The 19 NBA 2K5 attributes written to the workbook (computed by proa_attr_model)
-RATING_COLS: frozenset[str] = frozenset(ALL_ATTRS)
+RATING_COLS: frozenset[str] = frozenset((*ALL_ATTRS, *HIDDEN_ATTRS))
 
 # Workbook column layout: identity columns, the 2K5 attributes, then the headshot id
 
@@ -654,6 +654,7 @@ def write_excel(
     max_players: int = MAX_PLAYERS,
     headshot_map: dict[int, int] | None = None,
     overrides: dict[int, dict] | None = None,
+    rating_year: int | None = None,
 ) -> None:
     """
     Write scraped roster data to an Excel workbook.
@@ -677,6 +678,7 @@ def write_excel(
     total_players = 0
     hmap = headshot_map or {}
     manual = load_overrides() if overrides is None else overrides
+    defense_averages = league_defense_averages([p for team in rosters.values() for p in team])
 
     for team_id, players in rosters.items():
         _, sheet_name = TEAM_MAP[team_id]
@@ -703,25 +705,7 @@ def write_excel(
 
             # Build a PlayerContext from the scraped data and run the
             # attribute pipeline to get pre-assigned ratings.
-            ctx = PlayerContext(
-                position=p.get("position", "PG"),
-                birth_year=p.get("birth_year") or 1995,
-                height_m=p.get("height_m") or 1.90,
-                weight_kg=p.get("weight_kg") or 85.0,
-                games=p.get("games") or 0,
-                minutes_total_sec=p.get("minutes_total_sec") or 0,
-                points_avg=p.get("points_avg") or 0.0,
-                assists_avg=p.get("assists_avg") or 0.0,
-                rebounds_avg=p.get("rebounds_avg") or 0.0,
-                rebounds_off_avg=p.get("rebounds_off_avg") or 0.0,
-                rebounds_def_avg=p.get("rebounds_def_avg") or 0.0,
-                steals_avg=p.get("steals_avg") or 0.0,
-                blocks_avg=p.get("blocks_avg") or 0.0,
-                turnovers_avg=p.get("turnovers_avg") or 0.0,
-                fg_pct=p.get("fg_pct") or 0.0,
-                fg3_pct=p.get("fg3_pct") or 0.0,
-                ft_pct=p.get("ft_pct") or 0.0,
-            )
+            ctx = player_context(p, year=rating_year, defense_averages=defense_averages)
             computed_ratings = build_ratings(ctx)
 
             first, last = sanitize_names(p.get("first_name"), p.get("last_name"))
@@ -740,7 +724,7 @@ def write_excel(
                 "Years Pro":           span,
                 "Height":              p.get("height_m"),    # metres, direct from site
                 "Weight":              p.get("weight_kg"),   # kg, direct from site
-                **{col: computed_ratings.get(col, DEFAULT_RATING) for col in RATING_COLS},
+                **{col: computed_ratings[col] for col in RATING_COLS},
                 "Headshot ID":         headshot_id,
                 "College":             expand_nationality(p.get("nationality", "")),
                 "Shooting Hand":       1,
@@ -767,7 +751,7 @@ def write_excel(
 
 
 STATS_JSON_PATH = PROJECT_ROOT / "data" / "proa_stats.json"
-STATS_FIELDS = ["games", "minutes_avg_str", "points_avg", "rebounds_avg", "rebounds_off_avg", "rebounds_def_avg",
+STATS_FIELDS = ["games", "minutes_total_sec", "fga_avg", "fouls_per_min", "minutes_avg_str", "points_avg", "rebounds_avg", "rebounds_off_avg", "rebounds_def_avg",
                 "assists_avg", "steals_avg", "blocks_avg", "turnovers_avg", "fg_pct", "fg3_pct", "ft_pct"]
 
 
@@ -878,7 +862,8 @@ def main() -> None:
     for players in rosters.values():
         for player in players:
             player["history_anchor"] = int(args.season.split("_")[0])
-    write_excel(rosters, Path(args.output), cols, max_players=args.top, headshot_map=headshot_map, overrides=manual)
+    write_excel(rosters, Path(args.output), cols, max_players=args.top, headshot_map=headshot_map,
+                overrides=manual, rating_year=int(args.season.split("_")[0]))
 
 
 if __name__ == "__main__":

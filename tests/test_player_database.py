@@ -15,6 +15,12 @@ import player_database as db
 import scrape_proa_roster as scraper
 from build_roster import P_HAND, P_YEARS, apply_accessories, write_record_fields
 from crop_headshots import placeholder_hashes, KNOWN_PLACEHOLDERS
+from rating_map_2k5 import HIDDEN_ATTR_OFFSETS, EXTRA_CANONICAL
+from overall_data import player_extras
+from overall_model import load_model, predict_overall
+from overall_sheet import add_overall, MODEL_SHEET
+import make_calibration
+import build_site
 
 
 def workbook():
@@ -25,7 +31,8 @@ def workbook():
     row = {**dict.fromkeys(db.SHEET_COLUMNS, 50), **dict.fromkeys(db.ACCESSORIES, 0),
            "First Name": "Test", "Last Name": "Player", "Position": "PG", "Secondary Position": "N/A",
            "Birth Year": 2000, "Birth Month": 1, "Birth Day": 2, "Height": 1.90, "Weight": 85,
-           "College": "", "Shooting Hand": 1, "Skin Tone": 0, "ProA ID": 123, "Years Pro": 1}
+           "College": "", "Shooting Hand": 1, "Skin Tone": 0, "ProA ID": 123, "Years Pro": 1,
+           "Dunk Range": 10, "Emotion": 0, "Standing Dunk": 0}
     ws.append([row[c] for c in db.PLAYER_COLUMNS])
     return wb
 
@@ -168,7 +175,8 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual(row["College"], "Example")
         self.assertEqual(row["headband"], 0)
         self.assertTrue(row["Overall"].startswith("="))
-        self.assertEqual(headers[headers.index("Close Shot"):headers.index("Headshot ID")], list(db.ALL_ATTRS))
+        self.assertEqual(headers[headers.index("Close Shot"):headers.index("Headshot ID")],
+                         [*db.ALL_ATTRS, *db.HIDDEN_ATTRS])
         wb.close()
 
     def test_nat_is_parsed_next_to_pos_and_populates_college(self):
@@ -210,7 +218,8 @@ class PlayerDatabaseTests(unittest.TestCase):
 
     def test_hand_and_accessories_are_written_from_workbook(self):
         row = {**dict.fromkeys(db.ALL_ATTRS, 60), "Years Pro": 1, "Shooting Hand": 0,
-               "Height": 1.9, "Weight": 85}
+               "Height": 1.9, "Weight": 85, **dict.fromkeys(db.HIDDEN_ATTRS, 50),
+               "Dunk Range": 10, "Emotion": 0, "Standing Dunk": 0}
         data = bytearray(0x94)
         write_record_fields(data, 0, {"rowd": row, "jersey": 0, "pos": 0, "attrs": row})
         self.assertEqual((data[P_HAND], data[P_YEARS]), (0, 1))
@@ -218,6 +227,124 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual((data[0x67], data[0x62], data[0x75], data[0x7F]), (0, 2, 7, 6))
         apply_accessories(data, 0, {"headband": 0, "wrist_l": 0})
         self.assertEqual((data[0x67], data[0x75]), (255, 0))
+
+    def test_hidden_migration_preserves_existing_values_and_override_precedence(self):
+        wb = workbook()
+        ws = wb.active
+        before = dict(zip([c.value for c in ws[1]], next(ws.iter_rows(min_row=2, values_only=True))))
+        for column in sorted([c.column for c in ws[1] if c.value in db.HIDDEN_ATTRS], reverse=True):
+            ws.delete_cols(column)
+        rosters = {"1": [{"proa_id": 123, "games": 10, "minutes_total_sec": 12000,
+                           "fga_avg": 10, "fouls_per_min": .1, "fg_pct": 55, "turnovers_avg": 1}]}
+        with patch("proa_attr_model.random.randint", return_value=3) as rng:
+            self.assertEqual(db.refresh_hidden_attributes(wb, rosters, 2026), 1)
+            db.apply_overrides(wb, {123: {"Emotion": 15, "Consistency": 99, "Standing Dunk": 0}})
+            db.apply_overrides(wb, {123: {"Emotion": 15, "Consistency": 99, "Standing Dunk": 0}})
+            rng.assert_called_once_with(0, 5)
+        after = dict(zip([c.value for c in ws[1]], next(ws.iter_rows(min_row=2, values_only=True))))
+        for name, value in before.items():
+            if name not in db.HIDDEN_ATTRS:
+                self.assertEqual(after[name], value, name)
+        self.assertEqual((after["Emotion"], after["Consistency"], after["Standing Dunk"]), (15, 99, 0))
+        self.assertEqual(after["Offense Clutch"], 99)
+        self.assertEqual(after["Fastbreak"], after["Speed"])
+        wb.close()
+
+    def test_missing_rating_inputs_abort_migration_before_changes(self):
+        wb = workbook()
+        before = list(wb.active.values)
+        with self.assertRaisesRegex(ValueError, "lack FGA"):
+            db.refresh_hidden_attributes(wb, {"1": [{"proa_id": 123, "games": 1}]}, 2026)
+        self.assertEqual(before, list(wb.active.values))
+        wb.close()
+
+    def test_builder_writes_all_nine_raw_bytes_and_rejects_legacy_conflict(self):
+        wb = workbook()
+        row = dict(zip(db.PLAYER_COLUMNS, next(wb.active.iter_rows(min_row=2, values_only=True))))
+        row.update({"Standing Dunk": 99, "Emotion": 15, "Consistency": 99, "Offense Clutch": 75,
+                    "Defense Clutch": 99, "Shoot or Pass": 97, "Fouls per Min": 20, "Fastbreak": 83})
+        data = bytearray(0x94)
+        player = {"rowd": row, "jersey": 0, "pos": 0, "attrs": row}
+        with patch("proa_attr_model.random.randint", side_effect=AssertionError("Build must not randomize")):
+            write_record_fields(data, 0, player)
+        for name, offset in HIDDEN_ATTR_OFFSETS.items():
+            self.assertEqual(data[offset], row[name])
+        row["DunkFlag"] = 0
+        with self.assertRaisesRegex(ValueError, "conflicts"):
+            write_record_fields(data, 0, player)
+        row.pop("DunkFlag")
+        row.pop("Emotion")
+        with self.assertRaisesRegex(ValueError, "missing hidden"):
+            write_record_fields(data, 0, player)
+        wb.close()
+
+    def test_overall_formula_and_predictor_use_named_hidden_values(self):
+        wb = workbook()
+        ws = wb.active
+        row = dict(zip(db.PLAYER_COLUMNS, next(ws.iter_rows(min_row=2, values_only=True))))
+        row.update({"Standing Dunk": 99, "Emotion": 15, "Offense Clutch": 99,
+                    "Shoot or Pass": 99, "Defense Clutch": 99, "Consistency": 99, "Fastbreak": 99})
+        for column, cell in enumerate(ws[1], 1):
+            ws.cell(2, column, row[cell.value])
+        add_overall(wb)
+        from openpyxl.utils import get_column_letter
+        cols = {cell.value: get_column_letter(cell.column) for cell in ws[1]}
+        expression = ws.cell(2, ws.max_column).value
+        model = load_model()
+        coefficients = list(wb[MODEL_SHEET].values)[1]
+        visible = sum(w * row[name] for w, name in zip(coefficients[1:20], model["attributes"]))
+        extras = player_extras(row, row)
+        result = visible + coefficients[20] + coefficients[21] * row["Standing Dunk"]
+        result += coefficients[22] * row["Height"] + coefficients[23] * row["Weight"]
+        from overall_data import default_extras
+        neutral = default_extras({"Dunk": 0})
+        for index, name in enumerate(model["extras"]["names"]):
+            canonical = EXTRA_CANONICAL[name]
+            self.assertIn(f"{cols[canonical]}2", expression)
+            if name != "DunkFlag":
+                result += coefficients[24 + index] * (row[canonical] - neutral[name])
+        expected = predict_overall("PG", row, row["Height"], row["Weight"], extras)
+        self.assertAlmostEqual(result, expected)
+        self.assertAlmostEqual(expected, predict_overall("PG", row, row["Height"], row["Weight"]))
+        self.assertIn("INDEX('_Overall_Model'!$Z$2:$Z$6", expression)
+        wb.close()
+
+    def test_calibration_aliases_agree_with_named_bytes(self):
+        from types import SimpleNamespace
+        wb = workbook()
+        source, output = self.root / "source.xlsx", self.root / "calibration.xlsx"
+        wb.save(source)
+        wb.close()
+        args = SimpleNamespace(source=source, out=output, seed=2005)
+        with patch.object(make_calibration, "CAL", self.root), contextlib.redirect_stdout(io.StringIO()):
+            make_calibration.make(args)
+        result = openpyxl.load_workbook(output)
+        row = dict(zip([c.value for c in result.active[1]],
+                       next(result.active.iter_rows(min_row=2, values_only=True))))
+        for alias, name in EXTRA_CANONICAL.items():
+            self.assertEqual(row[alias], row[name])
+        payload = bytearray(0x94)
+        write_record_fields(payload, 0, {"rowd": row, "jersey": 1, "pos": 0, "attrs": row})
+        for name, offset in HIDDEN_ATTR_OFFSETS.items():
+            self.assertEqual(payload[offset], row[name])
+        result.close()
+
+    def test_site_overall_reads_named_hidden_values(self):
+        import json
+        wb = workbook()
+        ws = wb.active
+        cols = {cell.value: cell.column for cell in ws[1]}
+        ws.cell(2, cols["Offense Clutch"], 99)
+        ws.cell(2, cols["Shoot or Pass"], 99)
+        ws.cell(2, cols["Defense Clutch"], 99)
+        row = dict(zip([c.value for c in ws[1]], next(ws.iter_rows(min_row=2, values_only=True))))
+        book, stats = self.root / "players.xlsx", self.root / "stats.json"
+        wb.save(book)
+        wb.close()
+        stats.write_text(json.dumps({"season": "2026_2027", "teams": {}, "players": {}}), encoding="utf-8")
+        data = build_site.build_data(book, stats)
+        expected = round(predict_overall("PG", row, row["Height"], row["Weight"], player_extras(row, row)))
+        self.assertEqual(data["players"][0]["ovr"], expected)
 
     def test_placeholder_report_names_ids_and_manual_destination(self):
         portrait_dir = self.root / "portraits"

@@ -190,6 +190,7 @@ def pool_seasons(seasons, current_year):
     """
     acc = {k: 0.0 for k in COUNT_KEYS}
     used, raw_games = [], 0
+    fouls, foul_seconds = 0.0, 0.0
     for year, t in sorted(seasons.items(), reverse=True):
         if not t or t["g"] <= 0:
             continue
@@ -200,6 +201,9 @@ def pool_seasons(seasons, current_year):
         used.append(f"{year}:{t['g']}G*{w:.2f}")
         for k in COUNT_KEYS:
             acc[k] += w * t[k]
+        if t.get("fls") is not None and t["sec"] > 0:
+            fouls += w * t["fls"]
+            foul_seconds += w * t["sec"]
     g = acc["g"]
 
     def per_game(k):
@@ -219,5 +223,7 @@ def pool_seasons(seasons, current_year):
         "steals_avg": per_game("stl"), "blocks_avg": per_game("blk"), "turnovers_avg": per_game("tov"),
         "fg_pct": round(100 * (acc["p2m"] + acc["p3m"]) / fga, 1) if fga else 0.0,
         "fg3_pct": pct("p3m", "p3a"), "ft_pct": pct("ftm", "fta"),
+        "fga_avg": round(fga / g, 6) if g else 0.0,
+        "fouls_per_min": fouls * 60 / foul_seconds if foul_seconds else None,
         "seasons_used": used,
     }
