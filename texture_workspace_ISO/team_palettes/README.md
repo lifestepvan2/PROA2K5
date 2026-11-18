@@ -77,7 +77,7 @@ Raptors' shared floor/paint materials also share this opacity increase.
 Logos/lettering textures are not recoloured. Neutral hardwood-overlay materials
 are left alone.
 
-**Arena profiles deliberately differ.** Raptors/Baskets (022): primary controls
+**Arena profiles deliberately differ.** Raptors/Paderborn (022): primary controls
 linked apron/paint regions; secondary controls linked dark floor/key regions.
 No material splitting is required. Hornets (011): primary merges the original
 teal/purple/gold apron bands, lines replaces its white stripe, and mip mixtures

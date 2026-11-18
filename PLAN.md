@@ -104,12 +104,9 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [ ] figure out how to create a DVD that's executable on a real PS2 slim (PAL)
  
 ### Nice-to-have (last)
-- [ ] Fill the remaining 12 NBA team slots (0-11, now the donor teams) with filler/other teams; handle all-star/legend teams referencing NBA 
-records
+
 - [ ] create a pipeline to generate in game player face assets from our portrait database
-- [ ] figure out how to save the players display-stats for loading screens and player cards, including per-season stats, then populate with real ProA data automatically
-- [ ] automated colouring of jersey number textures
-- [ ] long term: after re-sorting the workspace to make sure no strays remain, re-do live memory home arena texture mapping (which textures get loaded where), then add automatic grouping of LODs and duplicates and auto LOD updates to arena textures, same as for jerseys.
+- [ ] automated colouring of jersey number textures also for alternates. Ideally switching to one colours.json per uniform folder, or by manually editing number/letter atlases
 
 ## out of scope:
 - sound replacements

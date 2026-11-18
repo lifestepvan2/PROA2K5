@@ -122,7 +122,7 @@ TEAM_MAP: dict[int, tuple[str, str]] = {
     421: ("GIESSEN 46ers",                    "46ers"),
     446: ("HAKRO Merlins Crailsheim",         "Crailsheim Merlins"),
     447: ("Nurnberg Falcons BC",              "Falcons"),
-    475: ("Paderborn Baskets",                "Baskets"),
+    475: ("Paderborn Baskets",                "Paderborn"),
     557: ("PS Karlsruhe LIONS",               "LIONS"),
     556: ("RheinStars Koln",                  "Koln"),
     570: ("SBB Baskets Wolmirstedt",          "Wolmirstedt"),
