@@ -105,6 +105,8 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
  
 ### Nice-to-have (last)
 
+- [ ] script for replacing all instances in one texture_workspace/team_logos folder based on a provided base png
+- [ ] script for replacing logo loading screen with current 18 logos
 - [ ] create a pipeline to generate in game player face assets from our portrait database
 - [ ] automated colouring of jersey number textures also for alternates. Ideally switching to one colours.json per uniform folder, or by manually editing number/letter atlases
 
