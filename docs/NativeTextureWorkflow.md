@@ -78,6 +78,38 @@ Indices must be unique but need not be contiguous. `--name` separates multiple
 strip use cases within a group. Split reads tile dimensions and original paths
 from the generated sidecar; it does not need the stitch-only options.
 
+### Jumbotron video editing
+
+Create one animated GIF for each team slot's jumbotron frame sequence:
+
+```powershell
+python scripts\stitch_video.py
+```
+
+GIFs and mapping sidecars are written under
+`texture_workspace_ISO\_videos\jumbotron_movies\slot_NNN\hash_XXXXXXXX\`.
+Import the `jumbotron_movie.gif` files into DaVinci Resolve Studio. Keep the
+timeline at **64x64, 50 fps, 180 frames (3.6 seconds)** and export an animated
+GIF. Replace the corresponding GIF with the edited export, leaving its JSON
+sidecar in place. GIF timing has 10 ms granularity; a constant 20 ms delay
+represents exactly 50 fps. This is a small cadence mismatch from the game's
+60 fps playback, which is acceptable for this workflow. Then write the decoded
+frames back to their original native PNGs:
+
+```powershell
+python scripts\split_video.py
+```
+
+Both tools accept `--groups "jumbotron_movies/slot_021/hash_*"` to work on a
+subset. Stitch validates indices 000-179 and preserves existing GIFs by
+default; pass `--overwrite` to regenerate them from the current PNGs. Split
+rejects changed frame sets or GIFs that are not 64x64. If a GIF has fewer than
+180 frames, its last frame is repeated to fill the sequence; frames after 180
+are ignored. It stages every selected group before replacing any source PNG.
+Existing per-frame alpha is preserved. GIF supports at most 256 colors per
+frame, so frames with more colors may be quantized. The `_videos` folder is
+derived and excluded from native master discovery.
+
 ## Manual artwork migration and review
 
 Manual edits are detected against pristine and tracked automatically generated
