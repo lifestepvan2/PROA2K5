@@ -25,6 +25,10 @@ Navigation:
 - `players/pid_NNNN/`: model-local home/away/alternate textures.
 - `players/portraits/`: native player-card and lineup portrait sources.
 - `interface/`, `interface/fonts/`, `broadcast/`, `cinematics/`, `objects/`.
+- `jumbotron_movies/unresolved/hash_XXXXXXXX/`: flattened movie-frame textures
+  grouped by native archive hash. Frame indices remain in the PNG filenames.
+  Empty `jumbotron_movies/slot_NNN/` folders (slots 000-029) are available for
+  manual team sorting after ownership is confirmed.
 - `unresolved/`: verified physical textures whose archive filenames remain
   unknown. Hash labels describe missing names, not an unsupported codec.
 
@@ -37,6 +41,42 @@ Only base masters are exposed. Native mip levels are regenerated at encoding;
 physical aliases reuse one master, while separate palettes remain separately
 editable. Shared-index crowd variants are quantized jointly.
 Font masters edit atlas artwork only: glyph metrics and layout are preserved.
+
+### Stitching arena strips for editing
+
+```powershell
+python scripts\stitch_textures.py
+# Edit the generated sts.png files, then:
+python scripts\split_texture.py
+```
+
+Defaults collect each `arenas\slot_*\props\sNNN\sts_*\*.png` set and arrange
+tiles left-to-right by numeric `sts_` index. Width is the number of existing
+tiles times 128: six tiles produce **768x128**, while smaller sets produce
+shorter strips. Arena asset numbers need not equal team slot numbers.
+
+Editable strips and their mapping sidecars are saved under
+`texture_workspace_ISO\_stitched\arenas\slot_*\props\sNNN\sts.png` and `sts.json`.
+This derived folder is ignored by native texture compilation. Stitching
+**overwrites** these strips from the current masters; split your edits before
+stitching again. Keep the JSON beside the PNG and do not resize the strip.
+Splitting overwrites only the original tiles, preserving their native filenames
+and IDs. RGBA edits preserve edited alpha; RGB exports retain each source tile's
+existing alpha. All selected groups are validated before any tile is overwritten.
+Run the normal combined ISO build after splitting.
+
+The same tools support other horizontal tiled textures and workspace roots:
+
+```powershell
+python scripts\stitch_textures.py --workspace "<workspace>" --groups "objects/banner_*" --tiles "*.png" --index-regex "tile_(\d+)" --tile-size 64 32 --name banner
+python scripts\split_texture.py --workspace "<workspace>" --groups "objects/banner_*" --name banner
+```
+
+`--groups` selects workspace-relative directories; `--tiles` selects files
+relative to each group. The first regex capture is the numeric tile index.
+Indices must be unique but need not be contiguous. `--name` separates multiple
+strip use cases within a group. Split reads tile dimensions and original paths
+from the generated sidecar; it does not need the stitch-only options.
 
 ## Manual artwork migration and review
 

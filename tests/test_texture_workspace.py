@@ -1,5 +1,6 @@
 import contextlib
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -86,122 +87,151 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(len(self.images()), 2)
 
 
-class RegenerationTests(unittest.TestCase):
+class PreviewSyncTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.workspace = self.root / "workspace"
+        self.workspace = self.root / "texture_workspace_ISO"
         self.workspace.mkdir()
         self.replacements = self.root / "replacements"
-        self.files, self.found, self.manifest, self.mapping = {}, {}, {}, {}
-        for key, role, size in (("master", "master", (8, 8)), ("copy", "copy", (8, 8)), ("lod", "lod", (2, 2))):
-            dump = self.root / f"{key}.png"
-            Image.new("RGBA", size, (120, 50, 30, 128)).save(dump)
-            working = self.workspace / f"{role.upper()}__Group__{size[0]}x{size[1]}__{ws.token(key)}.png"
-            Image.new("RGBA", size, (120, 50, 30, 255)).save(working)
-            self.files[key] = dump
-            self.found[ws.token(key)] = working
-            self.manifest[ws.token(key)] = {"key": key, "token": ws.token(key), "sha1": ws.sha1(working)}
-            self.mapping[key] = {"role": role, "master": "master", "size": f"{size[0]}x{size[1]}"}
+        self.dumps = {}
+        self.sources = []
+        self.source_files = {}
         self.addCleanup(patch.stopall)
         patch.object(ws, "REPL_DIR", self.replacements).start()
-        patch.object(ws, "dump_files", return_value=self.files).start()
+        patch.object(ws, "dump_files", side_effect=lambda: self.dumps).start()
         patch.object(ws, "managed_keys", return_value={}).start()
-        patch.object(ws, "read_manifest", return_value=self.manifest).start()
-        patch.object(ws, "scan", return_value=self.found).start()
-        patch.object(ws.uniform_labels, "analyse_groups", return_value=(self.mapping, [])).start()
 
-    def sync(self, force=False, dry=False):
+    def add_source(self, source_id, key, original, mips=None):
+        original_path = self.root / f"{key}.png"
+        original.save(original_path)
+        self.dumps[key] = original_path
+        native = original.copy()
+        native.putalpha(255)
+        source_path = self.workspace / f"MASTER__{source_id}.png"
+        native.save(source_path)
+        row = {
+            "id": source_id,
+            "path": f"native/{source_id}.png",
+            "original_digest": ws.pixel_digest(*original.size, original.tobytes()),
+            "original_display_digest": ws.iso_workspace.image_digest(native),
+            "mip_digests": [ws.pixel_digest(*original.size, original.tobytes())],
+        }
+        for mip_key, mip_image in (mips or {}).items():
+            mip_path = self.root / f"{mip_key}.png"
+            mip_image.save(mip_path)
+            self.dumps[mip_key] = mip_path
+            row["mip_digests"].append(
+                ws.pixel_digest(*mip_image.size, mip_image.tobytes())
+            )
+        self.sources.append(row)
+        self.source_files[source_id] = (source_path, source_path.read_bytes())
+        self.write_manifests()
+
+    def write_manifests(self):
+        for filename in ws.NATIVE_MANIFESTS:
+            rows = self.sources if filename == "_iso_textures.json" else []
+            manifest = {
+                "schema": 1,
+                "source_sha256": ws.iso_workspace.SOURCE_SHA256,
+                "sources": rows,
+            }
+            (self.workspace / filename).write_text(json.dumps(manifest), encoding="utf-8")
+
+    def edit(self, source_id, color):
+        path, _ = self.source_files[source_id]
+        with Image.open(path) as original:
+            size = original.size
+        Image.new("RGBA", size, color).save(path)
+
+    def sync(self, dry=False, force=False):
         with contextlib.redirect_stdout(io.StringIO()):
-            ws.sync(self.workspace, "stretch", dry, force)
+            return ws.sync(self.workspace, "stretch", dry, force)
 
-    def test_force_generates_unchanged_master_children_and_normal_sync_reverts(self):
-        self.sync()
+    def test_exact_matching_emits_mips_and_reverts_only_owned_files(self):
+        original = Image.new("RGBA", (4, 4), (20, 40, 60, 128))
+        mip = ws.lod_from(original, (2, 2))
+        self.add_source("11111111", "base-key", original, {"mip-key": mip})
+        self.edit("11111111", (1, 2, 3, 255))
+
+        result = self.sync()
+        self.assertEqual(result["written"], 2)
+        for key in ("base-key", "mip-key"):
+            with Image.open(self.replacements / f"{key}.png") as image:
+                self.assertEqual(image.getpixel((0, 0)), (1, 2, 3, 128))
+        state_path = self.workspace / ws.PREVIEW_STATE
+        self.assertEqual(set(json.loads(state_path.read_text())["files"]), {"base-key", "mip-key"})
+        self.assertEqual(self.sync()["unchanged"], 2)
+
+        source_path, original_bytes = self.source_files["11111111"]
+        source_path.write_bytes(original_bytes)
+        self.assertEqual(self.sync()["removed"], 2)
+        self.assertFalse((self.replacements / "base-key.png").exists())
+        self.assertFalse((self.replacements / "mip-key.png").exists())
+
+    def test_dry_run_does_not_create_replacements_or_state(self):
+        self.add_source("11111111", "base-key", Image.new("RGBA", (4, 4), (20, 40, 60, 128)))
+        self.edit("11111111", (1, 2, 3, 255))
+
+        result = self.sync(dry=True)
+        self.assertEqual(result["written"], 1)
         self.assertFalse(self.replacements.exists())
-        self.sync(force=True)
-        self.assertEqual({p.name for p in self.replacements.iterdir()}, {"copy.png", "lod.png"})
-        with Image.open(self.replacements / "lod.png") as image:
-            self.assertEqual(image.size, (2, 2))
-            self.assertEqual(image.getpixel((0, 0)), (119, 49, 29, 128))
-        self.sync()
-        self.assertEqual(list(self.replacements.iterdir()), [])
+        self.assertFalse((self.workspace / ws.PREVIEW_STATE).exists())
 
-    def test_force_bypasses_cache_refreshes_children_and_preserves_master(self):
-        master = self.found[ws.token("master")]
-        before = master.read_bytes()
-        Image.new("RGB", (2, 2), "blue").save(self.found[ws.token("lod")])
-        self.sync(force=True)
-        Image.new("RGBA", (2, 2), "blue").save(self.replacements / "lod.png")
-        self.sync(force=True)
-        with Image.open(self.replacements / "lod.png") as image:
-            self.assertEqual(image.getpixel((0, 0)), (119, 49, 29, 128))
-        self.assertEqual(before, master.read_bytes())
-        with Image.open(self.found[ws.token("lod")]) as image:
-            self.assertEqual(image.getpixel((0, 0)), (120, 50, 30, 255))
+    def test_fit_modes_and_rgb_alpha_preservation(self):
+        original_path = self.root / "fit-original.png"
+        Image.new("RGBA", (4, 2), (20, 40, 60, 64)).save(original_path)
+        source = Image.new("RGBA", (2, 2), (1, 2, 3, 255))
 
-    def test_generated_workspace_copy_does_not_become_edited_source(self):
-        master = self.found[ws.token("master")]
-        original = master.read_bytes()
-        Image.new("RGB", (8, 8), (1, 200, 3)).save(master)
-        self.sync(force=True)
-        with Image.open(self.found[ws.token("copy")]) as image:
-            self.assertEqual(image.getpixel((0, 0)), (1, 200, 3, 255))
-        master.write_bytes(original)
-        self.sync()
-        self.assertEqual(list(self.replacements.iterdir()), [])
-        with Image.open(self.found[ws.token("copy")]) as image:
-            self.assertEqual(image.getpixel((0, 0)), (120, 50, 30, 255))
+        contain = ws.convert_image(source, original_path, "contain", True)
+        self.assertEqual(contain.getpixel((0, 0))[3], 0)
+        self.assertEqual(contain.getpixel((1, 0)), (1, 2, 3, 128))
+        cover = ws.convert_image(source, original_path, "cover", True)
+        self.assertEqual(cover.getpixel((0, 0)), (1, 2, 3, 128))
+        rgb = ws.convert_image(Image.new("RGB", (4, 2), (9, 8, 7)), original_path, "stretch", False)
+        self.assertEqual(rgb.getpixel((0, 0)), (9, 8, 7, 64))
 
-    def test_newly_linked_lod_is_generated_from_an_edited_cached_master(self):
-        master = self.found[ws.token("master")]
-        Image.new("RGB", (8, 8), (1, 200, 3)).save(master)
-        self.sync()
-        (self.replacements / "lod.png").unlink()
-        self.sync()
-        with Image.open(self.replacements / "lod.png") as image:
-            self.assertEqual(image.getpixel((0, 0)), (1, 199, 3, 128))
+    def test_conflicting_native_sources_are_not_arbitrarily_selected(self):
+        original = Image.new("RGBA", (4, 4), (20, 40, 60, 128))
+        self.add_source("11111111", "shared-key", original)
+        self.add_source("22222222", "shared-key", original)
+        self.edit("11111111", (1, 2, 3, 255))
+        self.edit("22222222", (8, 9, 10, 255))
 
-    def test_force_prefers_master_over_edited_copy(self):
-        Image.new("RGB", (8, 8), (1, 200, 3)).save(self.found[ws.token("copy")])
-        self.sync()
-        self.assertTrue((self.replacements / "master.png").exists())
-        self.sync(force=True)
-        self.assertFalse((self.replacements / "master.png").exists())
-        with Image.open(self.replacements / "copy.png") as image:
-            self.assertEqual(image.getpixel((0, 0)), (120, 50, 30, 128))
+        result = self.sync()
+        self.assertEqual(result["mapping_conflicts"], {"shared-key": ["11111111", "22222222"]})
+        self.assertFalse((self.replacements / "shared-key.png").exists())
 
-    def test_force_dry_run_has_no_side_effects_and_managed_targets_win(self):
-        self.sync(force=True, dry=True)
-        self.assertFalse(self.replacements.exists())
-        self.assertFalse((self.workspace / "_state.json").exists())
-        with patch.object(ws, "managed_keys", return_value={"lod": "pipeline"}):
-            self.sync(force=True)
-        self.assertFalse((self.replacements / "lod.png").exists())
-        self.assertTrue((self.replacements / "copy.png").exists())
+    def test_unowned_replacement_is_never_overwritten_or_claimed(self):
+        self.add_source("11111111", "base-key", Image.new("RGBA", (4, 4), (20, 40, 60, 128)))
+        self.edit("11111111", (1, 2, 3, 255))
+        self.replacements.mkdir()
+        target = self.replacements / "base-key.png"
+        target.write_bytes(b"manual replacement")
 
-    def test_force_missing_master_warns_without_copy_fallback(self):
-        self.found.pop(ws.token("master"))
-        state = {"lod": "auto:old"}
-        with contextlib.redirect_stdout(io.StringIO()) as output:
-            result = ws.sync_uniform_lods(self.workspace, self.mapping, self.manifest, self.found,
-                                          self.files, {}, state, "stretch", False, True)
-        self.assertEqual(result, (0, 0))
-        self.assertEqual(state, {"lod": "auto:old"})
-        self.assertIn("MASTER is missing", output.getvalue())
+        result = self.sync()
+        self.assertEqual(result["replacement_conflicts"], 1)
+        self.assertEqual(target.read_bytes(), b"manual replacement")
+        self.assertFalse((self.workspace / ws.PREVIEW_STATE).exists())
 
-    def test_cli_rejects_force_for_export(self):
-        with patch.object(sys, "argv", ["texture_workspace.py", "export", "--force-regen"]), \
-                contextlib.redirect_stderr(io.StringIO()), patch.object(ws, "export") as export:
-            with self.assertRaises(SystemExit):
-                ws.main()
-            export.assert_not_called()
+    def test_pipeline_managed_key_is_skipped(self):
+        self.add_source("11111111", "base-key", Image.new("RGBA", (4, 4), (20, 40, 60, 128)))
+        self.edit("11111111", (1, 2, 3, 255))
+        with patch.object(ws, "managed_keys", return_value={"base-key": "pipeline"}):
+            result = self.sync()
+        self.assertEqual(result["managed_skipped"], 1)
+        self.assertFalse((self.replacements / "base-key.png").exists())
 
-    def test_cli_forwards_force_and_dry_run(self):
-        with patch.object(sys, "argv", ["texture_workspace.py", "sync", "--force-regen", "--dry-run"]), \
+    def test_cli_uses_native_workspace_for_sync_and_legacy_workspace_for_export(self):
+        with patch.object(sys, "argv", ["texture_workspace.py", "sync", "--dry-run"]), \
                 patch.object(ws, "sync") as sync:
             ws.main()
-            sync.assert_called_once_with(ws.DEFAULT_WS, "stretch", True, True)
+            sync.assert_called_once_with(ws.NATIVE_DEFAULT_WS, "stretch", True, False)
+        with patch.object(sys, "argv", ["texture_workspace.py", "export"]), \
+                patch.object(ws, "export") as export:
+            ws.main()
+            export.assert_called_once_with(ws.DEFAULT_WS)
 
 
 if __name__ == "__main__":

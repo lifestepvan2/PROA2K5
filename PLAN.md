@@ -22,12 +22,12 @@ and embeds the ProA default roster in one combined ISO. Card export remains opti
 
 ## Todo
 ### Attributes / ratings
-- [ ] **Lift the low end of the rating scale.** 2K5 shows values below 50 clipped at 50 (observed in game); the
+- [x] **Lift the low end of the rating scale.** 2K5 shows values below 50 clipped at 50 (observed in game); the
       ProA data has many values 45-60. When generating 2K5 attributes, rescale so the ProA range maps
       into roughly 50-99 (or 55-99) instead of clipping. Check `rating_map_2k5.py`.
 - [x] Skill/attribute estimation now outputs the 19 2K5 attributes directly (`proa_attr_model.py`);
       `proa_scraped.xlsx` holds those 19 columns (migrated one-time, hand edits kept)
-- [ ] **Decode the hidden/unknown player record bytes using the NBA default export.** Data:
+- [x] **Decode the hidden/unknown player record bytes using the NBA default export.** Data:
       `data/nba_defaults/players_unknown.csv` (792 records, 575 on teams, 51 non-constant unknown byte columns
       `uXX` next to name, team, birthday, jersey, position, height, weight, years pro) and `teams_unknown.csv`,
       exported from the freshly reset default roster with `scripts/export_unknown_attrs.py`. Method: correlate
@@ -44,8 +44,8 @@ and embeds the ProA default roster in one combined ISO. Card export remains opti
       manual values (0 left, 1 right); scraping defaults to right-handed and applies overrides.
       u30 is generated from height and u32 from the overall percentile
       (see `write_record_fields`).
-- [ ] Check whether in-game "Overall" is computed or stored; birthday/years pro display check (player card)
-- [ ] Years pro: currently estimated from the birth year
+- [x] Check whether in-game "Overall" is computed or stored; birthday/years pro display check (player card)
+- [x] Years pro: currently estimated from the birth year
 
 ### Textures
 ISO migration: [Texture workspace to portable ISO plan](docs/TextureISOMigrationPlan.md)
@@ -64,27 +64,25 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] Manual replacement workspace (`scripts/texture_workspace.py`, folder `texture_workspace/`, gitignored): dumps grouped into named folders, edits synced back resized to the original resolution; pipeline-managed textures always win. Alpha convention verified in-game (see `docs/pcsx2_texture_mapping.md`)
 - [x] Uniform LODs: LODs and duplicate 512x256/256x256 files inherit from their MASTER; `texture_workspace.py sync` generates all copies and LODs from the master (see `docs/pcsx2_texture_mapping.md`)
 - [x] Filename-label grouping `ROLE__LABEL__RES__ID.png` in a flat `texture_workspace/uniforms/` (`scripts/uniform_labels.py`: adopt/link/promote/relabel/check/restore, snapshot `data/uniform_lods/labels_snapshot.csv`); step-by-step in `docs/JerseyTextureWorkflow.md`
-- [ ] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
+- [x] Workspace follow-ups: name the 12 donor teams' wordmarks, re-run `texcluster.py fit` + rename clusters when many new dumps arrive, jersey name plates (`0d93`/`11d3`/`1613`) from ProA names, team jerseys/colours (`2253` = full jerseys)
 - [x] Team mapping is final (`data/team_slots.csv`). `record_faces.csv` is record-keyed, icons/logos are keyed by NBA slot: no re-scan needed when the ProA order changes, only re-run the generators. More logo variants need more dumps (only rendered textures exist)- [ ] Face crop (`CROP` in gen_replacements.py) is a fixed head+shoulders box; check a few headshots for badly framed faces
 - [x] Baseline jerseys/shorts for all 18 teams: `scripts/create_baseline_jersey.py` colourises the templates (colours = `team.colorjersey1/2` in `texture_workspace/team_palettes/<slot>/colours.json`), keeps the cloth structure, adds ProA + club logo on jerseys (shorts plain), plain primary-colour warm-ups with club logo, writes the home/away/warm-up MASTERs (backup + hand-edit protection), then `texture_workspace.py sync` for LODs (see `docs/JerseyTextureWorkflow.md` section 4). Open: review the colours, hand-finetune (wordmarks, stripes, side panels), alt jerseys
 - [x] Unified palettes for all 30 NBA slots: one `colours.json` per team with all 79 uniform variants, independent lettering/cloth/UI settings and three approximate court controls. Preserved all prior lettering edits and legacy swatches; combined lettering/court ISO preflight/build, linked Raptors regions and reduced Hawks material-tint profile. See `texture_workspace/team_palettes/README.md`. Open: artistic colour choices and broader fresh-boot in-emulator acceptance; fixed compressed spans may reject some edits.
-- [ ] figure out how to edit court paint colours - lines, the zone and out of bounds
+- [x] figure out how to edit court paint colours - lines, the zone and out of bounds
 
 
 ### Roster/data quality
 - [ ] Duplicate player: Lars Lagerpusch is on Falcons and Baskets in the source data (stale row?)
-- [ ] Two teams named "Baskets" (Koblenz, Paderborn); consider disambiguating
-- [ ] Review name shortening rules / overrides (`data/overrides.csv`); umlaut glyph support untested
+- [x] Two teams named "Baskets" (Koblenz, Paderborn); consider disambiguating
+- [x] Review name shortening rules / overrides (`data/overrides.csv`); umlaut glyph support untested
 - [ ] Spare player records (482+) used for 15-man rosters: check conflicts with all-star teams
 - [ ] Nicknames are blanked; birthday display untested
-- [ ] better replacement of non - UTF8 characters
+- [x] better replacement of non - UTF8 characters
 
 ### Automation / tooling
-- [ ] Player card cannot be opened via keyboard (Select = Backspace not working); verify other bindings
-- [ ] Restore the SDL pad bindings in `PCSX2.ini` when automation is done (`docs/pad1_sdl_backup.txt`)
 - [x] Replace the photoshop batch step (cropping portraits) with a python script: `scripts/crop_headshots.py`
 - [ ] CRC/ECC experiments (E3), glyph-set test (E5)
-- [ ] add a workflow that ensures non-rating player attribute edits (accessoire flags, left handed flag) are not overwritten when re-generating rosters
+- [x] add a workflow that ensures non-rating player attribute edits (accessoire flags, left handed flag) are not overwritten when re-generating rosters
 
 ### QOL
 - [x] Default matchup (Lakers at Pistons) is a full ProA game: Gottingen at Falcons (ProA teams moved to slots 12-29)
@@ -93,22 +91,23 @@ Method: `docs/pcsx2_texture_mapping.md` (screenshot the Start Game screen per te
 - [x] re-scrape online data for 2026/27 season (`scripts/update_season.py`, `docs/SeasonUpdateWorkflow.md`)
 - [x] arena_props / uniform_parts / loading_video_tiles / courts_and_floors labelled with their NBA home team (live scan + visual labels, `data/texture_labels/`, `docs/pcsx2_texture_mapping.md`); cloth templates sorted into `uniforms/cloth_256x256`. Open: unseen leftovers, 6 unknown-team cloth textures
 - [x] accessories (headband, wristbands, arm bands/elbow braces, knee tape/braces): record bytes verified in game; canonical workbook columns with permanent settings in `data/overrides.csv` (see `docs/player_record_layout.md`). Open: fill settings from photos; test left elbow/knee brace presets and 0x79/0x7A
-- [ ] update textures (jerseys, courts) and arena names of the new teams Essen, Heidelberg, Ulm. 
+- [x] update textures (jerseys, logos) and arena names of the new teams Essen, Heidelberg, Ulm. 
 - [ ] manual refinement pass over player attributes
 - [x] manual editing of Falcons home court (texture, via the workspace)
 - [ ] verify the arena names in `data/proa_teams.csv` (only the Falcons entry is confirmed; rest are best guesses, flag `verified`)
-- [ ] re-do player face mapping
+- [x] re-do player face mapping
 - [ ] rollout and test
-- [ ] enable iso-patching for roster file manipulations (keep manual workflow for quick editing)
-- [ ] enable iso-patching for texture replacements (keep texture workspace workflow for quick editing)
+- [x] enable iso-patching for roster file manipulations (keep manual workflow for quick editing)
+- [x] enable iso-patching for texture replacements (keep texture workspace workflow for quick editing)
 - [ ] figure out how to create a DVD that's executable on a real PS2 slim (PAL)
  
 ### Nice-to-have (last)
 
+- [ ] script for testing/previewing texture_workspace_ISO via PCXS2 texture replacements
 - [ ] script for replacing all instances in one texture_workspace/team_logos folder based on a provided base png
 - [ ] script for replacing logo loading screen with current 18 logos
 - [ ] create a pipeline to generate in game player face assets from our portrait database
-- [ ] automated colouring of jersey number textures also for alternates. Ideally switching to one colours.json per uniform folder, or by manually editing number/letter atlases
+- [ ] defined colouring (and placement!) of jersey number textures also for alternates. Ideally switching to one colours.json per uniform folder, or by manually editing number/letter atlases
 
 ## out of scope:
 - sound replacements

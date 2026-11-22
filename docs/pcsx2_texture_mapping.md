@@ -94,17 +94,21 @@ own content (thin logos such as Rockets/Wizards), and score >= 0.75 adds the rig
 PCSX2 only dumps textures without a replacement, once per process: to see what is still unreplaced, restart PCSX2 with
 an empty `dumps` folder (the in-memory set is not reset by F10 or by moving files), replay, then merge the folder back.
 
-## Texture workspace (manual replacements)
-`python scripts/texture_workspace.py export` mirrors all dumps (`dumps` + the older `bu` session) into
-`texture_workspace/<group>/<subgroup>/<label>__<token>.png`: known maps first (faces by NBA player, team logos), then
-family rules (video tiles, crowd sprites, name plates, jerseys...), then k-means content clusters for the mixed
-families (`texcluster.py`, names in `cluster_names.json`). Edit files in place (any size/format; keep the `__token`;
-folders may be rearranged), then `texture_workspace.py sync` writes them to `replacements\` resized to the original
-resolution (`--fit stretch|contain|cover`) and F10 reloads in PCSX2. Restoring a file reverts it. Exported files use
-normal 0..255 alpha; sync converts back to PS2 0..128, and images without alpha keep the original transparency.
-Textures managed by the pipeline (ProA faces, team icons, logo variants) are not exported and win on conflicts.
-Verified in-game: stretched RGB replacement of full jerseys, alpha cut-outs of numbers, revert. PCSX2 must be
-unpaused (Space) for a reload to take effect on screen.
+## Texture workspace (PCSX2 preview)
+`python scripts/texture_workspace.py sync` now reads the native masters in `texture_workspace_ISO`, not the legacy
+`texture_workspace`. It exact-matches each native master and its stored mip digests to the PCSX2 dumps, then writes
+only changed, unambiguous images to `replacements\`. This is a visual preview path only; it does not compile or patch
+an ISO. Run with `--dry-run` first, then press F10 in PCSX2 to reload. `--fit stretch|contain|cover` controls fitting
+when the source and dump aspect ratios differ.
+
+The preview uses `_pcsx2_preview_state.json` in the ISO workspace to track only files it created. It removes an
+owned replacement when the native image is restored, and preserves unowned files, externally changed replacements,
+and pipeline-managed keys. If multiple native sources map to one dump key but produce different results, that key is
+reported as a mapping conflict and is not written. Native masters without an exact dump match are not previewed.
+
+`python scripts/texture_workspace.py export` remains available for the old `texture_workspace` dump mirror and its
+legacy labels. `sync` no longer reads that mirror, so editing or exporting there will not affect the native preview.
+PCSX2 must be unpaused (Space) for a reload to take effect on screen.
 
 ### Uniform LODs and duplicates (`scripts/uniform_lods.py`, `data/uniform_lods/`)
 ### Uniform LODs and duplicates (`scripts/uniform_labels.py`, file names in `texture_workspace/uniforms/`)
@@ -112,13 +116,11 @@ Uniform textures exist at five resolutions: 512x256 (families `2253`/`2254`) and
 32x16 (`1153`), 16x8 (`0d13`). The LODs are mip levels of the 512x256 originals (all levels share the middle hash of the dump key);
 some originals exist 2-3 times as visually identical duplicates (NCC > 0.995 at 128x64). The 256x256 cloth textures (family `2213`) have only duplicates.
 
-Which file inherits from which is stored in the **file name**: `ROLE__LABEL__RES__ID.png` (`MASTER`, `COPY`, `LOD`; same label = same group;
-ID = dump token). `texture_workspace.py sync` writes the master's replacement to every COPY and box-downscales it (alpha-weighted)
-for every LOD, so only the `MASTER__*` files need editing; hand edits of COPY / LOD files are ignored. Exactly one MASTER per label
-is required (otherwise a warning and the group is skipped). New dumps are named automatically by `uniform_labels.py adopt`
-(run by `export`): image matching (`uniform_lods.analyse`: 128x64 against the hi-res by normalised cross-correlation, every smaller LOD against
-the next larger one or the hi-res) decides COPY / LOD of an existing label or opens `Unsorted<n>`. The decisions are plain file names, so they are
-corrected with the file explorer or `uniform_labels.py relabel|link|promote`. `data/uniform_lods/labels_snapshot.csv` is the tracked copy of all names.
+The legacy exporter used `ROLE__LABEL__RES__ID.png` names (`MASTER`, `COPY`, `LOD`) to record inheritance; current
+preview sync ignores those roles and maps native originals and their stored mip digests directly to dump keys.
+Legacy `uniform_labels.py adopt` uses image matching (`uniform_lods.analyse`) to organize old exports; those file
+names do not establish native texture ownership. `data/uniform_lods/labels_snapshot.csv` remains the tracked copy
+of the legacy names.
 Full step-by-step: [JerseyTextureWorkflow.md](./JerseyTextureWorkflow.md).
 
 ## In-game player models: pid -> face / arm / neck

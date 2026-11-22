@@ -1,20 +1,11 @@
-"""Manual texture replacement workspace: a mirror of the PCSX2 dump folder, grouped into named folders.
+"""Preview native ISO workspace edits through PCSX2 texture replacements.
 
-    python scripts/texture_workspace.py export [--ws DIR]   build / update the working folder from the dumps
-    python scripts/texture_workspace.py sync   [--ws DIR]   refresh workspace COPYs/LODs and PCSX2 replacements
-    python scripts/texture_workspace.py sync --dry-run      only list what would change
-    python scripts/texture_workspace.py sync --force-regen  rebuild all linked COPYs/LODs from their MASTERs
+    python scripts/texture_workspace.py sync [--ws texture_workspace_ISO]
+    python scripts/texture_workspace.py sync --dry-run
 
-Workflow: export -> overwrite files in the working folder with your own images (any size, any of png/jpg/bmp/tga/webp,
-keep the "__xxxxxxxx" token in the file name; folders may be reorganised freely) -> sync -> press F10 in PCSX2.
-Uniform textures (jerseys, shorts, warm-ups, cloth) are the exception: labelled ones sit in uniforms/<Team>/ as
-ROLE__LABEL__RES__ID.png (MASTER / COPY / LOD), `export` names new ones (uniform_labels.py adopt) and never moves them, and
-`sync` regenerates COPYs and LODs from the MASTER with the same label (see docs/JerseyTextureWorkflow.md).
-Sync resizes to the original resolution. Restoring a file to its exported content reverts it.
-Repeated exports preserve files by their stable ID suffix, regardless of prefix or folder.
-Textures the pipeline replaces itself (ProA faces, team icons, team logo variants) are never exported and always win.
-Alpha: files are exported with normal 0..255 alpha (PS2 0..128 is converted back on sync). Images without an alpha
-channel keep the original's transparency.
+`sync` exact-matches native texture pixels (including stored mip levels) to
+PCSX2 dumps and writes only changed native artwork. It does not modify an ISO.
+`export` remains available for the old PCSX2 workspace; `sync` no longer reads it.
 """
 import argparse
 import collections
@@ -33,11 +24,16 @@ import gen_logo_replacements as logos
 import gen_replacements as faces
 import gen_skin_replacements as skins
 import texcluster
+import texture_iso_workspace as iso_workspace
 import uniform_labels
+from texture_catalogue import pixel_digest
 from texlib import REPL_DIR, ROOT, dump_files, family, load_rgba
-from uniform_lods import sid, skipped
+from uniform_lods import skipped
 
 DEFAULT_WS = ROOT / "texture_workspace"
+NATIVE_DEFAULT_WS = ROOT / "texture_workspace_ISO"
+NATIVE_MANIFESTS = ("_iso_logos.json", "_iso_uniforms.json", "_iso_textures.json")
+PREVIEW_STATE = "_pcsx2_preview_state.json"
 EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".webp"}
 TOKEN = re.compile(r"__([0-9a-f]{8})(?:\W|$)")
 
@@ -63,6 +59,10 @@ def safe(s):
 
 def sha1(path):
     return hashlib.sha1(Path(path).read_bytes()).hexdigest()
+
+
+def sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def managed_keys():
@@ -236,198 +236,273 @@ def uniform_candidate(key):
     return family(key) in uniform_labels.UNIFORM_FAMILIES
 
 
-def fit_resize(path, size, mode):
-    """Returns (RGBA image at `size`, user image had an alpha channel)."""
-    im = Image.open(path)
-    has_alpha = im.mode in ("RGBA", "LA", "PA", "RGBa") or "transparency" in im.info
-    im = im.convert("RGBA")
-    if not has_alpha:
-        im.putalpha(255)
-    tw, th = size
-    if mode == "stretch":
-        return im.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA"), has_alpha
-    s = (min if mode == "contain" else max)(tw / im.width, th / im.height)
-    r = im.convert("RGBa").resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
-    r = r.convert("RGBA")
-    pad = (255, 255, 255, 255) if not has_alpha else (0, 0, 0, 0)
-    canvas = Image.new("RGBA", size, pad)
-    canvas.alpha_composite(r.crop((max(0, (r.width - tw) // 2), max(0, (r.height - th) // 2),
-                                   max(0, (r.width - tw) // 2) + min(tw, r.width),
-                                   max(0, (r.height - th) // 2) + min(th, r.height))),
-                           (max(0, (tw - r.width) // 2), max(0, (th - r.height) // 2)))
-    return canvas, has_alpha
-
-
-def convert(path, orig_path, mode):
-    orig = load_rgba(orig_path)
-    h, w = orig.shape[:2]
-    im, has_alpha = fit_resize(path, (w, h), mode)
-    arr = np.asarray(im).copy()
-    arr[..., 3] = np.round(arr[..., 3].astype(np.float32) * 128 / 255) if has_alpha else orig[..., 3]
-    return Image.fromarray(arr, "RGBA")
-
-
 def lod_from(img, size):
     """Mip-style downscale of an RGBA image (alpha-weighted so transparent texels do not bleed)."""
     return img.convert("RGBa").resize(size, Image.BOX).convert("RGBA")
 
 
-def sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry, force_regen=False):
-    """Refresh workspace children and replacements using current filename groups."""
-    ed = {}  # key -> edited working file
-    working = {}
-    generated = dict(state.get("_workspace_auto", {}))
-    for m in manifest.values():
-        p = found.get(m["token"])
-        if p is not None:
-            working[m["key"]] = p
-        if p is not None and sha1(p) != m["sha1"] and sha1(p) != generated.get(m["key"]):
-            ed[m["key"]] = p
-    masters = collections.defaultdict(list)
-    for k, r in mp.items():
-        masters[r["master"]].append(k)
-    n_write = n_revert = 0
-    for mk, members in sorted(masters.items()):
-        if mk in managed or mk not in files:
-            continue
-        copies = [k for k in members if mp[k]["role"] == "copy"]
-        src = working.get(mk) if force_regen else ed.get(mk)
-        if force_regen and src is None:
-            print(f"warning: cannot force-regenerate group {sid(mk)}: MASTER is missing from the workspace")
-            continue
-        if src is None:
-            alt = sorted((ed[k] for k in copies if k in ed), key=lambda p: -p.stat().st_mtime)
-            src = alt[0] if alt else None
-            if src:
-                print(f"note: master {sid(mk)} unchanged but duplicate {src.name} edited - using it as the source "
-                      f"(edit the MASTER file to avoid this)")
-        targets = [k for k in members if k != mk]
-        workspace_source = src or working.get(mk)
-        workspace_image = None
-        for k in targets:
-            if k in managed or k not in working or workspace_source is None:
-                continue
-            if workspace_image is None:
-                with Image.open(files[mk]) as original:
-                    workspace_image = fit_resize(workspace_source, original.size, mode)[0]
-            with Image.open(files[k]) as original:
-                size = original.size
-            output = (lod_from(workspace_image, size) if mp[k]["role"] == "lod"
-                      else workspace_image)
-            with Image.open(working[k]) as current:
-                matches = current.mode == output.mode and current.size == output.size and current.tobytes() == output.tobytes()
-            if force_regen or not matches:
-                print(f"write (workspace {mp[k]['role']})", working[k])
-                n_write += 1
-                if not dry:
-                    output.save(working[k])
-            if not dry:
-                generated[k] = sha1(working[k])
-        if src is None:
-            for k in [mk] + targets:
-                if str(state.get(k, "")).startswith("auto:"):
-                    n_revert += 1
-                    print("revert (auto)", k)
-                    if not dry:
-                        (REPL_DIR / f"{k}.png").unlink(missing_ok=True)
-                        del state[k]
-            continue
-        want = f"auto:{sha1(src)}:{mode}"
-        img = None
-        for k in ([mk] if not force_regen and src != ed.get(mk) else []) + targets:
-            if k in managed:
-                continue
-            target = REPL_DIR / f"{k}.png"
-            if not force_regen and state.get(k) == want and target.exists():
-                continue
-            n_write += 1
-            print(f"write (auto {mp[k]['role']}{' ' + mp[k]['size'] if mp[k]['role'] == 'lod' else ''})", k)
-            if dry:
-                continue
-            img = img or convert(src, files[mk], mode)
-            out = img
-            if mp[k]["role"] == "lod":
-                with Image.open(files[k]) as o:
-                    out = lod_from(img, o.size)
-            REPL_DIR.mkdir(parents=True, exist_ok=True)
-            out.save(target)
-            state[k] = want
-    if not dry and generated:
-        state["_workspace_auto"] = generated
-    return n_write, n_revert
+def convert_image(image, original_path, mode, has_alpha):
+    original = load_rgba(original_path)
+    height, width = original.shape[:2]
+    image = image.convert("RGBA")
+    if not has_alpha:
+        image.putalpha(255)
+    target_size = (width, height)
+    if image.size != target_size:
+        if mode == "stretch":
+            image = image.convert("RGBa").resize(target_size, Image.LANCZOS).convert("RGBA")
+        else:
+            scale = (min if mode == "contain" else max)(width / image.width, height / image.height)
+            resized = image.convert("RGBa").resize(
+                (max(1, round(image.width * scale)), max(1, round(image.height * scale))), Image.LANCZOS
+            ).convert("RGBA")
+            pad = (255, 255, 255, 255) if not has_alpha else (0, 0, 0, 0)
+            canvas = Image.new("RGBA", target_size, pad)
+            left, top = max(0, (resized.width - width) // 2), max(0, (resized.height - height) // 2)
+            right, bottom = left + min(width, resized.width), top + min(height, resized.height)
+            crop = resized.crop((left, top, right, bottom))
+            canvas.alpha_composite(
+                crop,
+                (max(0, (width - resized.width) // 2), max(0, (height - resized.height) // 2)),
+            )
+            image = canvas
+    pixels = np.asarray(image).copy()
+    pixels[..., 3] = (
+        np.round(pixels[..., 3].astype(np.float32) * 128 / 255).astype(np.uint8)
+        if has_alpha else original[..., 3]
+    )
+    return Image.fromarray(pixels, "RGBA")
+
+
+def read_preview_state(path):
+    if not path.exists():
+        return {}
+    state = json.loads(path.read_text(encoding="utf-8"))
+    files = state.get("files") if isinstance(state, dict) else None
+    if (not isinstance(state, dict)
+            or state.get("schema") != 1
+            or state.get("source_sha256") != iso_workspace.SOURCE_SHA256
+            or not isinstance(files, dict)):
+        raise ValueError(f"{path}: invalid PCSX2 preview state")
+    for key, entry in files.items():
+        if (not isinstance(key, str) or not key or Path(key).name != key
+                or not isinstance(entry, dict)
+                or not re.fullmatch(r"[0-9a-f]{64}", entry.get("sha256", ""))
+                or not isinstance(entry.get("source_ids"), list)
+                or any(not isinstance(source_id, str) for source_id in entry["source_ids"])):
+            raise ValueError(f"{path}: invalid preview state entry for {key!r}")
+    return files
 
 
 def sync(ws, mode, dry, force_regen=False):
-    manifest, found = read_manifest(ws), scan(ws)
-    if not manifest:
-        raise SystemExit("no manifest - run export first")
-    files, managed = dump_files(), managed_keys()
-    mp, problems = uniform_labels.analyse_groups(ws)
-    for pr in problems:
-        print("warning:", pr)
-    state_f = ws / "_state.json"
-    state = json.loads(state_f.read_text()) if state_f.exists() else {}
-    written = reverted = skipped = ignored = 0
-    for t, m in manifest.items():
-        p, key = found.get(t), m["key"]
-        if p is None:
+    ws = Path(ws)
+    iso_workspace.validate_workspace(ws)
+    sources = []
+    for filename in NATIVE_MANIFESTS:
+        manifest_path = ws / filename
+        if not manifest_path.is_file():
+            raise ValueError(f"{manifest_path}: native texture manifest is missing")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if (not isinstance(manifest, dict)
+                or manifest.get("schema") != 1
+                or manifest.get("source_sha256") != iso_workspace.SOURCE_SHA256
+                or not isinstance(manifest.get("sources"), list)):
+            raise ValueError(f"{manifest_path}: native texture manifest schema/source mismatch")
+        sources.extend(manifest["sources"])
+    if not sources:
+        raise ValueError(f"{ws}: native texture manifests contain no sources")
+    rows_by_id = {}
+    for row in sources:
+        if not isinstance(row, dict):
+            raise ValueError("Native texture manifest contains an invalid source row")
+        source_id = row.get("id")
+        if not isinstance(source_id, str) or not source_id:
+            raise ValueError("Native texture manifest contains a source without a valid ID")
+        if source_id in rows_by_id:
+            raise ValueError(f"Native texture manifests contain duplicate source ID {source_id}")
+        if (not row.get("path")
+                or not isinstance(row.get("original_digest"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", row["original_digest"])
+                or not isinstance(row.get("original_display_digest"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", row["original_display_digest"])):
+            raise ValueError(f"{source_id}: native source is missing preview metadata")
+        levels = row.get("mip_digests") or [row["original_digest"]]
+        if not isinstance(levels, list) or not levels or levels[0] != row["original_digest"]:
+            raise ValueError(f"{source_id}: native mip digests do not start with the base image digest")
+        if any(not isinstance(digest, str) for digest in levels):
+            raise ValueError(f"{source_id}: invalid native mip digest")
+        rows_by_id[source_id] = row
+
+    found = iso_workspace.scan(ws, sources)
+    dumps = dump_files()
+    if not dumps:
+        raise ValueError("No PCSX2 texture dumps found; dump the textures before preview sync")
+    digest_keys = collections.defaultdict(list)
+    dump_info = {}
+    for key, path in dumps.items():
+        with Image.open(path) as image:
+            rgba = image.convert("RGBA")
+            digest = pixel_digest(*rgba.size, rgba.tobytes())
+            dump_info[key] = (path, digest, rgba.size)
+        digest_keys[digest].append(key)
+
+    candidates = collections.defaultdict(dict)
+    for row in sources:
+        levels = row.get("mip_digests") or [row["original_digest"]]
+        for level, digest in enumerate(levels):
+            for key in digest_keys.get(digest, ()):
+                previous = candidates[key].get(row["id"])
+                if previous is None or level < previous[1]:
+                    candidates[key][row["id"]] = (row, level)
+
+    matched_ids = {source_id for matches in candidates.values() for source_id in matches}
+    source_state, changed_images = {}, {}
+    for source_id in matched_ids:
+        row = rows_by_id[source_id]
+        with Image.open(found[source_id]) as image:
+            has_alpha = image.mode in ("RGBA", "LA", "PA", "RGBa") or "transparency" in image.info
+            current = image.convert("RGBA")
+            unchanged = iso_workspace.image_digest(current) == row["original_display_digest"]
+            if not unchanged:
+                changed_images[source_id] = (current.copy(), has_alpha)
+        source_state[source_id] = unchanged
+
+    previews, mapping_conflicts = {}, {}
+    for key, matches in candidates.items():
+        original_path, original_digest, original_size = dump_info[key]
+        outputs = []
+        for source_id, (row, level) in matches.items():
+            if source_state[source_id]:
+                outputs.append((original_digest, None))
+                continue
+            image, has_alpha = changed_images[source_id]
+            source_image = lod_from(image, original_size) if level else image
+            output = convert_image(source_image, original_path, "stretch" if level else mode, has_alpha)
+            outputs.append((iso_workspace.image_digest(output), output))
+        signatures = {digest for digest, _ in outputs}
+        if len(signatures) != 1:
+            mapping_conflicts[key] = sorted(matches)
             continue
-        sha = sha1(p)
+        output_digest = signatures.pop()
+        if output_digest == original_digest:
+            continue
+        output_image = next(
+            image for digest, image in outputs if digest == output_digest and image is not None
+        )
+        buffer = io.BytesIO()
+        output_image.save(buffer, format="PNG")
+        data = buffer.getvalue()
+        previews[key] = {
+            "data": data,
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "source_ids": sorted(matches),
+        }
+
+    managed = managed_keys()
+    managed_skipped = set(previews) & managed.keys()
+    for key in managed_skipped:
+        previews.pop(key)
+
+    state_path = ws / PREVIEW_STATE
+    previous_state = read_preview_state(state_path)
+    next_state = {}
+    written = removed = unchanged_count = output_conflicts = 0
+    for key, preview in sorted(previews.items()):
         target = REPL_DIR / f"{key}.png"
-        role = mp.get(key, {}).get("role")
-        if role in ("copy", "lod"):
-            continue  # generated from the master below; edits of the copy itself are applied only if the master is unedited
-        if role == "master" and not force_regen and str(state.get(key, "")).startswith("auto:") and sha == m["sha1"]:
+        previous = previous_state.get(key)
+        current_hash = sha256(target) if target.is_file() else None
+        if previous is None:
+            if current_hash is not None:
+                if current_hash == preview["sha256"]:
+                    unchanged_count += 1
+                else:
+                    output_conflicts += 1
+                    print(f"warning: preserve unowned PCSX2 replacement {target}")
+                continue
+        elif current_hash is not None and current_hash not in (previous["sha256"], preview["sha256"]):
+            output_conflicts += 1
+            next_state[key] = previous
+            print(f"warning: preserve externally changed PCSX2 replacement {target}")
             continue
-        if sha == m["sha1"]:
-            if key in state:
-                reverted += 1
-                print("revert", p.name)
-                if not dry:
-                    target.unlink(missing_ok=True)
-                    del state[key]
+        elif current_hash == preview["sha256"] and not force_regen:
+            unchanged_count += 1
+            next_state[key] = {name: preview[name] for name in ("sha256", "source_ids")}
+            continue
+        if dry:
+            print("write", target)
+        else:
+            REPL_DIR.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_name(target.name + ".tmp")
+            temporary.write_bytes(preview["data"])
+            temporary.replace(target)
+        written += 1
+        next_state[key] = {name: preview[name] for name in ("sha256", "source_ids")}
+
+    for key, previous in previous_state.items():
+        if key in next_state:
             continue
         if key in managed:
-            print(f"skip {p.name}: pipeline-managed ({managed[key]}) takes priority")
-            skipped += 1
+            next_state[key] = previous
             continue
-        if state.get(key) == sha and target.exists():
+        target = REPL_DIR / f"{key}.png"
+        if not target.is_file():
             continue
-        written += 1
-        print("write", p.name)
-        if not dry:
-            REPL_DIR.mkdir(parents=True, exist_ok=True)
-            convert(p, files[key], mode).save(target)
-            state[key] = sha
-    if mp:
-        for t, m in manifest.items():
-            p = found.get(t)
-            if (p is not None and mp.get(m["key"], {}).get("role") == "lod"
-                    and sha1(p) != m["sha1"] and sha1(p) != state.get("_workspace_auto", {}).get(m["key"])):
-                ignored += 1
-        w, r = sync_uniform_lods(ws, mp, manifest, found, files, managed, state, mode, dry, force_regen)
-        written, reverted = written + w, reverted + r
-    if not dry:
-        state_f.write_text(json.dumps(state, indent=1))
-    msg = f"sync: {written} written, {reverted} reverted, {skipped} skipped"
-    if ignored:
-        msg += f", {ignored} hand-edited auto LODs ignored (they are generated from the MASTER)"
-    print(msg + ". Press F10 in PCSX2 to reload.")
+        if sha256(target) != previous["sha256"]:
+            output_conflicts += 1
+            next_state[key] = previous
+            print(f"warning: preserve externally changed stale replacement {target}")
+            continue
+        if dry:
+            print("remove", target)
+        else:
+            target.unlink()
+        removed += 1
+
+    if not dry and next_state != previous_state:
+        state = {
+            "schema": 1,
+            "source_sha256": iso_workspace.SOURCE_SHA256,
+            "files": next_state,
+        }
+        temporary = state_path.with_name(state_path.name + ".tmp")
+        temporary.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(state_path)
+
+    unmapped = len(sources) - len(matched_ids)
+    print(
+        f"preview sync: {written} written, {removed} removed, {unchanged_count} unchanged, "
+        f"{len(mapping_conflicts)} mapping conflicts, {output_conflicts} replacement conflicts, "
+        f"{len(managed_skipped)} pipeline-managed skipped, {unmapped} native masters without exact PCSX2 matches."
+    )
+    if written or removed:
+        print("Press F10 in PCSX2 to reload.")
+    return {
+        "written": written,
+        "removed": removed,
+        "unchanged": unchanged_count,
+        "mapping_conflicts": mapping_conflicts,
+        "replacement_conflicts": output_conflicts,
+        "managed_skipped": len(managed_skipped),
+        "unmapped": unmapped,
+    }
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["export", "sync"])
-    ap.add_argument("--ws", type=Path, default=DEFAULT_WS)
+    ap.add_argument("--ws", type=Path, help="workspace directory (defaults depend on command)")
     ap.add_argument("--fit", choices=["stretch", "contain", "cover"], default="stretch",
                     help="how images with a different aspect ratio are fitted (default: stretch)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force-regen", action="store_true",
-                    help="sync: rebuild every linked COPY/LOD from its MASTER, even unchanged/cached masters")
+                    help="sync: rewrite already-owned PCSX2 previews even when their bytes are unchanged")
     a = ap.parse_args()
     if a.force_regen and a.cmd != "sync":
         ap.error("--force-regen is only supported by sync")
-    export(a.ws) if a.cmd == "export" else sync(a.ws, a.fit, a.dry_run, a.force_regen)
+    if a.cmd == "export":
+        export(a.ws or DEFAULT_WS)
+    else:
+        sync(a.ws or NATIVE_DEFAULT_WS, a.fit, a.dry_run, a.force_regen)
 
 
 if __name__ == "__main__":
