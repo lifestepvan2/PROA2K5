@@ -79,6 +79,28 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(self.source.read_bytes(), before)
         self.assertIn("__512x256__", self.master.name)
 
+    def test_alternate_copy_stage_skips_inherited_master_and_requires_repacking(self):
+        import uniform_iso_workspace
+
+        self.edit()
+        (self.workspace / "_iso_uniforms.json").write_text("{}")
+        uniforms = {"sources": [], "packages": [], "migration": {}}
+        copy_rules = [native.uniform_slot_copies.UniformCopy(21, "Falcons", "ua021.iff", "r2h021.iff")]
+        offset = self.row["iso_offset"] + self.row["chunk_offset"] + 32
+        copied_patch = (0, b"before", b"after")
+        with patch.object(uniform_iso_workspace, "load_manifest", return_value=uniforms), \
+                patch.object(native.uniform_slot_copies, "rules", return_value=copy_rules), \
+                patch.object(native.uniform_slot_copies, "inherited_offsets", return_value={offset}), \
+                patch.object(native.uniform_slot_copies, "compose",
+                             return_value=([copied_patch], [{"destination": "r2h021.iff"}])) as compose, \
+                patch.object(native, "encode", side_effect=AssertionError("Inherited master must not be encoded")):
+            with self.assertRaisesRegex(ValueError, "require --repack-archive"):
+                self.prepare()
+            patches, report = self.prepare(repack_archive=True)
+        self.assertEqual(patches, [copied_patch])
+        self.assertEqual(report["uniform_copies"], [{"destination": "r2h021.iff"}])
+        self.assertEqual(compose.call_args.args[1:], ([], copy_rules))
+
     def test_moved_renamed_master_survives_reexport_and_updates_all_mips(self):
         self.edit()
         moved = self.workspace / "my_folder" / f"my_label__512x256__{self.row['id']}.png"

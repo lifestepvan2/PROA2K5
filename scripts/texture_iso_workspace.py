@@ -20,6 +20,7 @@ import numpy as np
 from PIL import Image
 
 import archive_iso
+import uniform_slot_copies
 from inventory_lettering_iso import asset_hash
 from iso_copy import hash_stream, publish_iso_copy
 from native_texture import display, encode, encode_shared
@@ -289,7 +290,8 @@ def export(source: Path, workspace: Path = DEFAULT_WS,
 
 def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = None,
             *, collect_failures: bool = False, repack_archive: bool = False,
-            palette_colors: int = 256, texture_edits: list | None = None) -> tuple[list, dict]:
+            palette_colors: int = 256, texture_edits: list | None = None,
+            slots: Path = ROOT / "data" / "team_slots.csv") -> tuple[list, dict]:
     validate_workspace(workspace)
     if type(palette_colors) is not int or palette_colors not in (16, 32, 64, 128, 256):
         raise ValueError("Invalid default native palette color count")
@@ -303,6 +305,10 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
     uniforms = load_manifest(workspace) if (workspace / UNIFORM_MANIFEST).is_file() else None
     from remaining_texture_workspace import MANIFEST as TEXTURE_MANIFEST, load_manifest as load_textures, location
     remaining = load_textures(workspace) if (workspace / TEXTURE_MANIFEST).is_file() else None
+    copies = uniform_slot_copies.rules(stream, slots) if uniforms else []
+    if copies and not repack_archive:
+        raise ValueError("Automatic ProA alternate uniform copies require --repack-archive")
+    inherited = uniform_slot_copies.inherited_offsets(stream, copies) if copies else set()
     generic_ids = {row["id"] for row in remaining["sources"]} if remaining else set()
     sources = manifest["sources"] + (uniforms["sources"] if uniforms else []) + (remaining["sources"] if remaining else [])
     if (not sources or len({row["id"] for row in sources}) != len(sources)
@@ -322,6 +328,8 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
     shared_edits = collections.defaultdict(list)
     reports = []
     for row in sources:
+        if row["iso_offset"] + row["chunk_offset"] + 32 in inherited:
+            continue
         path = files[row["id"]]
         with Image.open(path) as file:
             master = file.copy()
@@ -386,6 +394,8 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             preview_path.parent.mkdir(exist_ok=True)
             previews[detail["descriptor"]].save(preview_path)
     for offset, body, original, target, scratch, report in (court_edits or []) + (texture_edits or []):
+        if offset in inherited:
+            continue
         if offset in resources:
             row, existing_body, existing_original, edited = resources[offset]
             if original != existing_original or body != existing_body:
@@ -477,12 +487,14 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                         "runtime_allocation_delta": scratch - row["scratch"],
                         "distance_bits": rebuilt[8] if row["compressed"] else None,
                         "decoded_sha256": digest(target)})
+    patches, copy_reports = uniform_slot_copies.compose(stream, patches, copies)
     report = {"workspace": str(workspace.resolve()), "masters": len(sources),
                      "textures": reports, "resources": budgets,
                      "courts": [edit[5] for edit in court_edits or []],
                      "stock_centerlogo": manifest["unseeded_centerlogo"], "exceptions": manifest["exceptions"],
                      "capacity_failures": capacity_failures, "encoding_policy": policy,
-                     "repack_archive": repack_archive, "default_palette_colors": palette_colors}
+                     "repack_archive": repack_archive, "default_palette_colors": palette_colors,
+                     "uniform_copies": copy_reports}
     report["uniforms"] = ({"masters": len(uniforms["sources"]), "packages": len(uniforms["packages"]),
                           "migration": uniforms["migration"]} if uniforms else None)
     report["remaining"] = ({"masters": len(remaining["sources"]), "packages": remaining["packages"],

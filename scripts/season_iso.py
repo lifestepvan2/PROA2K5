@@ -52,7 +52,7 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
             **options, **skin_options)
         logo_patches, logo_report = texture_iso_workspace.prepare(
             stream, texture_workspace, court_colours.decoded_edits(stream, workspace),
-            repack_archive=repack_archive, **options)
+            repack_archive=repack_archive, slots=slots, **options)
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
     patches.extend(visual_patches)

@@ -120,7 +120,7 @@ class SeasonCompositionTests(unittest.TestCase):
                 patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
             report = season.build(self.source, self.output, self.roster, self.workspace,
                                   texture_workspace=self.root / "native", repack_archive=True)
-        self.assertEqual(logos.call_args.kwargs, {"repack_archive": True})
+        self.assertEqual(logos.call_args.kwargs, {"repack_archive": True, "slots": season.lettering_workspace.DEFAULT_SLOTS})
         self.assertEqual(visuals.call_args.kwargs, {"include_courts": False, "repack_archive": True})
         self.assertEqual(plan.call_args.args[1], [self.roster_patch, self.visual_patch, logo_patch])
         self.assertEqual(report["archive"], archive_report)

@@ -479,6 +479,28 @@ the bundle's literal filename is not yet established. Its role as the in-game Pa
 home number source is established by the controlled patch, not a guessed filename.
 Two away-palette matches also exist at `0x122DED70` and `0x143B0D70`; neither was patched.
 
+#### Selectable uniform table
+
+The normalized roster has a count/tagged-pointer descriptor at `0xB0`/`0xB4`:
+218 records at `0x65534`, each 20 bytes. Record fields are native team ID at
+`+0x00`, side at `+0x04` (`0` home, `1` away), an observed zero word at `+0x08`,
+and tagged self-relative UTF-16LE pointers to the asset basename and selection
+label at `+0x0C`/`+0x10`. These offsets use the normalized save layout; the disc
+roster's corresponding data is 32 bytes later.
+
+Names include `uh021`, `ua021`, `r1h021`, `r2h021`, etc. Game assets append
+`.iff`; selection previews prepend `sel`. In particular `r2h021.iff` is archive
+hash `337bc1a7`, while `selr2h021.iff` is `eecea2b1`. Manually sorted workspace
+folder labels need not be original filenames. Secondary `ux` slots also have
+an explicit side; `ux015` is home, whereas `ux013` is away.
+
+The [alternate copy stage](../scripts/uniform_slot_copies.py) derives its rules
+from this table and current ProA assignments. The current assignments select
+52 alternates and 104 game/preview packages. Default donor names use **native
+team IDs**, which are not always roster slots (e.g. roster slot 28 uses native
+ID 29). The stage copies matched clothing/lettering resource sets and `UnAD`
+attributes without claiming to have decoded those attributes' placement fields.
+
 #### Patch and verified result
 
 [patch_lettering_iso.py](../scripts/patch_lettering_iso.py) changes only the

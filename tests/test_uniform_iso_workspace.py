@@ -67,7 +67,8 @@ class UniformWorkspaceTests(unittest.TestCase):
         self.assertEqual(master.read_bytes(), before)
         self.assertEqual(len(list((self.workspace / "uniforms").rglob("*.png"))), 1)
         with patch.object(uniforms, "dump_files", side_effect=AssertionError("Compilation needs no dumps")), \
-                patch.object(uniforms, "legacy_edits", side_effect=AssertionError("Compilation needs no legacy")):
+                patch.object(uniforms, "legacy_edits", side_effect=AssertionError("Compilation needs no legacy")), \
+                patch.object(native.uniform_slot_copies, "rules", return_value=[]):
             with self.source.open("rb") as stream:
                 patches, report = native.prepare(stream, self.workspace)
         self.assertEqual(len(patches), 1)

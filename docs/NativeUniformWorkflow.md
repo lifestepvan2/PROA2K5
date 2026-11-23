@@ -97,6 +97,33 @@ once. Incompatible edits to the same bytes are rejected: reset overlapping
 name/number colour controls to the stock palette before independently editing
 that texture's pixels.
 
+## Automatic ProA alternate uniforms
+
+ISO builds with the native uniform workspace automatically make each selectable
+ProA home alternate inherit its team's **final default away** uniform, and each
+away alternate inherit the **final default home** uniform. This includes
+secondary (`ux`) uniforms: their home/away side comes from the roster selection
+table, not a filename guess. Only teams assigned in `data/team_slots.csv` are
+affected; the season builder respects its `--slots` override.
+
+Continue editing the default home/away artwork and the existing per-team
+`colours.json` controls. No per-uniform lettering JSON migration is needed.
+The inherited resources are jersey, shorts, clothing `logo`, names/numbers and
+their glyph metrics, plus uniform attributes. Both game and selection-preview
+packages are updated after donor artwork/lettering composition and before
+archive allocation. Alternate artwork/lettering edits to these resources are
+ignored in ISO output; the workspace files remain untouched.
+
+Coach, crowd, mascot, bands and separate warmup resources are not copied.
+Uniform selection labels and unlock/selection availability are unchanged.
+The copy list and output fingerprints appear in `uniform_copies` in a native
+build report (`logos.uniform_copies` in a season report).
+
+This workflow requires `--repack-archive`; a fixed-span build fails explicitly
+rather than leaving alternate uniforms inconsistent. Offline checks verify
+byte-exact donor resource copies, including glyph metrics and uniform
+attributes. Placement and rendering still require a fresh-boot in-game check.
+
 ## Check / build
 
 Check all exported native masters and their shared archive allocation:
