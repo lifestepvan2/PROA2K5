@@ -14,6 +14,7 @@ docs/_face_sheets/
 docs/_face_match/
 docs/_*.log
 texture_workspace/*
+texture_source/*
 !texture_workspace/team_palettes/
 texture_workspace/team_palettes/*
 !texture_workspace/team_palettes/README.md

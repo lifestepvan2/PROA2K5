@@ -18,7 +18,7 @@ Options
                     Previous seasons pooled into each player's stats (default: 5, 0 = current season only).
                     Weights per season: current 1, last 1, then 0.8 / 0.6 / 0.4 / 0.2; x0.5 for seasons under
                     10 games (season_stats.py). All selectable ProA seasons are archived regardless of this limit.
-    --top INT       Max players per team written to Excel (default: 15)
+    --top INT       Max players per team written to Excel (default: 17, the team record capacity)
     --teams-only    Print discovered team IDs and exit
     --stats-json-only
                     Rebuild data/proa_stats.json (pooled site stats plus full season/career histories) and exit
@@ -88,7 +88,7 @@ PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/{season}/pc/{play
 REQUEST_DELAY   = 0.5   # seconds between live requests
 HISTORY_SEASONS = 5     # previous seasons pooled into the stats (see season_stats.py)
 DEFAULT_RATING  = 69
-MAX_PLAYERS     = 15
+MAX_PLAYERS     = 17  # team record capacity in build_roster.py (ROSTER_SLOTS)
 
 # Headshot IDs 9000-9999 are reserved for ProA players.
 HEADSHOT_ID_START = 9000
@@ -647,6 +647,26 @@ def scrape_all(
 # ---------------------------------------------------------------------------
 # Excel writer
 # ---------------------------------------------------------------------------
+def current_season_seconds(p: dict) -> int:
+    """ProA minutes (in seconds) logged in the current season; 0 when the player has not played yet."""
+    year = int(p.get("history_anchor", 2026))
+    return p.get("history", {}).get("seasons", {}).get(f"{year}_{year + 1}", {}).get("SEC", 0)
+
+
+def birth_date(p: dict) -> tuple[int, int, int]:
+    """Sort key for age; a missing birth date counts as youngest."""
+    parts = (p.get("birth_year"), p.get("birth_month"), p.get("birth_day"))
+    return tuple(int(x) for x in parts) if all(x is not None for x in parts) else (9999, 12, 31)
+
+
+def triage_roster(players: list[dict], max_players: int) -> tuple[list[dict], list[dict]]:
+    """Keep at most *max_players*. Players are dropped by fewest current-season minutes first; among equal minutes
+    (typically 0:00) the youngest goes first. Returns (kept in input order, dropped in drop order)."""
+    drop_order = sorted(players, key=lambda p: (current_season_seconds(p), tuple(-x for x in birth_date(p))))
+    dropped = drop_order[:max(0, len(players) - max_players)]
+    return [p for p in players if not any(p is d for d in dropped)], dropped
+
+
 def write_excel(
     rosters: dict[int, list[dict]],
     output_path: Path,
@@ -668,8 +688,8 @@ def write_excel(
     Attribute columns are assigned by the stats model in proa_attr_model.py
     (build_ratings), which outputs the 2K5 attributes directly.  DEFAULT_RATING
     (69) is used only as a fallback for any attribute not covered by the model.
-    Within each team, players are sorted by pooled minutes per game descending;
-    only the top *max_players* rows are written.
+    Within each team, players are sorted by pooled minutes per game descending. Teams over *max_players* are
+    triaged first (triage_roster: fewest current-season minutes, then youngest, are dropped).
     """
     wb = openpyxl.Workbook()
     wb.remove(wb.active)  # remove the blank default sheet
@@ -684,13 +704,14 @@ def write_excel(
         _, sheet_name = TEAM_MAP[team_id]
         sheet_name    = sheet_name[:31]  # Excel 31-char limit
 
+        kept, dropped = triage_roster(players, max_players)
         # Sort by pooled minutes per game (independent of how many seasons a player has); players without
         # any recorded games (new signings) fall to the bottom.
         top = sorted(
-            players,
+            kept,
             key=lambda p: p.get("minutes_total_sec", 0) / max(p.get("games", 0), 1),
             reverse=True,
-        )[:max_players]
+        )
 
         ws = wb.create_sheet(title=sheet_name)
 
@@ -736,9 +757,11 @@ def write_excel(
                 ws.cell(row=ri, column=ci, value=row_data.get(col))
 
         total_players += len(top)
-        truncated = f" (top {len(top)} by minutes, {len(players) - len(top)} dropped)" \
-                    if len(players) > max_players else ""
-        print(f"  Sheet '{sheet_name}': {len(top)} player(s) written{truncated}")
+        print(f"  Sheet '{sheet_name}': {len(top)} player(s) written")
+        for p in dropped:
+            sec = current_season_seconds(p)
+            print(f"    Triage: dropped {p.get('proa_id')} {p.get('first_name')} {p.get('last_name')} "
+                  f"({sec // 60}:{sec % 60:02d} min this season, born {p.get('birth_year')})")
 
     apply_overrides(wb, manual)
     from overall_sheet import add_overall
@@ -812,6 +835,8 @@ def main() -> None:
     args = ap.parse_args()
     if args.history_seasons < 0:
         ap.error("--history-seasons must be non-negative")
+    if not 1 <= args.top <= MAX_PLAYERS:
+        ap.error(f"--top must be between 1 and {MAX_PLAYERS} (team record capacity)")
 
     print(f"\nProA Roster Scraper")
     print(f"  Season  : {args.season}")

@@ -247,12 +247,32 @@ The game encodes an apostrophe as char `0x19`.
 ### Team record (0x124 bytes)
 | Off | Meaning |
 |---|---|
-| +0x00..+0x38 | up to 15 pointers to player records (zero terminated, NBA teams hold 12-15) |
+| +0x00..+0x40 | up to 17 tagged pointers to player records, zero terminated (NBA teams hold 12-15; +0x3C..+0x47 are zero in every baseline) |
+| +0x44 | last possible terminator slot (a 17-player roster ends here) |
 | +0x48 | nickname pointer |
 | +0x4C | abbreviation pointer |
 | +0x50 | `"NNN"` id string pointer |
+| +0x60 | **u8 roster count** read by the game (equals the pointer count in all 54 baseline teams) |
+| +0x62..+0x67 | UI colours (see below) |
 | +0x74, +0x7C | city pointers |
 | +0x90..+0xA0 | 5 starter pointers (PG, SG, SF, PF, C) |
+
+#### Roster size experiments (2026-11)
+
+Controlled memory-card tests in the Falcons slot (21, Pistons record, baseline count 13):
+
+| Card | Pointers | +0x60 | In-game result |
+|---|---|---|---|
+| `Falcons-17-experiment.ps2` | 17 | 13 (stale NBA value) | 13 players shown |
+| `Falcons-17-BANANA.ps2` (all surnames `BANANA`) | 17 | 13 | 13 `BANANA` players: the payload loaded, the count byte cut the list |
+| `Falcons-17-BANANA-count17.ps2` (one byte changed) | 17 | 17 | all 17 shown; a game loads and plays normally |
+
+Conclusions: the game takes the roster size from `+0x60`, not from the pointer terminator, and there is no
+15-player game limit. The pointer list cannot grow past 17 entries plus the `+0x44` terminator without overwriting the
+nickname pointer at `+0x48`, so `build_roster.py` caps rosters at 17 (`ROSTER_SLOTS`). Its `write_roster` writes the
+pointers, clears the remaining slots through `+0x44` and sets `+0x60` for every ProA team and every NBA donor team
+whose roster shrinks. Before this change ProA teams kept the stale NBA count (the 14-player Falcons showed 13).
+18 pointers without a terminator are untested.
 
 Slots 0-29 are NBA teams (alphabetical by city/nickname, 0 = 76ers/PHI), 30-31 East/West,
 32-49 all-star/legend teams, 50-53 Ballers/Ringers/dummies. ProA uses slots 12-29 (final mapping in

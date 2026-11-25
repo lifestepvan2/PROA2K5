@@ -130,6 +130,27 @@ class SeasonStatsTests(unittest.TestCase):
         self.assertEqual(result[2025]["pts"], 30)
         self.assertNotIn(2026, result)
 
+    def test_roster_triage_drops_fewest_current_minutes_then_youngest(self):
+        def player(pid, sec, born, prior=0):
+            seasons = {"2025_2026": {"SEC": prior}}
+            if sec is not None:
+                seasons["2026_2027"] = {"SEC": sec}
+            return {"proa_id": pid, "history_anchor": 2026, "history": {"seasons": seasons},
+                    "birth_year": born[0], "birth_month": born[1], "birth_day": born[2]}
+
+        players = [
+            player(1, 600, (1995, 1, 1)),
+            player(2, None, (2001, 5, 1), prior=90000),  # no current minutes; prior seasons do not count
+            player(3, None, (2004, 3, 2)),
+            player(4, 30, (2006, 1, 1)),
+            player(5, None, (2004, 3, 1)),
+            player(6, 900, (2007, 1, 1)),
+        ]
+        kept, dropped = scraper.triage_roster(players, 3)
+        self.assertEqual([p["proa_id"] for p in dropped], [3, 5, 2])
+        self.assertEqual([p["proa_id"] for p in kept], [1, 4, 6])
+        self.assertEqual(scraper.triage_roster(players, 6), (players, []))
+
 
 if __name__ == "__main__":
     unittest.main()

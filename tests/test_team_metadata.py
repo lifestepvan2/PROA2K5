@@ -6,7 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from build_roster import T_UI_COLOURS, apply_team_colours
+from build_roster import (PLAYER_BASE, PLAYER_COUNT, PLAYER_STRIDE, T_COUNT, T_UI_COLOURS, TEAM_BASE, TEAM_STRIDE,
+                          Payload, apply_team_colours, read_roster, write_roster)
 from create_baseline_jersey import load_teams
 from team_palettes import DEFAULT_WS, team_colours
 
@@ -32,6 +33,27 @@ class TeamMetadataTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Test: colorui2"):
                     apply_team_colours(buf, 0, row)
                 self.assertEqual(buf, bytearray(0x124))
+
+    def test_roster_writes_count_byte_and_respects_record_capacity(self):
+        class Stub:
+            set_ptr, target = Payload.set_ptr, Payload.target
+
+        pl = Stub()
+        team = 3
+        base = TEAM_BASE + team * TEAM_STRIDE
+        pl.d = bytearray(PLAYER_BASE + PLAYER_COUNT * PLAYER_STRIDE)
+        pl.d[base + 0x48:base + 0x4C] = b"NICK"
+        pl.d[base + T_COUNT] = 13
+        for recs in (list(range(10, 27)), [5, 6, 7]):
+            with self.subTest(players=len(recs)):
+                write_roster(pl, team, recs)
+                self.assertEqual(pl.d[base + T_COUNT], len(recs))
+                self.assertEqual(read_roster(pl, team), recs)
+                self.assertEqual(pl.d[base + 4 * len(recs):base + 0x48], bytes(0x48 - 4 * len(recs)))
+                self.assertEqual(pl.d[base + 0x48:base + 0x4C], b"NICK")
+        with self.assertRaisesRegex(SystemExit, "18 players exceed"):
+            write_roster(pl, team, list(range(18)))
+        self.assertEqual(read_roster(pl, team), [5, 6, 7])
 
     def test_combined_csv_and_jersey_consumer(self):
         with (ROOT / "data" / "proa_teams.csv").open(encoding="utf-8") as file:

@@ -436,9 +436,14 @@ of jersey/UI values, and use the [combined ISO stage](#iso-first-roster-deployme
 
 - Replaced Hagen, Muenster, Leverkusen with Essen (site id 444, ETB Miners), Heidelberg (488, MLP Academics) and Ulm (537,
   OrangeAcademy), taking slots 23 (Rockets), 28 (Warriors) and 13 (Kings). Falcons stay at slot 21.
-- Rosters on the site are still being filled (11-15 players per team, 249 total). Ratings are derived from stats pooled over
+- Rosters on the site are still being filled (11-15 players per team, 249 total at the time). Ratings are derived from stats pooled over
   several seasons (see "Stats pooling"); new players without any games get defaults. Re-run the update as rosters grow; cached
   players keep their face pid.
+- Roster size: a team record holds up to 17 players, and the builder writes the game's roster count byte (`+0x60`, see
+  `roster_payload_format.md`). The scraper writes at most 17 players per team (`--top`, default and maximum 17). Larger
+  site rosters are triaged: players with the fewest current-season ProA minutes are dropped first, and the youngest go
+  first among equal minutes (usually 0:00). Each drop is printed as `Triage: dropped ...`. Any roster change alters the
+  skin-plan signature, so re-run `face_match.py` before building.
 - Players who left the league drop out of `proa_pid_map.csv`, freeing their pids.
 
 ## Stats pooling (`season_stats.py`)

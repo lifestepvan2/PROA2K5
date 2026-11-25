@@ -25,7 +25,7 @@ replacement with that key exists, so **scans need an empty `replacements\` and a
 ## Dump families
 | family | size | content |
 |---|---|---|
-| `00001dd3` | 128x128 | player face; only the window (0,3)-(102,125) is visible on screen |
+| `00001dd3` | 128x128 | includes player portraits, studio materials and arena artwork; portrait window (0,3)-(102,125) |
 | `00001553` | 32x32 | small team logo (Start Game icons); visible window (4,5)-(28,27), drawn 80x62 px |
 | `00002213` | 256x256 | large logos (not mapped yet) |
 
@@ -76,6 +76,41 @@ mapping: ProA teams on slots 12-29, `data/team_slots.csv`); missing records are 
 slots 0-11, which shrink. Legend and conference teams stay untouched, so historic
 players keep their faces. The current `gen_replacements.py` follows the final PID,
 not the record alone, and reports conflicts when players share one PID.
+
+### Corrected legend portrait mappings
+
+Six low-confidence scan results in `record_faces.csv` have been replaced by
+exact original-RGBA matches against the native portrait bundle `35cb8d72`.
+The numeric native texture name identifies the original PID:
+
+| Record | PID | Correct PCSX2 portrait key |
+|---|---|---|
+| 410 | 748 | `164bebcc4de8967-d5c2bfb826b84647-00001dd3` |
+| 411 / 551 | 741 | `9c86d006c1f1b0a2-157f6bc8ed58d1b3-00001dd3` |
+| 412 / 556 | 743 | `f8ef0624c7989496-8683e3d78830770-00001dd3` |
+| 413 | 746 | `9835a3333eda9340-593cef344f00fd67-00001dd3` |
+| 417 | 751 | `44cadc642762365a-3e89bdb35563e34c-00001dd3` |
+| 469 | 1146 | `434b5fd294c6ef9f-e9c0d872188da4b4-00001dd3` |
+
+Corrected rows use score `1.0` and runner-up `0.0` to denote exact native
+verification rather than screenshot similarity. Duplicate records retain their
+scan scores and have updated shared counts. Re-running the historical screenshot
+matcher would overwrite these corrections; preserve them or reverify against the
+native bundle before using its output.
+
+The false mappings included `scstudio.iff` material `m_monitor`, consumed by
+`pLogo_floor` (the red ESPN floor logo), and `m_shiny_black`, consumed by wall
+meshes. Others pointed to Atlanta arena artwork, a generic `nophoto` texture,
+or an unverified dump. Running `gen_replacements.py` with the corrected map
+retires its old owned keys and writes portraits only to the corrected targets.
+
+Legend PIDs can have rendered rather than photographic native portraits.
+They still accept ordinary PCSX2 replacement PNGs; no special replacement
+handling is needed for the verified targets. A missing ProA headshot leaves the
+native portrait visible: for example, PID 1146 is Chris Mullin's rendered face,
+currently assigned to Kazakevicius. His cached source is only a silhouette and
+`assets/PS_out/2005245.png` is absent. Supply a real headshot at that path and
+rerun the generator to replace it; do not crop the silhouette as a photograph.
 
 ## Team logos
 The 32x32 icons are zoomed crops of the full logos, so a multi-scale `cv2.matchTemplate` of each icon finds the

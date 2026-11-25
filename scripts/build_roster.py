@@ -64,7 +64,11 @@ ACC_NONE = {0x61: 255, 0x62: 0, 0x64: 255, 0x65: 255, 0x66: 255, 0x67: 255, 0x75
             0x79: 0, 0x7A: 0, 0x7E: 0, 0x7F: 0}  # every accessory byte "off"
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
 TEAM_BASE, TEAM_STRIDE = 0x11F0, 0x124
-ROSTER_SLOTS = 15
+# Roster pointers start at +0x00 and are zero terminated; +0x44 is the last terminator slot before the nickname
+# pointer at +0x48, so a team record holds at most 17 players. +0x60 is the roster size the game reads (verified
+# in-game: 17 pointers with count 13 show 13 players, with count 17 all 17 load and play).
+ROSTER_SLOTS = 17
+T_COUNT = 0x60
 T_NICK, T_ABBR, T_CITY_A, T_CITY_B = 0x48, 0x4C, 0x74, 0x7C
 T_STARTERS = 0x90
 T_UI_COLOURS = {"colorui1": 0x62, "colorui2": 0x65}
@@ -344,11 +348,14 @@ def read_roster(pl, team):
 
 
 def write_roster(pl, team, recs):
+    if len(recs) > ROSTER_SLOTS:
+        raise SystemExit(f"team {team}: {len(recs)} players exceed the team record capacity of {ROSTER_SLOTS}")
     base = TEAM_BASE + team * TEAM_STRIDE
-    for i in range(ROSTER_SLOTS):
+    for i in range(ROSTER_SLOTS + 1):
         struct.pack_into("<I", pl.d, base + 4 * i, 0)
     for i, r in enumerate(recs):
         pl.set_ptr(base + 4 * i, PLAYER_BASE + r * PLAYER_STRIDE)
+    pl.d[base + T_COUNT] = len(recs)
 
 
 def face_pool(pl):
@@ -516,7 +523,10 @@ def main():
     colleges = {}
     rec_off = lambda i: PLAYER_BASE + i * PLAYER_STRIDE
 
-    team_players = [order_roster(proa[tr["sheet"]][:ROSTER_SLOTS]) for tr in team_rows]
+    too_big = [f"{tr['sheet']} ({len(proa[tr['sheet']])})" for tr in team_rows if len(proa[tr["sheet"]]) > ROSTER_SLOTS]
+    if too_big:
+        raise SystemExit(f"teams exceed the {ROSTER_SLOTS}-player team record capacity: {', '.join(too_big)}")
+    team_players = [order_roster(proa[tr["sheet"]]) for tr in team_rows]
     alloc = allocate_records(pl, team_players, slots)
 
     for i_team, tr in enumerate(team_rows):
@@ -538,10 +548,7 @@ def main():
                          "colorui1": tr["colorui1"], "colorui2": tr["colorui2"]})
 
         # roster list + starters (pointers to player records)
-        for i in range(ROSTER_SLOTS):
-            struct.pack_into("<I", pl.d, base + 4 * i, 0)
-        for i, r in enumerate(recs):
-            pl.set_ptr(base + 4 * i, rec_off(r))
+        write_roster(pl, k, recs)
         for i in range(5):
             pl.set_ptr(base + T_STARTERS + 4 * i, rec_off(recs[i]))
 
