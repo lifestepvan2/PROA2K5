@@ -133,7 +133,7 @@ Row exhaustion, byte exhaustion and fragmentation fail before publishing output
 or writing a card. Strings are never truncated to force a build to fit.
 
 Scraping expands raw NAT codes to English country names before applying manual
-overrides. Actual college names in `data/overrides.csv` remain literal. Printable
+overrides. Actual college names in `data/overrides.xlsx` remain literal. Printable
 BMP text is accepted; control characters, NULs and non-BMP characters are rejected.
 Font coverage for non-ASCII text is independent of UTF-16 storage support.
 
@@ -881,7 +881,7 @@ in-game, experiment E1) because the string is relocated and the pointer rewritte
 ## Display limits
 
 * Lineup caption shows `F. Lastname`, ellipsis at ~11-12 characters; the scraper limits each name to 12 characters.
-* The scraper transliterates umlauts (ae/oe/ue/ss) and other accented letters before generating the workbook. Persistent preferred names go in ID-keyed `data/overrides.csv`; they must already fit the ASCII/12-character constraints. The builder validates names without renaming them again, and `player_map.csv` contains only the final `first,last` names (no redundant `orig_first,orig_last`).
+* The scraper transliterates umlauts (ae/oe/ue/ss) and other accented letters before generating the workbook. Persistent preferred names go in ID-keyed `data/overrides.xlsx`; they must already fit the ASCII/12-character constraints. The builder validates names without renaming them again, and `player_map.csv` contains only the final `first,last` names (no redundant `orig_first,orig_last`).
 
 ## Verified
 

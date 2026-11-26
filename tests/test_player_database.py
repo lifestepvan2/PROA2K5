@@ -12,6 +12,7 @@ import openpyxl
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import player_database as db
+import overrides_workbook as overrides_xlsx
 import scrape_proa_roster as scraper
 from build_roster import P_HAND, P_YEARS, apply_accessories, apply_created_appearance, write_record_fields
 from crop_headshots import placeholder_hashes, KNOWN_PLACEHOLDERS
@@ -139,6 +140,80 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual(before, path.read_bytes())
         with self.assertRaises(ValueError):
             db.field_value("Consistency", 70)
+
+    def test_xlsx_dropdowns_mapping_expansion_and_numeric_correction(self):
+        wb = overrides_xlsx.make_workbook([
+            {"ProA ID": "123", "Shooting Hand": "0", "Hairstyle": "7",
+             "Consistency": "70", "College": db.CLEAR},
+        ], db.OVERRIDE_COLUMNS)
+        path = self.root / "manual.xlsx"
+        ws, enum = wb["Overrides"], wb["Enumerations"]
+        cols = {cell.value: cell.column for cell in ws[1]}
+        self.assertEqual(ws.cell(2, cols["Shooting Hand"]).value, "0 - Left")
+        self.assertEqual(ws.cell(2, cols["Hairstyle"]).value, "7 - Afro")
+        enum_cols = {enum.cell(1, col).value: col for col in range(1, enum.max_column + 1, 2)}
+        hairstyle = enum_cols["Hairstyle"]
+        enum.cell(3, hairstyle + 1, "1 - User-defined buzz")
+        added = 2 + len(overrides_xlsx.enumeration_options()["Hairstyle"])
+        enum.cell(added, hairstyle, 25)
+        enum.cell(added, hairstyle + 1, "25 - User-defined hairstyle")
+        ws.cell(2, cols["Hairstyle"], "25 - User-defined hairstyle")
+        ws.cell(2, cols["Shooting Hand"], "0 - Left")
+        ws.cell(2, cols["Position"], "PG - Point Guard")
+        dv = next(d for d in ws.data_validations.dataValidation
+                  if f"{openpyxl.utils.get_column_letter(cols['Hairstyle'])}2" in d)
+        self.assertIn("OFFSET(", wb.defined_names[dv.formula1[1:]].attr_text)
+        wb.save(path)
+        wb.close()
+        with contextlib.redirect_stderr(io.StringIO()) as warnings:
+            values = db.load_overrides(path)[123]
+        self.assertEqual(values["Hairstyle"], 25)
+        self.assertEqual(values["Shooting Hand"], 0)
+        self.assertEqual(values["Position"], "PG")
+        self.assertEqual(values["Consistency"], 75)
+        self.assertEqual(values["College"], "")
+        self.assertIn("Consistency", warnings.getvalue())
+
+        wb = openpyxl.load_workbook(path)
+        wb["Enumerations"].cell(added, hairstyle + 1, "24 - mismatched")
+        wb.save(path)
+        wb.close()
+        with self.assertRaisesRegex(ValueError, "invalid label"):
+            db.load_overrides(path)
+
+    def test_csv_to_xlsx_migration_preserves_effective_values(self):
+        source = self.csv_file(db.OVERRIDE_COLUMNS, [
+            {"ProA ID": 123, "Shooting Hand": "0", "Hairstyle": "3", "College": db.CLEAR},
+            {"ProA ID": 456, "Hair Color": "3", "Standing Dunk": "50", "Last Name": "Test"},
+        ])
+        destination = self.root / "manual.xlsx"
+        with patch.object(sys, "argv", ["overrides_workbook.py", "--csv", str(source),
+                                        "--out", str(destination)]), contextlib.redirect_stdout(io.StringIO()):
+            overrides_xlsx.main()
+        self.assertEqual(db.load_overrides(source), db.load_overrides(destination))
+        with patch.object(sys, "argv", ["overrides_workbook.py", "--csv", str(source),
+                                        "--out", str(destination)]), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                overrides_xlsx.main()
+
+    def test_xlsx_expanded_enum_and_label_change_keep_existing_selections(self):
+        wb = overrides_xlsx.make_workbook([{"ProA ID": 123, "Shooting Hand": "0 - Old label"}],
+                                          db.OVERRIDE_COLUMNS)
+        enum = wb["Enumerations"]
+        cols = {enum.cell(1, col).value: col for col in range(1, enum.max_column + 1, 2)}
+        hand = cols["Shooting Hand"]
+        enum.cell(2, hand + 1, "0 - New label")
+        hairstyle = cols["Hairstyle"]
+        added = 2 + len(overrides_xlsx.enumeration_options()["Hairstyle"])
+        enum.cell(added, hairstyle, 24)
+        enum.cell(added, hairstyle + 1, "24 - Custom hairstyle")
+        ws = wb["Overrides"]
+        ws.cell(2, db.OVERRIDE_COLUMNS.index("Hairstyle") + 1, "24 - Custom hairstyle")
+        path = self.root / "expanded.xlsx"
+        wb.save(path)
+        wb.close()
+        values = db.load_overrides(path)[123]
+        self.assertEqual((values["Shooting Hand"], values["Hairstyle"]), (0, 24))
 
     def test_blacklist_removes_cached_players_before_stat_requests(self):
         players = [{"proa_id": pid, "first_name": "A", "last_name": "B", "nationality": "DE"} for pid in (1, 2)]

@@ -34,19 +34,31 @@ Nonzero `Skin Tone` requires an ISO output; alternative modes stop before buildi
 default 1). Do not rely on manual workbook edits surviving a scrape.
 `Skin Tone` defaults to 0 (automatic).
 
-Edit **only `data/overrides.csv`** for permanent player corrections. Its header
+Edit **only `data/overrides.xlsx`** for permanent player corrections. Its `Overrides` sheet header
 contains informational `Team`, the unique lookup key `ProA ID`, and every player
 workbook column except the computed `Overall`. `Team` is ignored for matching
 and never transfers a player; overrides follow IDs across clubs/seasons.
-The existing accessory settings were migrated once; automation never creates,
-appends to, or rewrites this file.
+The existing CSV values were migrated without changing their meaning; automation
+never appends to or rewrites this file. `--overrides` also accepts an explicit
+legacy CSV, but the default season workflow reads the XLSX only.
+
+The `Enumerations` sheet contains a pair of columns per dropdown: the raw value
+and its display label. To add an option, append both cells immediately below
+that field's existing entries; the label must start with `value - ` and values
+must be unique and valid for that field. Edit descriptions after the prefix to
+refine uncertain labels. Dropdowns automatically include added contiguous rows
+through row 1024. Existing selected labels retain their numeric meaning if a
+description is changed. Raw numeric values can still be entered directly; the
+lists are suggestions, not a substitute for pipeline validation. Unlabeled
+valid hairstyles may be added this way. Do not invent labels for unverified
+accessory values; legacy accessory bytes remain explicitly raw.
 
 - Blank/whitespace cell: no override. **`0` is an explicit value**, including
   left-handedness, jersey number zero and removal of accessories.
 - `<CLEAR>` explicitly empties `College`. For numeric fields use 0 where allowed;
   names, positions and other required values cannot be cleared.
 - `College` supplies the in-game player-card **FROM** label. Replace the country
-  with an actual college in the override CSV whenever desired; manual values are
+  with an actual college in the override workbook whenever desired; manual values are
   used literally, never translated or shortened. Nationality expansion applies
   only to generated defaults; cached NAT codes remain unchanged. Unknown codes
   fail explicitly instead of silently publishing an untranslated default.
@@ -67,9 +79,9 @@ appends to, or rewrites this file.
   Accessory selectors use the ranges and preset/raw-index meanings documented
   in [player record layout](player_record_layout.md#accessories-verified-in-game-through-the-memory-card).
   Height is metres; weight is kg.
-- Out-of-range, fractional integer and invalid-tier **numeric CSV overrides**
+- Out-of-range, fractional integer and invalid-tier **numeric overrides**
   are adjusted to the nearest allowed value with a warning identifying the
-  player and column (ties choose the lower value). The CSV is not rewritten;
+  player and column (ties choose the lower value). The override file is not rewritten;
   the corrected value is applied to the workbook. Non-numeric or non-finite
   values, duplicate IDs, unknown columns, invalid dates and invalid names still
   fail explicitly because there is no unambiguous numeric correction. Direct
@@ -79,8 +91,8 @@ appends to, or rewrites this file.
   conflicting overrides are rejected by the builder rather than mislabelling
   seasons. It is freely editable only for `build_roster.py --no-stats`.
 - `Skin Tone`: **0 or blank = automatic; 1..6 = lightest to darkest**.
-  Set it in `overrides.csv`, not in the generated face map. Use an explicit 0
-  to reset an already-applied manual value; merely emptying its CSV cell does
+  Set it in `overrides.xlsx`, not in the generated face map. Use an explicit 0
+  to reset an already-applied manual value; merely emptying its override cell does
   not undo the value in an existing workbook.
   Nonzero values preserve the selected face/PID, choose original arm and neck
   donors from the matching leg bucket, and recolour the face palette towards
@@ -106,7 +118,7 @@ by an earlier application.
 
 #### Hidden attributes
 
-The workbook and override CSV contain nine named hidden columns. The builder
+The roster and override workbooks contain nine named hidden columns. The builder
 writes their raw bytes unchanged; the visible-rating minimum does not apply.
 The game's generic attribute accessors clamp some low raw values, but stock
 records themselves contain values such as Dunk Range 10 and Standing Dunk 0.
@@ -139,7 +151,7 @@ foul totals with recorded minutes emit a warning and use 60. Position/height,
 Emotion and Fastbreak can still be generated without statistics.
 
 Permanent manual values, including Emotion 6..15 and Consistency 99, belong in
-`data/overrides.csv`. Overrides apply after generation, just like visible
+`data/overrides.xlsx`. Overrides apply after generation, just like visible
 ratings. Ordinary override reapplication, roster builds, ISO publication and
 optional card export **never reroll Emotion**.
 
@@ -166,7 +178,7 @@ legacy values are rejected, rather than silently selecting one.
 
 #### Manual complexion workflow
 
-After editing `Skin Tone` in the override CSV, run the usual update with ISO
+After editing `Skin Tone` in the override workbook, run the usual update with ISO
 options (and optionally `--card`, with PCSX2 closed):
 
 ```powershell
@@ -432,7 +444,7 @@ of jersey/UI values, and use the [combined ISO stage](#iso-first-roster-deployme
   Arena props, sponsors/signage and remaining court artwork are editable in
   home-team slot folders; see [NativeTextureWorkflow.md](./NativeTextureWorkflow.md).
 - **Arena names** of new clubs (unverified guesses).
-- **Player corrections** (`data/overrides.csv`): preferred shortened names, handedness, accessories and fixed ratings. Apply with `player_database.py` or re-scrape.
+- **Player corrections** (`data/overrides.xlsx`): preferred shortened names, handedness, accessories and fixed ratings. Apply with `player_database.py` or re-scrape.
 - **Face overrides** after reviewing the contact sheets; **hair** (bald vs. not) is not modelled.
 - Players with only the site's **silhouette** portrait (no headshot, no face match): they take whatever pid is left over and
   have no lineup headshot. Fix by providing `assets/PS_out/<proa_id>.png` by hand and re-running.

@@ -241,7 +241,7 @@ then `gen_skin_replacements.py`. After new face dumps: `skin_brighten.py scan` a
 
 ### Model-local arm/neck ISO substitution (verified experiment)
 
-The production workflow now uses `Skin Tone` in `data/overrides.csv` / the
+The production workflow now uses `Skin Tone` in `data/overrides.xlsx` / the
 generated workbook: 0/blank is automatic, 1..6 is lightest..darkest.
 `face_match.py --iso-source ...` prepares `data/face_match/skin_tone_plan.json`:
 same PID/face geometry, matching arm/neck donors on both sides, and a donor-neck

@@ -261,9 +261,9 @@ loading, so it must not be treated as an independent portrait-only pointer.
 
 ### Created-model overrides
 
-The following optional columns in `data/overrides.csv` and the workbook use
+The following optional columns in `data/overrides.xlsx` and the generated roster workbook use
 the editor's raw numeric selectors. Blank means no override; even an explicit
-zero selects the created model. Set overrides in the CSV for persistence
+zero selects the created model. Set overrides in the override workbook for persistence
 across workbook regeneration.
 
 | Column | Byte | Values |
@@ -311,7 +311,7 @@ The accessories are record bytes (not part of the pid model): they stay when the
 | 0x61, 0x62 = 5 | nothing visible in the earlier real-player tests; `0x61` is also the created-player hairstyle selector above | |
 | 0x64-0x66 | legacy candidates: 0x64/0x65 = 9 on the 80's Celtics (historic teams?), 0x66 may be a goggles index (`goggles00`-`07`) | raw experimental overrides; meanings unconfirmed |
 
-Items are indices into one shared pool of model parts (`wristitem01-17`, `armitem01-03`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`, `headitem02-33`), so other numbers (2-20 occur in the NBA data) give other looks; use the corresponding accessory column in `data/overrides.csv` to try them.
+Items are indices into one shared pool of model parts (`wristitem01-17`, `armitem01-03`, `elbowitem01-03`, `kneeitem01-04`, `legitem01-03`, `headitem02-33`), so other numbers (2-20 occur in the NBA data) give other looks; use the corresponding accessory column in `data/overrides.xlsx` to try them.
 
 The menu names and selectors above were recovered from the Europe executable's
 editor descriptors and getters at EE `0x30C2C0..0x30CAA0`. Shades, shorts,
@@ -322,7 +322,7 @@ left/right assignment should be independently confirmed. Additional checks
 should cover individual created heads, hairstyles and player PIDs, and game
 modes not covered by the successful all-created roster stress test.
 
-`build_roster.py` clears the original accessory fields for every ProA player (NBA records have their own accessories), then reads the canonical workbook columns. The former `data/accessories.csv` values have been migrated into ID-keyed `data/overrides.csv`; edit only that file for persistent changes. Columns: `headband` (1 or 2: both enable the headband, and write 0 or 2 to `+0x62` for NBA models; a size difference is unproven), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; 0 = none). An empty override cell means no override, not removal.
+`build_roster.py` clears the original accessory fields for every ProA player (NBA records have their own accessories), then reads the canonical workbook columns. The former `data/accessories.csv` values have been migrated into ID-keyed `data/overrides.xlsx`; edit only that file for persistent changes. Columns: `headband` (1 or 2: both enable the headband, and write 0 or 2 to `+0x62` for NBA models; a size difference is unproven), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; 0 = none). An empty override cell means no override, not removal.
 
 Additional columns `Shades`, `Left Arm Band`, `Right Arm Band`, `Shorts Length`,
 `Sock Length`, `Home Sock Color` and `Away Sock Color` write their raw editor
@@ -350,7 +350,7 @@ other words that look like pointers (e.g. 0x14..0x17) are false positives and ar
 `build_roster.py`.
 
 The 19 rating columns of `proa_scraped.xlsx` are the 2K5 attributes themselves (written by `scripts/proa_attr_model.py`,
-overridable via `data/overrides.csv`); `scripts/rating_map_2k5.py` maps column name -> byte offset. The database workflow validates ratings in 25-99 before building.
+overridable via `data/overrides.xlsx`); `scripts/rating_map_2k5.py` maps column name -> byte offset. The database workflow validates ratings in 25-99 before building.
 Units in the source: height in m, weight in kg.
 
 ## Static attribute probe (Europe ISO)

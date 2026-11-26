@@ -115,7 +115,7 @@ limits stay; keep the budgeting as the fallback.
      (the game prints `F. Last` anyway, so the first name capacity rarely matters),
      (3) strip diacritics (`ü→u`, `ß→ss`; the font probably lacks them: **test glyph set**),
      (4) last-name compound → first part / hyphen drop, (5) truncate with `.`; every rung logged
-     to `assignment_report.md` for manual override via `overrides.csv` (hand-edited, wins over the
+     to `assignment_report.md` for manual override via `overrides.xlsx` (hand-edited, wins over the
      algorithm and is re-applied on every run).
    * Surplus players: an NBA team has 12-15 slots; ProA teams have 13-15 players. *(Superseded: team records hold up to
      17 players with the game count byte at +0x60; see `roster_payload_format.md`.)* When a team has

@@ -19,7 +19,7 @@ from proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, hidden_ratings, league_defe
 from rating_map_2k5 import HIDDEN_BOUNDS, HIDDEN_TIERS
 
 ROOT = Path(__file__).resolve().parent.parent
-OVERRIDES = ROOT / "data" / "overrides.csv"
+OVERRIDES = ROOT / "data" / "overrides.xlsx"
 BLACKLIST = ROOT / "data" / "blacklist.csv"
 ACCESSORIES = ("headband", "wrist_l", "wrist_r", "arm_l", "arm_r", "knee_l", "knee_r")
 RAW_ACCESSORY_FIELDS = {
@@ -222,14 +222,22 @@ def load_blacklist(path=BLACKLIST):
 
 
 def load_overrides(path=OVERRIDES):
+    path = Path(path)
+    if path.suffix.lower() == ".xlsx":
+        from overrides_workbook import read_overrides
+        rows = read_overrides(path)
+    elif path.suffix.lower() == ".csv":
+        rows = read_csv(path, OVERRIDE_COLUMNS, ["ProA ID"])
+    else:
+        raise ValueError(f"{path}: overrides must be an .xlsx or .csv file")
     result = {}
-    for row in read_csv(path, OVERRIDE_COLUMNS, ["ProA ID"]):
+    for row in rows:
         pid = player_id(row["ProA ID"])
         changes = {}
         for column, value in row.items():
-            if column in ("Team", "ProA ID") or not value.strip():
+            if column in ("Team", "ProA ID") or value is None or (isinstance(value, str) and not value.strip()):
                 continue
-            if value.strip() == CLEAR:
+            if isinstance(value, str) and value.strip() == CLEAR:
                 if column != "College":
                     raise ValueError(f"{pid}: {CLEAR} is only supported for College; use 0 for numeric fields")
                 changes[column] = ""
