@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-import scrape_proa_roster as scraper
+import scrape as scraper
 from season_stats import COUNT_KEYS, available_seasons, history_stats, parse_season_totals, player_history, pool_seasons
 
 

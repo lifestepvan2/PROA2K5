@@ -79,27 +79,27 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(self.source.read_bytes(), before)
         self.assertIn("__512x256__", self.master.name)
 
-    def test_alternate_copy_stage_keeps_edited_master_and_requires_repacking(self):
+    def test_alternate_copy_receives_manual_master_edits(self):
         import uniform_iso_workspace
 
         self.edit()
         (self.workspace / "_iso_uniforms.json").write_text("{}")
         uniforms = {"sources": [], "packages": [], "migration": {}}
-        copy_rules = [native.uniform_slot_copies.UniformCopy(21, "Falcons", "ua021.iff", "r2h021.iff")]
+        copies = [native.uniform_slot_copies.UniformCopy(21, "Falcons", "ua021.iff", "r2h021.iff")]
         offset = self.row["iso_offset"] + self.row["chunk_offset"] + 32
         copied_patch = (0, b"before", b"after")
         with patch.object(uniform_iso_workspace, "load_manifest", return_value=uniforms), \
-                patch.object(native.uniform_slot_copies, "rules", return_value=copy_rules), \
+                patch.object(native.uniform_slot_copies, "rules", return_value=copies), \
                 patch.object(native.uniform_slot_copies, "inherited_offsets", return_value={offset}), \
                 patch.object(native.uniform_slot_copies, "compose",
                              return_value=([copied_patch], [{"destination": "r2h021.iff"}])) as compose:
-            with self.assertRaisesRegex(ValueError, "require --repack-archive"):
+            with self.assertRaisesRegex(ValueError, "require archive repacking"):
                 self.prepare()
             patches, report = self.prepare(repack_archive=True)
         self.assertEqual(patches, [copied_patch])
         self.assertEqual(report["uniform_copies"], [{"destination": "r2h021.iff"}])
         self.assertEqual(len(compose.call_args.args[1]), 1)
-        self.assertEqual(compose.call_args.args[2], copy_rules)
+        self.assertEqual(compose.call_args.args[2], copies)
 
     def test_moved_renamed_master_survives_reexport_and_updates_all_mips(self):
         self.edit()
@@ -114,15 +114,25 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(report["textures"][0]["mips"], 6)
         self.assertEqual(patches[0][2][:112], self.data[:112])
 
-    def test_duplicate_and_missing_ids_are_errors(self):
+    def test_duplicate_ids_are_errors_and_missing_files_are_ignored(self):
         duplicate = self.master.with_name("another__" + self.row["id"] + ".png")
         shutil.copyfile(self.master, duplicate)
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             self.prepare()
         duplicate.unlink()
         self.master.unlink()
-        with self.assertRaisesRegex(ValueError, "Missing"):
-            self.prepare()
+        patches, report = self.prepare()
+        self.assertEqual(patches, [])
+        self.assertEqual(report["masters"], 0)
+
+    def test_valid_id_in_user_underscore_directory_is_included(self):
+        self.edit()
+        target = self.workspace / "_my_art" / self.master.name.upper()
+        target.parent.mkdir()
+        self.master.rename(target)
+        patches, report = self.prepare()
+        self.assertEqual(len(patches), 1)
+        self.assertEqual(report["textures"][0]["id"], self.row["id"])
 
     def test_edited_reference_master_is_patched_by_native_identity(self):
         self.edit()
@@ -132,35 +142,59 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(len(patches), 1)
         self.assertEqual(report["textures"][0]["id"], self.row["id"])
 
-    def test_generated_master_uses_original_but_preserves_manual_edit(self):
-        generated = {self.row["id"]: Image.new("RGBA", (256, 128), (12, 34, 56, 255))}
-        patches, report = self.prepare(generated_masters=generated)
-        self.assertEqual(len(patches), 1)
-        self.assertEqual(report["manual_generated_masters"], [])
-        self.edit()
-        manual_patches, report = self.prepare(generated_masters=generated)
-        self.assertEqual(report["manual_generated_masters"], [self.row["id"]])
-        self.assertNotEqual(patches, manual_patches)
-        self.assertEqual(manual_patches, self.prepare()[0])
-
     def test_court_and_logo_edits_share_one_resource_without_overwriting(self):
         self.edit()
         painted = bytearray(self.data)
         painted[4] = 123
-        edits = [(32, self.data, self.data, bytes(painted), 0, {"asset": "uh021.iff"})]
+        edits = [(32, self.data, self.data, bytes(painted), 0, {"asset": "uh021.iff", "compressed": False})]
         patches, report = self.prepare(court_edits=edits)
         self.assertEqual(len(patches), 1)
         self.assertEqual(patches[0][2][4], 123)
         self.assertEqual(len(report["courts"]), 1)
 
-    def test_lettering_controls_cannot_silently_recolour_reindexed_master_art(self):
+    def test_skin_automation_takes_precedence_only_at_controlled_pixels(self):
         self.edit()
+        self.manifest["sources"][0]["group"] = "players"
+        self.manifest_path.write_text(json.dumps(self.manifest))
         painted = bytearray(self.data)
-        painted[-4:-1] = b"\x20\x40\x60"
+        position = 112
+        painted[position:position + 3] = b"\x20\x40\x60"
+        edits = [(32, self.data, self.data, bytes(painted), 0,
+                  {"asset": "uh021.iff", "compressed": False, "modifier": "skin_tones"})]
+        patches, report = self.prepare(texture_edits=edits)
+        self.assertIn(self.row["id"], report["masters_with_automated_controls"])
+        def pixels(data):
+            image = catalogue.texture_images(data, 112, 180224, self.row["descriptor"],
+                                             self.row["descriptor_offsets"])[0][0]
+            return native.np.asarray(native.display(image)).astype(int)
+        before, control, result = pixels(self.data), pixels(bytes(painted)), pixels(patches[0][2])
+        mask = native.np.any(before != control, axis=2)
+        self.assertTrue(mask.any())
+        self.assertLessEqual(native.np.abs(result[mask] - control[mask]).max(), 3)
+        self.assertLessEqual(native.np.abs(result[~mask] - [30, 70, 120, 255]).max(), 3)
+
+    def test_manual_jersey_master_wins_over_overlapping_controls(self):
+        self.edit()
+        self.manifest["sources"][0]["group"] = "uniforms"
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        painted = bytearray(self.data)
+        painted[112:115] = b"\x20\x40\x60"
         edits = [(32, self.data, self.data, bytes(painted), 0,
                   {"asset": "uh021.iff", "compressed": False})]
-        with self.assertRaisesRegex(ValueError, "Lettering master and colour controls"):
-            self.prepare(texture_edits=edits)
+        patches, report = self.prepare(texture_edits=edits)
+        expected = self.prepare()[0]
+        self.assertEqual(patches, expected)
+        self.assertEqual(report["masters_with_automated_controls"], [])
+
+    def test_automation_applies_when_master_is_unmodified(self):
+        painted = bytearray(self.data)
+        position = 112
+        painted[position:position + 3] = b"\x20\x40\x60"
+        edits = [(32, self.data, self.data, bytes(painted), 0,
+                  {"asset": "uh021.iff", "compressed": False})]
+        patches, _ = self.prepare(texture_edits=edits)
+        self.assertEqual(len(patches), 1)
+        self.assertEqual(patches[0][2], bytes(painted))
 
     def test_explicit_palette_policy_and_invalid_policy(self):
         self.edit()

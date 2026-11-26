@@ -13,7 +13,7 @@ import openpyxl
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import player_database as db
 import overrides_workbook as overrides_xlsx
-import scrape_proa_roster as scraper
+import scrape as scraper
 from build_roster import P_HAND, P_YEARS, apply_accessories, apply_created_appearance, write_record_fields
 from crop_headshots import placeholder_hashes, KNOWN_PLACEHOLDERS
 from rating_map_2k5 import HIDDEN_ATTR_OFFSETS, EXTRA_CANONICAL

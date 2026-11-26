@@ -234,9 +234,6 @@ def load_manifest(workspace: Path) -> dict:
     manifest = json.loads((workspace / MANIFEST).read_text(encoding="utf-8"))
     if manifest.get("schema") != 1 or manifest.get("source_sha256") != native.SOURCE_SHA256:
         raise ValueError("Native uniform workspace schema/source mismatch")
-    if (manifest.get("migration", {}).get("unmapped_manual_edits")
-            or manifest.get("migration", {}).get("conflicts") or manifest.get("exceptions")):
-        raise ValueError("Native uniform export has unresolved migration/decoding blockers")
     return manifest
 
 

@@ -13,8 +13,8 @@ from pathlib import Path
 import requests
 from PIL import Image
 
-sys.path.insert(0, str(Path(__file__).parent))
-from scrape_proa_roster import TEAM_MAP  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from scrape import TEAM_MAP  # noqa: E402
 
 ROOT = Path(__file__).parent.parent
 LOGO_URL = "https://api.2basketballbundesliga.de/pics2/{season}/lo/{team_id}"

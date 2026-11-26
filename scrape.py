@@ -8,7 +8,7 @@ can be imported directly into 2K26 via the ProA import pipeline.
 
 Usage
 -----
-    python scripts/scrape_proa_roster.py [OUTPUT_XLSX] [OPTIONS]
+    python scrape.py [OUTPUT_XLSX] [OPTIONS]
 
 Options
     --refresh       Re-fetch pages even if HTML cache exists
@@ -37,6 +37,8 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 from player_database import (
     BLACKLIST, OVERRIDES, SHEET_COLUMNS, ACCESSORIES,
     apply_overrides, expand_nationality, load_blacklist, load_overrides, sanitize_names,
@@ -62,19 +64,8 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Paths & project imports
 # ---------------------------------------------------------------------------
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-try:
-    from scripts.proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, build_ratings, league_defense_averages, player_context
-    from scripts.season_stats import available_seasons, parse_season_totals, player_history, pool_seasons
-except ImportError:
-    # Allow the scraper to run stand-alone (e.g. from project root via
-    # 'python scripts/scrape_proa_roster.py') where the package import
-    # path resolves differently.
-    from proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, build_ratings, league_defense_averages, player_context  # type: ignore[no-redef]
-    from season_stats import available_seasons, parse_season_totals, player_history, pool_seasons  # type: ignore[no-redef]
+from proa_attr_model import ALL_ATTRS, HIDDEN_ATTRS, build_ratings, league_defense_averages, player_context
+from season_stats import available_seasons, parse_season_totals, player_history, pool_seasons
 
 # ---------------------------------------------------------------------------
 # Constants

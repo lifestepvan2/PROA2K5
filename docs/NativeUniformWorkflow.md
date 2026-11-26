@@ -137,8 +137,13 @@ python scripts\texture_iso_workspace.py check --iso-source "C:\Tools\isos\ESPN N
 Then run the normal season pipeline:
 
 ```powershell
-python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<NEW output ISO path>" --repack-archive
+python build.py
 ```
+
+For jerseys and other uniform textures, edited native masters take precedence
+over overlapping generated colour controls. Unedited masters still receive
+those controls. Automatic alternate-uniform copies preserve every edited
+destination resource; they do not replace manual jersey artwork.
 
 Use [archive repacking](./ArchiveRepacking.md) for variable-size compressed
 textures. No default palette reduction or simplification of non-ProA artwork
@@ -160,5 +165,4 @@ check:
 | Crowd / cutscenes | Are the edited fan clothes correct, with other palette variants intact? |
 | Other teams / special uniforms | Do untouched masters retain stock appearance? |
 
-F10 cannot reload embedded ISO assets. Portraits and other not-yet-migrated
-replacement classes remain outside this uniform migration.
+Boot the new ISO fresh to see embedded assets.

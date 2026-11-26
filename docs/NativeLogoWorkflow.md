@@ -122,25 +122,11 @@ Repacking remains explicitly opt-in pending that review.
 Season automation consumes the same masters:
 
 ```powershell
-python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ProA-season.iso"
+python build.py
 ```
 
-`--texture-workspace PATH` selects another native workspace. Its `team_palettes`
-subfolder is used for both roster UI colors and lettering/courts unless
-`--team-palettes PATH` overrides it. The standalone `season_iso.py` equivalent
-override is `--workspace PATH`. Court controls and logo changes are merged in
-decoded space, checked for conflicting writes and compressed once per resource.
-
-Standalone legacy cloth, roster and lettering tools retain their original
-`texture_workspace/team_palettes` default. Pass
-`--workspace texture_workspace_ISO\team_palettes` explicitly when exporting or
-checking the copied lettering controls. The legacy cloth generator still reads
-the original workspace; native uniform artwork migration is a later milestone.
-
-ISO season mode no longer generates legacy logo replacements by default.
-`--legacy-logo-replacements` explicitly retains that optional comparison output;
-card-only/build-only alternatives preserve legacy generation behavior.
-Existing replacement files are not deleted.
+The season builder uses `texture_workspace_ISO` and its `team_palettes` subfolder.
+Edited native logo masters take precedence over overlapping generated controls.
 
 Publication uses the verified, equal-size ISO-copy publisher (with streaming
 relocation when selected) and writes
@@ -148,7 +134,6 @@ an adjacent `.logos.json` or `.season.json` manifest with patch/source/output
 fingerprints. Always build from the untouched pristine Europe ISO to a **new**
 output outside the workspace; never chain patches over an earlier output.
 
-For in-game review, disable legacy logo replacements, cold-boot the new ISO and
-avoid old rosters/savestates. F10 reloads PCSX2 replacements, **not ISO assets**.
+For in-game review, cold-boot the new ISO and avoid old rosters/savestates.
 Native encode/decode and compression verification are not an in-game rendering
 certification.

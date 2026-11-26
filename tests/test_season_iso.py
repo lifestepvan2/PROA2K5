@@ -1,4 +1,5 @@
 import io
+import hashlib
 import json
 import csv
 import struct
@@ -108,23 +109,62 @@ class SeasonCompositionTests(unittest.TestCase):
         self.assertTrue(letters.call_args.kwargs["compose_skin"])
         self.assertIs(letters.call_args.kwargs["texture_edits"], textures.call_args.kwargs["texture_edits"])
 
-    def test_final_roster_generated_portraits_join_native_composition(self):
-        native = self.root / "native"
-        native.mkdir()
-        (native / "_iso_textures.json").write_text("{}")
-        generated = {"portrait-id": object()}
-        portrait_report = {"generated": 1}
-        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
-                patch.object(season.portrait_iso, "prepare", return_value=(generated, portrait_report)) as portraits, \
-                patch.object(season.lettering_workspace, "prepare", return_value=([], {})), \
-                patch.object(season.court_colours, "decoded_edits", return_value=[]), \
-                patch.object(season.texture_iso_workspace, "prepare", return_value=([], {"courts": []})) as textures, \
-                patch.object(season, "ISO_SIZE", 32):
-            _, report = season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv",
-                                       roster=self.roster, texture_workspace=native)
-        portraits.assert_called_once_with(self.roster, native)
-        self.assertIs(textures.call_args.kwargs["generated_masters"], generated)
-        self.assertEqual(report["logos"]["portraits"], portrait_report)
+    def test_build_id_depends_on_payload_and_not_patch_order(self):
+        patches = [self.roster_patch, self.visual_patch]
+        identity = season.build_id(patches)
+        self.assertEqual(len(identity), 16)
+        self.assertEqual(identity, season.build_id(list(reversed(patches))))
+        self.assertNotEqual(identity, season.build_id([(0, b"AA", b"SS"), self.visual_patch]))
+        self.assertNotEqual(identity, season.build_id([self.roster_patch, (8, b"AA", b"WW")]))
+
+    def test_stamp_is_small_grey_and_does_not_modify_master(self):
+        master = Image.new("RGBA", (512, 512), "white")
+        original = master.tobytes()
+        stamped = season.stamp_title(master, "221133d500000000")
+        self.assertEqual(master.tobytes(), original)
+        self.assertEqual(stamped.getpixel((4, 503)), (144, 144, 144, 255))
+        self.assertEqual(stamped.getpixel((0, 0)), (255, 255, 255, 255))
+        with self.assertRaises(ValueError):
+            season.stamp_title(master, "invalid")
+
+    def test_named_build_stamps_before_archive_repacking(self):
+        patches = [self.roster_patch, self.visual_patch]
+        title = (16, b"AA", b"TT")
+        copy_plan = [CopySpan(0, 32, data=b"A" * 32)]
+        report = {}
+
+        def stamp(stream, workspace, target, identity, manifest):
+            target.append(title)
+            manifest["build_id"] = {"value": identity}
+
+        with patch.object(season, "prepare", return_value=(patches, report)), \
+                patch.object(season, "add_title_stamp", side_effect=stamp), \
+                patch.object(season.archive_iso, "plan", return_value=(copy_plan, [], {})) as plan, \
+                patch.object(season, "publish_iso_copy", side_effect=lambda *args, **kwargs: args[5]) as publish:
+            result = season.build_named(self.source, self.root, self.roster, self.workspace,
+                                        texture_workspace=self.workspace)
+        self.assertIn(title, plan.call_args.args[1])
+        identity = season.build_id([self.roster_patch, self.visual_patch])
+        self.assertEqual(publish.call_args.args[1].name, f"proa2k5_{identity}.iso")
+        self.assertEqual(result["build_id"]["value"], identity)
+
+    def test_title_stamp_updates_report_to_final_encoded_bytes(self):
+        import remaining_texture_workspace
+        from test_gs_texture import fixture
+        original, _ = fixture()
+        row = {"id": season.TITLE_ID, "compressed": False, "iso_offset": 0, "chunk_offset": 0,
+               "system": 112, "video": 180224, "descriptor": 48, "descriptor_offsets": [48],
+               "scratch": 0, "asset": "titlepage.iff", "texture": "title", "group": "interface", "slot": None}
+        report = {"logos": {"resources": [{"offset": 32, "decoded_sha256": "old"}],
+                             "textures": [{"id": season.TITLE_ID}]}}
+        patches = [(32, original, original)]
+        with patch.object(remaining_texture_workspace, "load_manifest", return_value={"sources": [row]}), \
+                patch.object(season.texture_iso_workspace, "scan", return_value={season.TITLE_ID: self.root / "title.png"}), \
+                patch.object(season.texture_iso_workspace, "source_bytes", return_value=(original, original)):
+            season.add_title_stamp(io.BytesIO(), self.workspace, patches, "221133d500000000", report)
+        self.assertEqual(report["logos"]["resources"][0]["decoded_sha256"],
+                         hashlib.sha256(patches[0][2]).hexdigest())
+        self.assertIn("base_decoded_sha256", report["logos"]["textures"][0])
 
     def test_portraits_follow_final_roster_and_report_missing_inputs(self):
         payload = bytearray(0x68000)
@@ -197,6 +237,23 @@ class SeasonCompositionTests(unittest.TestCase):
                 patch.object(portrait_iso.remaining_texture_workspace, "load_manifest", return_value=manifest):
             with self.assertRaisesRegex(ValueError, "share native portrait"):
                 portrait_iso.prepare(self.roster, self.workspace, mapping, photos)
+
+    def test_portrait_population_overwrites_only_roster_masters(self):
+        self.workspace.mkdir()
+        portrait = self.workspace / "portrait__12345678.png"
+        untouched = self.workspace / "other__abcdef01.png"
+        Image.new("RGBA", (128, 128), "red").save(portrait)
+        Image.new("RGBA", (128, 128), "green").save(untouched)
+        old = untouched.read_bytes()
+        images = {"12345678": Image.new("RGBA", (128, 128), "blue")}
+        report = {"generated": 1}
+        manifest = {"sources": [{"id": "12345678"}, {"id": "abcdef01"}]}
+        with patch.object(portrait_iso, "prepare", return_value=(images, report)), \
+                patch.object(portrait_iso.remaining_texture_workspace, "load_manifest", return_value=manifest):
+            self.assertEqual(portrait_iso.populate(self.roster, self.workspace), report)
+        with Image.open(portrait) as saved:
+            self.assertEqual(saved.getpixel((0, 0)), (0, 0, 255, 255))
+        self.assertEqual(untouched.read_bytes(), old)
 
     def test_repack_absorbs_all_archive_edits_and_preserves_outside_patches(self):
         logo_patch = (16, b"AA", b"LLL")

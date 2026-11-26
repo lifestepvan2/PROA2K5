@@ -8,13 +8,15 @@ supplying them also verifies their final content before publication.
 """
 import argparse
 import archive_iso
+import hashlib
+import struct
 from pathlib import Path
 from typing import BinaryIO
 
+from PIL import Image, ImageDraw
 import lettering_workspace
 import roster_iso
 import court_colours
-import portrait_iso
 import texture_iso_workspace
 from iso_copy import publish_iso_copy, validate_patches
 from patch_lettering_iso import ISO_SIZE
@@ -48,10 +50,6 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
                                   for filename in (UNIFORM_MANIFEST, TEXTURE_MANIFEST)) else None)
         options = {"texture_edits": uniform_edits} if uniform_edits is not None else {}
         skin_options = {"compose_skin": True} if (texture_workspace / TEXTURE_MANIFEST).is_file() else {}
-        portrait_report = None
-        if roster is not None and (texture_workspace / TEXTURE_MANIFEST).is_file():
-            generated, portrait_report = portrait_iso.prepare(roster, texture_workspace)
-            options["generated_masters"] = generated
         visual_patches, visual_report = lettering_workspace.prepare(
             stream, workspace, slots, None, skin_plan, include_courts=False, repack_archive=repack_archive,
             **({"texture_edits": uniform_edits} if uniform_edits is not None else {}), **skin_options)
@@ -60,7 +58,6 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
             repack_archive=repack_archive, slots=slots, **options)
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
-        logo_report["portraits"] = portrait_report
     patches.extend(visual_patches)
     if stats_year is not None or roster_report.get("elf_crc_delta"):
         year_patches, visual_report["stats_year"] = prepare_year_patch(
@@ -69,10 +66,7 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
     report = {
         "schema": 1, "source_sha256": SOURCE_SHA256, "iso_size": ISO_SIZE,
         "roster": roster_report, "visuals": visual_report, "logos": logo_report,
-        "scope": ("Default roster, exported native texture masters and available roster portraits embedded; "
-                  "legacy skin replacement PNGs remain external"
-                  if logo_report is not None and logo_report.get("portraits") is not None
-                  else "Default roster embedded; automatic native portraits not selected"),
+        "scope": "Default roster and native texture workspace embedded",
         "restore": "Boot the untouched pristine ISO; rebuild from it rather than patching a previous output",
     }
     if repack_archive:
@@ -80,6 +74,126 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
     else:
         validate_patches(patches, ISO_SIZE)
     return patches, report
+
+
+TITLE_ID = "bb453139"
+GLYPHS = {
+    "0": ("111", "101", "101", "101", "111"), "1": ("010", "110", "010", "010", "111"),
+    "2": ("111", "001", "111", "100", "111"), "3": ("111", "001", "111", "001", "111"),
+    "4": ("101", "101", "111", "001", "001"), "5": ("111", "100", "111", "001", "111"),
+    "6": ("111", "100", "111", "101", "111"), "7": ("111", "001", "010", "010", "010"),
+    "8": ("111", "101", "111", "101", "111"), "9": ("111", "101", "111", "001", "111"),
+    "a": ("000", "110", "001", "111", "111"), "b": ("100", "100", "110", "101", "110"),
+    "c": ("000", "011", "100", "100", "011"), "d": ("001", "001", "011", "101", "011"),
+    "e": ("000", "110", "111", "100", "011"), "f": ("011", "010", "111", "010", "010"),
+    "i": ("010", "000", "010", "010", "010"), "l": ("110", "010", "010", "010", "111"),
+    "u": ("000", "101", "101", "101", "111"), "x": ("000", "101", "010", "101", "000"),
+    " ": ("000", "000", "000", "000", "000"),
+}
+
+
+def build_id(patches: list[tuple[int, bytes, bytes]]) -> str:
+    """Hash the pristine source identity and unstamped, original-coordinate payload."""
+    digest = hashlib.sha256(b"PROA2K5 native build v2\0" + bytes.fromhex(SOURCE_SHA256))
+    for offset, before, after in sorted(patches):
+        digest.update(struct.pack("<QQQ", offset, len(before), len(after)))
+        digest.update(before)
+        digest.update(after)
+    return digest.hexdigest()[:16]
+
+
+def stamp_title(image: Image.Image, identity: str) -> Image.Image:
+    if len(identity) != 16 or any(c not in "0123456789abcdef" for c in identity):
+        raise ValueError("Build ID must be 16 lowercase hexadecimal digits")
+    image = image.convert("RGBA")
+    label = "build 0x" + identity
+    if image.width < len(label) * 4 + 8 or image.height < 13:
+        raise ValueError("Title texture is too small for the build ID")
+    draw = ImageDraw.Draw(image)
+    for index, character in enumerate(label):
+        for y, row in enumerate(GLYPHS[character]):
+            for x, pixel in enumerate(row):
+                if pixel == "1":
+                    draw.point((4 + index * 4 + x, image.height - 9 + y), fill=(144, 144, 144, 255))
+    return image
+
+
+def add_title_stamp(stream: BinaryIO, workspace: Path, patches: list[tuple[int, bytes, bytes]],
+                    identity: str, report: dict) -> None:
+    from remaining_texture_workspace import load_manifest
+    from native_texture import display, encode
+    from texture_catalogue import texture_images
+
+    rows = [row for row in load_manifest(workspace)["sources"] if row["id"] == TITLE_ID]
+    if len(rows) != 1:
+        raise ValueError("Workspace must contain exactly one native title texture")
+    row = rows[0]
+    path = texture_iso_workspace.scan(workspace, rows)[TITLE_ID]
+    body, original = texture_iso_workspace.source_bytes(stream, row)
+    offset = row["iso_offset"] + row["chunk_offset"] + 32
+    matching = [index for index, (pos, _, _) in enumerate(patches) if pos == offset]
+    if len(matching) > 1 or row["compressed"]:
+        raise ValueError("Unsupported title resource composition")
+    current = patches[matching[0]][2] if matching else original
+    if matching and patches[matching[0]][1] != body:
+        raise ValueError("Title patch does not match pristine source")
+    images, _, _, _ = texture_images(current, row["system"], row["video"], row["descriptor"],
+                                      row["descriptor_offsets"])
+    stamped = stamp_title(display(images[0]), identity)
+    target, detail, _ = encode(current, row["system"], row["video"], row["descriptor"],
+                               row["descriptor_offsets"], stamped)
+    if len(target) != len(body):
+        raise ValueError("Title resource changed size")
+    replacement = (offset, body, target)
+    if matching:
+        patches[matching[0]] = replacement
+    else:
+        patches.append(replacement)
+    logos = report.get("logos")
+    if logos is not None:
+        resources = [item for item in logos["resources"] if item["offset"] == offset]
+        if len(resources) > 1:
+            raise ValueError("Duplicate title resource report")
+        if resources:
+            resources[0]["decoded_sha256"] = hashlib.sha256(target).hexdigest()
+        else:
+            logos["resources"].append({
+                "asset": row["asset"], "offset": offset, "stored": len(body), "scratch": row["scratch"],
+                "new_stored": len(target), "new_scratch": row["scratch"], "runtime_allocation_delta": 0,
+                "distance_bits": None, "decoded_sha256": hashlib.sha256(target).hexdigest(),
+            })
+        textures = [item for item in logos["textures"] if item["id"] == TITLE_ID]
+        if len(textures) > 1:
+            raise ValueError("Duplicate title texture report")
+        if textures:
+            textures[0].update(detail)
+        else:
+            logos["textures"].append({
+                "id": TITLE_ID, "asset": row["asset"], "texture": row["texture"], "resource_offset": offset,
+                "group": row["group"], "slot": row["slot"], "path": str(path), **detail,
+            })
+    report["build_id"] = {
+        "value": identity, "algorithm": "first 64 bits of SHA-256",
+        "input": "PROA2K5 native build v2, pristine SHA-256, then sorted unstamped original-coordinate patches "
+                 "(offset, original length, replacement length as little-endian u64, original and replacement bytes)",
+        "title_id": TITLE_ID, "title_encoding": detail,
+    }
+
+
+def build_named(source: Path, output_dir: Path, roster: Path, workspace: Path,
+                slots: Path = lettering_workspace.DEFAULT_SLOTS, stats_year: int | None = None,
+                skin_plan: Path | None = None, texture_workspace: Path = texture_iso_workspace.DEFAULT_WS) -> dict:
+    with source.open("rb") as stream:
+        patches, report = prepare(stream, workspace, slots, stats_year, roster, skin_plan, texture_workspace,
+                                  repack_archive=True)
+        identity = build_id(patches)
+        output = validate_output(source, output_dir / f"proa2k5_{identity}.iso", workspace)
+        add_title_stamp(stream, texture_workspace, patches, identity, report)
+        copy_plan, patches, report["archive"] = archive_iso.plan(stream, patches)
+        report["source"] = str(source.resolve())
+        report["output"] = str(output.resolve())
+        return publish_iso_copy(stream, output, patches, SOURCE_SHA256, ISO_SIZE, report,
+                                output.with_name(output.name + MANIFEST_SUFFIX), copy_plan=copy_plan)
 
 
 def check(source: Path, output: Path, workspace: Path = lettering_workspace.DEFAULT_WS,
@@ -137,14 +251,6 @@ def main() -> None:
                            repack_archive=args.repack_archive)
         print(f"Verified default roster and {report['visuals']['sources']} lettering sources; "
               f"roster {'embedded' if args.roster is not None else 'source checked'}.")
-        portraits = (report.get("logos") or {}).get("portraits")
-        if portraits:
-            for key, label in (("missing_headshots", "missing headshots"), ("suppressed_portraits", "suppressed portraits")):
-                if portraits[key]:
-                    print(f"Warning: {label} for ProA IDs {', '.join(map(str, portraits[key]))}")
-            print(f"Native portraits generated: {portraits['generated']}; "
-                  f"no-photo placeholders: {portraits['placeholders']}; "
-                  f"manual portrait masters retained: {len(report['logos']['manual_generated_masters'])}")
     except (OSError, ValueError, MemoryError) as error:
         parser.exit(1, f"Season ISO failed: {error}\n")
 

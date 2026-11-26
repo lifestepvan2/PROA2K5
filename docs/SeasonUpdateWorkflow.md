@@ -1,5 +1,16 @@
 # Season update workflow
 
+> **Current workflow:** Run `python scrape.py`, make manual edits, then run
+> `python build.py`. The build reads the pristine ISO at
+> `C:\Tools\isos\ESPN NBA 2K5 (Europe).iso` and publishes
+> `C:\Tools\isos\proa2k5_<build-id>.iso`. It overwrites roster-linked portrait
+> masters with generated headshots, regenerates requested skin masters, and
+> stamps the title only in the ISO. See
+> [texture precedence](NativeTextureWorkflow.md#compile-and-validate) for the
+> separate portrait, skin, jersey and other texture rules.
+> Add `--card PATH` to export the roster after ISO publication. The older
+> command examples and replacement-based instructions below are historical.
+
 Rebuilds the game's ProA roster for a new season and embeds it as the disc's default roster.
 The [ISO-first command](#iso-first-roster-deployment) chains everything below the *manual prerequisites*.
 An optional `--card PATH` exports the same final payload (PCSX2 must be closed for card writes).
@@ -302,7 +313,7 @@ game. The ISO stage automatically adds the matching season-label anchor.
 In card-only/build-only mode, counts are embedded but labels still require a separately
 patched ISO. See the [verified format and rounding limits](roster_payload_format.md#historical-player-statistics).
 
-### ISO-first roster deployment
+### ISO-first roster deployment (historical commands)
 
 Export and edit the [all-30-slot colour-control workspace](JerseyTextureWorkflow.md#simple-colour-controls-recommended)
 first. The ISO source must be the verified untouched European original, not a prior

@@ -162,8 +162,8 @@ SportEurope.TV/PROA loading atlas.
 
 ## Compile and validate
 
-The season pipeline automatically discovers `_iso_textures.json`. Existing
-`update_season.py` ISO mode includes these masters without another generator:
+The season pipeline automatically discovers `_iso_textures.json`. `python build.py`
+combines these masters with the roster in one ISO. For a separate texture check:
 
 ```powershell
 python scripts\texture_iso_workspace.py check --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --repack-archive
@@ -172,9 +172,16 @@ python scripts\texture_iso_workspace.py check --iso-source "C:\Tools\isos\ESPN N
 Use the combined season check/build for roster, skin, lettering, court controls
 and artwork together. `--repack-archive` pools compressed-resource savings
 within the unchanged archive extents; it does not enlarge PS2 RAM or VRAM.
-Native edits and skin recipes targeting the same player texture fail explicitly
-rather than silently overriding each other. Court and lettering controls compose
-at decoded-resource coordinates, with conflicting byte writes rejected.
+Precedence is specific to the texture:
+
+- Roster-linked portrait masters are regenerated from headshots or the native
+  no-photo image, overwriting any previous art in those masters.
+- Requested skin-tone recipes regenerate the matching face, arm and neck
+  masters. The build saves pre-automation art and restores it when the
+  override is removed, unless the master was manually edited afterward.
+- For other textures, an edited master takes precedence over overlapping
+  generated colour controls. Unedited masters allow the controls to apply.
+- Alternate uniform copying preserves any manually edited destination resource.
 
 Supported images include linear indexed 4/8-bit, true-color PSMCT32,
 GS-upload indexed 4/8-bit, font atlases and shared-index palette variants.
@@ -184,8 +191,7 @@ compressed resources undergo in-place safety validation.
 Offline checks do not certify rendered output. In particular, non-flat packed
 PSMT4 spatial addressing still needs a consolidated in-game visual review.
 Movies/audio and non-texture geometry are preserved, not converted to PNGs.
-The combined season build generates native roster portraits from available
-headshots; it preserves edited portrait masters instead of overwriting them.
+The combined season build overwrites roster-linked native portrait masters from available
+headshots before compiling the workspace.
 Missing headshots are reported and use the native `nophoto` master. Frontend team icons are authored in the
-workspace by `propagate_logos.py`; legacy reserve-skin PNG generation remains
-external to the ISO.
+workspace by `propagate_logos.py`.

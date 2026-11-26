@@ -5,13 +5,17 @@ The generated plan is a recipe, not a second ISO. Compilation verifies the curre
 roster, pristine assets and unchanged geometry/alpha. Fixed spans are preserved
 unless archive repacking is explicitly selected throughout the season pipeline.
 """
+import base64
 import csv
+import hashlib
+import io
 import json
 import os
 from functools import cache
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 from skimage import color
 
 from inventory_lettering_iso import asset_hash
@@ -20,12 +24,14 @@ from patch_preview_lettering_iso import SOURCE_SHA256
 from player_database import field_value
 from player_texture_iso import (player_asset_name, read_archive, read_asset, replace_texture, replace_video,
                                  texture_resource)
-import skin_brighten as sb
+from face_embed import TEX_CROP
 from txtr_match import SWZ
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "data" / "face_match" / "skin_tone_plan.json"
 PLAYER_MAP = ROOT / "data" / "roster_build" / "player_map.csv"
+P_SKIN = 0x69
+SIGMA = (22, 10, 10)
 
 
 def tone_value(row):
@@ -100,16 +106,20 @@ def skin_lab(rgb, box=None):
     if box is None:
         height, width = lab.shape[:2]
         box = (0, 0, width, height)
-    return sb._patch(lab, box)
+    x0, y0, x1, y1 = box
+    width, height = x1 - x0, y1 - y0
+    patch = lab[y0 + int(.35 * height):y0 + int(.65 * height),
+                x0 + int(.3 * width):x0 + int(.7 * width)]
+    return np.median(patch.reshape(-1, 3), axis=0)
 
 
 def recolour_face_video(video, target_lab):
     """Keep face indices/alpha; shift only skin-like palette entries in CIE Lab."""
     rgb = rgb_of(video, 256, 256)
-    source = skin_lab(rgb, sb.TEX_CROP)
+    source = skin_lab(rgb, TEX_CROP)
     palette = np.frombuffer(video[-1024:], dtype=np.uint8).reshape(256, 4).copy()
     lab = color.rgb2lab(palette[None, :, :3].astype(float) / 255)[0]
-    distance = np.sqrt((((lab - source) / np.array(sb.SIGMA)) ** 2).sum(axis=1))
+    distance = np.sqrt((((lab - source) / np.array(SIGMA)) ** 2).sum(axis=1))
     weight = np.clip(1.8 - distance, 0, 1)
     shifted = lab + weight[:, None] * (np.asarray(target_lab) - source)
     shifted[:, 0] = np.clip(shifted[:, 0], 0, 100)
@@ -117,30 +127,20 @@ def recolour_face_video(video, target_lab):
     return video[:-1024] + palette.tobytes()
 
 
-def donor_candidates(assets, defaults, keys):
-    """Rank original tone donors by common image content, excluding legacy PNG collisions."""
-    blocked = {
-        part: {key for row in keys.values() if row["usable"] == "1"
-               for key in row[f"{part}_key"].split(";") if key}
-        for part in ("arm", "neck")
-    }
+def donor_candidates(assets, defaults, keys=None):
+    """Rank native donor textures by their shared image content."""
     tones = {}
     for row in defaults:
         if row["team_slot"] and int(row["team_slot"]) < 39:
             record = bytes.fromhex(row["hex"])
-            tones.setdefault(int.from_bytes(record[4:6], "little"), record[sb.P_SKIN])
+            tones.setdefault(int.from_bytes(record[4:6], "little"), record[P_SKIN])
     groups = {}
     for pid, leg in sorted(tones.items()):
         if not all(asset_hash(player_asset_name(pid, side)) in assets.entries for side in ("h", "a")):
             continue
         for part in ("arm", "neck"):
-            key_row = keys.get(pid)
-            if key_row and blocked[part].intersection(key_row[f"{part}_key"].split(";")):
-                continue
-            # Only inventoried donors can prove that legacy reserve PNGs will not override them.
-            if not key_row or not key_row[f"{part}_key"]:
-                continue
-            image_hash = key_row[f"{part}_key"]
+            _, _, decoded, system, _ = assets.resource(pid, "h", part)
+            image_hash = digest(decoded[system:])
             groups.setdefault((leg, part), {}).setdefault(image_hash, []).append(pid)
     return {
         group: [min(pids) for pids in sorted(images.values(), key=lambda pids: (-len(pids), min(pids)))]
@@ -158,7 +158,7 @@ def _choose_donor(assets, target, candidates, part, leg, *, repack_archive=False
             return donor
         except ValueError as error:
             failures.append(f"{donor}: {error}")
-    detail = "; ".join(failures[:3]) or "no inventoried donors safe from legacy skin replacements"
+    detail = "; ".join(failures[:3]) or "no native donors available"
     advice = "" if repack_archive else " Retry the ISO pipeline with --repack-archive to allow lossless resource growth."
     raise ValueError(f"PID {target}: no compatible {part} donor for leg tone {leg}: {detail}.{advice}")
 
@@ -167,7 +167,7 @@ def load_candidates(assets, defaults=None, keys=None):
     if defaults is None:
         with (ROOT / "data" / "nba_defaults" / "players_unknown.csv").open(encoding="utf-8") as file:
             defaults = list(csv.DictReader(file))
-    return donor_candidates(assets, defaults, sb.read_keys() if keys is None else keys)
+    return donor_candidates(assets, defaults, keys)
 
 
 def create_plan(stream, rows, defaults=None, keys=None, *, repack_archive=False):
@@ -315,3 +315,89 @@ def load_patches(stream, path, rows=None, *, repack_archive=False, texture_edits
     plan = json.loads(Path(path).read_text(encoding="utf-8"))
     return compile_plan(stream, plan, read_rows() if rows is None else rows, repack_archive=repack_archive,
                         texture_edits=texture_edits)
+
+
+def populate_workspace(stream, workspace, plan_path=PLAN):
+    """Write all roster-requested complexion textures into their native masters."""
+    import remaining_texture_workspace
+    import texture_iso_workspace as native
+    from native_texture import display
+    from texture_catalogue import texture_images
+
+    edits = []
+    _, reports = load_patches(stream, plan_path, repack_archive=True, texture_edits=edits)
+    intents = {offset: (body, target) for offset, body, _, target, _, _ in edits}
+    sources = remaining_texture_workspace.load_manifest(workspace)["sources"]
+    lookup = {(row["asset"], row["texture"], row["iso_offset"] + row["chunk_offset"] + 32): row
+              for row in sources}
+    selected = {}
+    for report in reports:
+        for resource in report["resources"]:
+            offset = report["offset"] + resource["source_chunk_offset"] + 32
+            key = (report["asset"], resource["part"], offset)
+            if key not in lookup:
+                raise ValueError(f"No native master for complexion texture {key}")
+            row = lookup[key]
+            body, original = native.source_bytes(stream, row)
+            if offset in intents:
+                expected, target = intents[offset]
+                if expected != body:
+                    raise ValueError(f"{row['id']}: complexion source differs from workspace manifest")
+            else:
+                target = original
+            images, _, _, _ = texture_images(target, row["system"], row["video"],
+                                               row["descriptor"], row["descriptor_offsets"])
+            selected[row["id"]] = display(images[0])
+    update_generated_masters(workspace, sources, selected)
+    return {"masters": len(selected), "players": len(reports) // 2}
+
+
+def update_generated_masters(workspace, sources, images):
+    """Preserve pre-automation art and restore it when the generated edit is removed."""
+    import texture_iso_workspace as native
+    import workspace_images
+
+    state_path = workspace / "_generated_skin.json"
+    state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {"schema": 1, "masters": {}}
+    if state.get("schema") != 1 or not isinstance(state.get("masters"), dict):
+        raise ValueError(f"{state_path}: invalid generated skin state")
+    known = {row["id"]: row for row in sources}
+    if (set(state["masters"]) | set(images)) - known.keys():
+        raise ValueError("Generated skin state references unknown native masters")
+    rows = [known[token] for token in set(state["masters"]) | set(images)]
+    paths = native.scan(workspace, rows, require_all=False)
+    missing = set(images) - paths.keys()
+    if missing:
+        raise ValueError(f"Missing generated skin masters: {', '.join(sorted(missing))}")
+    staged = []
+    for token, path in paths.items():
+        current = path.read_bytes()
+        current_hash = hashlib.sha256(current).hexdigest()
+        previous = state["masters"].get(token)
+        if previous is not None:
+            if not isinstance(previous, dict) or not isinstance(previous.get("generated"), list):
+                raise ValueError(f"{state_path}: invalid state for {token}")
+            backup = base64.b64decode(previous["backup"], validate=True)
+            hashes = previous["generated"]
+        else:
+            backup, hashes = current, []
+        if token in images:
+            if current_hash not in hashes:
+                backup = current
+            output = workspace_images.image_bytes(path, images[token])
+            output_hash = hashlib.sha256(output).hexdigest()
+            hashes = sorted(set(hashes) | {output_hash})
+            state["masters"][token] = {"backup": base64.b64encode(backup).decode("ascii"),
+                                       "generated": hashes}
+            if output != current:
+                staged.append((path, output))
+        elif current_hash in hashes:
+            with Image.open(io.BytesIO(backup)) as image:
+                expected = Image.registered_extensions().get(path.suffix.lower())
+                output = backup if image.format == expected else workspace_images.image_bytes(path, image)
+            if output != current:
+                staged.append((path, output))
+    state_bytes = (json.dumps(state, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    workspace_images.replace(state_path, state_bytes)
+    for path, content in staged:
+        workspace_images.replace(path, content)

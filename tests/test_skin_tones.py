@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import skin_tones as skin
 import skin_brighten as sb
@@ -71,6 +72,35 @@ class SkinToneTests(unittest.TestCase):
         with patch.object(skin, "Assets", FixtureAssets), \
                 patch.object(skin, "donor_candidates", return_value={(5, "arm"): [20], (5, "neck"): [20]}):
             return skin.create_plan(None, self.rows, defaults=[], keys={}, **kwargs)
+
+    def test_generated_skin_overwrites_manual_art_and_restores_latest_manual_edit(self):
+        workspace = self.root / "native"
+        workspace.mkdir()
+        master = workspace / "face__12345678.png"
+        Image.new("RGBA", (8, 8), "red").save(master)
+        sources = [{"id": "12345678"}]
+        generated = {"12345678": Image.new("RGBA", (8, 8), "blue")}
+        skin.update_generated_masters(workspace, sources, generated)
+        with Image.open(master) as image:
+            self.assertEqual(image.getpixel((0, 0)), (0, 0, 255, 255))
+        Image.new("RGBA", (8, 8), "green").save(master)
+        skin.update_generated_masters(workspace, sources, generated)
+        skin.update_generated_masters(workspace, sources, {})
+        with Image.open(master) as image:
+            self.assertEqual(image.getpixel((0, 0)), (0, 128, 0, 255))
+
+    def test_removing_skin_override_preserves_subsequent_manual_edits(self):
+        workspace = self.root / "native"
+        workspace.mkdir()
+        master = workspace / "face__12345678.png"
+        Image.new("RGBA", (8, 8), "red").save(master)
+        sources = [{"id": "12345678"}]
+        skin.update_generated_masters(workspace, sources,
+                                      {"12345678": Image.new("RGBA", (8, 8), "blue")})
+        Image.new("RGBA", (8, 8), "yellow").save(master)
+        skin.update_generated_masters(workspace, sources, {})
+        with Image.open(master) as image:
+            self.assertEqual(image.getpixel((0, 0)), (255, 255, 0, 255))
 
     def test_repack_plan_survives_arm_growth_then_neck_and_face_updates_on_both_sides(self):
         with patch.object(skin, "Assets", GrowingFixtureAssets):
@@ -267,7 +297,7 @@ class SkinToneTests(unittest.TestCase):
                 build_roster.main()
         self.assertEqual(error.exception.code, 2)
 
-    def test_donors_exclude_every_legacy_skin_replacement_key(self):
+    def test_native_donors_do_not_depend_on_legacy_replacement_keys(self):
         defaults, keys = [], {}
         for pid, arm_key, neck_key, usable in ((10, "blocked-arm", "blocked-neck", "1"),
                                                (20, "blocked-arm", "safe-neck", "0"),
@@ -278,8 +308,8 @@ class SkinToneTests(unittest.TestCase):
             defaults.append({"team_slot": "1", "hex": record.hex()})
             keys[pid] = {"arm_key": arm_key, "neck_key": neck_key, "usable": usable}
         candidates = skin.donor_candidates(FixtureAssets(), defaults, keys)
-        self.assertEqual(candidates[5, "arm"], [30])
-        self.assertEqual(candidates[5, "neck"], [20])
+        self.assertEqual(candidates[5, "arm"], [10, 20, 30])
+        self.assertEqual(candidates[5, "neck"], [10, 20, 30])
 
     def test_donor_fallback_and_explicit_exhaustion(self):
         with patch.object(skin, "replace_texture", side_effect=[ValueError("fixed span"), (b"", {}), (b"", {})]):

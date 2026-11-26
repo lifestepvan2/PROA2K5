@@ -31,9 +31,6 @@ def load_manifest(workspace: Path) -> dict:
     manifest = json.loads((workspace / MANIFEST).read_text(encoding="utf-8"))
     if manifest.get("schema") != 1 or manifest.get("source_sha256") != native.SOURCE_SHA256:
         raise ValueError("Native texture workspace schema/source mismatch")
-    if (manifest.get("exceptions") or manifest.get("migration", {}).get("conflicts")
-            or manifest.get("migration", {}).get("unmapped_manual_edits")):
-        raise ValueError("Native texture workspace has unresolved export blockers")
     return manifest
 
 

@@ -37,7 +37,8 @@ DEFAULT_WS = ROOT / "texture_workspace_ISO"
 MANIFEST = "_iso_logos.json"
 SEEDS = ROOT / "data" / "texture_map" / "logo_iso_defaults.json"
 EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".webp"}
-TOKEN = re.compile(r"__([0-9a-f]{8})$")
+TOKEN = re.compile(r"__([0-9a-f]{8})$", re.IGNORECASE)
+DERIVED_DIRS = {"_encoded", "_legacy_pcsx2", "_retired_visual_sort", "_stitched", "_videos"}
 
 
 def csv_rows(path: Path) -> list[dict]:
@@ -200,19 +201,20 @@ def default_image(original: Image.Image, slot: int, recipe: dict | None) -> Imag
     return canvas.resize(original.size, Image.Resampling.LANCZOS)
 
 
-def scan(workspace: Path, sources: list[dict]) -> dict[str, Path]:
+def scan(workspace: Path, sources: list[dict], *, require_all: bool = True) -> dict[str, Path]:
     known, found = {row["id"] for row in sources}, {}
     for path in workspace.rglob("*"):
         if (not path.is_file() or path.suffix.lower() not in EXTENSIONS
-                or any(part.startswith("_") for part in path.relative_to(workspace).parts)):
+                or path.relative_to(workspace).parts[0] in DERIVED_DIRS):
             continue
         match = TOKEN.search(path.stem)
-        if match and match[1] in known:
-            if match[1] in found:
-                raise ValueError(f"Duplicate native master ID {match[1]}: {found[match[1]]}, {path}")
-            found[match[1]] = path
+        identity = match[1].lower() if match else None
+        if identity in known:
+            if identity in found:
+                raise ValueError(f"Duplicate native master ID {identity}: {found[identity]}, {path}")
+            found[identity] = path
     missing = known - found.keys()
-    if missing:
+    if missing and require_all:
         raise ValueError(f"Missing native logo masters: {', '.join(sorted(missing))}")
     return found
 
@@ -291,8 +293,7 @@ def export(source: Path, workspace: Path = DEFAULT_WS,
 def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = None,
             *, collect_failures: bool = False, repack_archive: bool = False,
             palette_colors: int = 256, texture_edits: list | None = None,
-            slots: Path = ROOT / "data" / "team_slots.csv",
-            generated_masters: dict[str, Image.Image] | None = None) -> tuple[list, dict]:
+            slots: Path = ROOT / "data" / "team_slots.csv") -> tuple[list, dict]:
     validate_workspace(workspace)
     if type(palette_colors) is not int or palette_colors not in (16, 32, 64, 128, 256):
         raise ValueError("Invalid default native palette color count")
@@ -302,121 +303,125 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
     if manifest.get("schema") != 1 or manifest.get("source_sha256") != SOURCE_SHA256:
         raise ValueError("Native logo workspace schema/source mismatch")
     entries = read_archive(stream)
-    from uniform_iso_workspace import MANIFEST as UNIFORM_MANIFEST, load_manifest, bundle_owner
+    from uniform_iso_workspace import MANIFEST as UNIFORM_MANIFEST, load_manifest
     uniforms = load_manifest(workspace) if (workspace / UNIFORM_MANIFEST).is_file() else None
-    from remaining_texture_workspace import MANIFEST as TEXTURE_MANIFEST, load_manifest as load_textures, location
+    from remaining_texture_workspace import MANIFEST as TEXTURE_MANIFEST, load_manifest as load_textures
     remaining = load_textures(workspace) if (workspace / TEXTURE_MANIFEST).is_file() else None
     copies = uniform_slot_copies.rules(stream, slots) if uniforms else []
     if copies and not repack_archive:
-        raise ValueError("Automatic ProA alternate uniform copies require --repack-archive")
+        raise ValueError("Automatic alternate uniform copies require archive repacking")
     inherited = uniform_slot_copies.inherited_offsets(stream, copies) if copies else set()
-    generic_ids = {row["id"] for row in remaining["sources"]} if remaining else set()
     sources = manifest["sources"] + (uniforms["sources"] if uniforms else []) + (remaining["sources"] if remaining else [])
     if (not sources or len({row["id"] for row in sources}) != len(sources)
             or any(not re.fullmatch(r"[0-9a-f]{8}", row["id"]) for row in sources)):
         raise ValueError("Native logo manifest requires unique valid master IDs")
-    files = scan(workspace, sources)
-    if generated_masters and set(generated_masters) - files.keys():
-        raise ValueError("Generated textures reference unknown native masters")
+    known_ids = {row["id"] for row in sources}
+    files = scan(workspace, sources, require_all=False)
+    sources = [row for row in sources if row["id"] in files]
     policy_path = workspace / "_iso_encoding.json"
     policy = json.loads(policy_path.read_text(encoding="utf-8")) if policy_path.exists() else {"schema": 1, "palette_colors": {}}
     if (not isinstance(policy, dict) or type(policy.get("schema")) is not int
             or policy["schema"] != 1 or set(policy) != {"schema", "palette_colors"}
             or not isinstance(policy["palette_colors"], dict)
-            or set(policy["palette_colors"]) - files.keys()
+            or set(policy["palette_colors"]) - known_ids
             or any(type(value) is not int or value not in (16, 32, 64, 128, 256)
                    for value in policy["palette_colors"].values())):
         raise ValueError("Invalid explicit native palette policy")
     resources = {}
+    skin_controls = set()
+    for offset, body, original, target, scratch, report in (court_edits or []) + (texture_edits or []):
+        if offset in inherited:
+            continue
+        if report.get("modifier") == "skin_tones":
+            skin_controls.add(offset)
+        if offset in resources:
+            row, existing_body, existing_original, edited = resources[offset]
+            if original != existing_original or body != existing_body:
+                raise ValueError("Native texture/control resources disagree on source bytes")
+            resources[offset][3] = merge_decoded(original, edited, target, "Texture controls")
+        else:
+            resources[offset] = [{"asset": report["asset"], "compressed": report.get("compressed", True),
+                                  "scratch": scratch}, body, original, target]
     shared_edits = collections.defaultdict(list)
     reports = []
-    manual_generated = []
+    automated_masters = []
+    control_targets = {offset: (value[2], value[3]) for offset, value in resources.items()}
+    checked_resources = set()
     for row in sources:
         path = files[row["id"]]
         with Image.open(path) as file:
             master = file.copy()
         master_changed = image_digest(master) != row["original_display_digest"]
-        if generated_masters and row["id"] in generated_masters:
-            if master_changed:
-                manual_generated.append(row["id"])
-            else:
-                master = generated_masters[row["id"]]
-                master_changed = image_digest(master) != row["original_display_digest"]
+        offset = row["iso_offset"] + row["chunk_offset"] + 32
         if not master_changed:
             continue
-        if row["id"] in generic_ids:
-            identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
-            if (digest(identity.encode())[:8] != row["id"]
-                    or location(row["asset"], row["scene"], row["texture"], row["kind"])[2] != row["slot"]
-                    or (row["asset"] != f"hash:{row['asset_hash']}"
-                        and asset_hash(row["asset"]) != int(row["asset_hash"], 16))):
-                raise ValueError(f"{path}: native texture ownership/identity changed")
-        elif row["group"] == "uniforms":
-            actual = bundle_owner(row["asset"], row["asset_hash"], manifest["sources"])
-            if ((not row["asset"].startswith("hash:") and asset_hash(row["asset"]) != int(row["asset_hash"], 16))
-                    or any(row[key] != value for key, value in actual.items())):
-                raise ValueError(f"{path}: native uniform ownership changed")
-        else:
-            actual_slot = current_slot(row["asset"], row["asset_hash"], row["texture"], row["group"])
-            identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
-            if (digest(identity.encode())[:8] != row["id"]
-                    or (not row["asset"].startswith("hash:")
-                        and asset_hash(row["asset"]) != int(row["asset_hash"], 16))
-                    or (row["editable"] and (actual_slot is None or actual_slot != row["slot"]))):
-                raise ValueError(f"{path}: current-team ownership does not match the native source")
+        identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
+        if digest(identity.encode())[:8] != row["id"]:
+            raise ValueError(f"{path}: native texture identity changed")
         if entries.get(int(row["asset_hash"], 16)) != (row["iso_offset"], row["asset_size"]):
             raise ValueError("Native master archive identity changed")
-        offset = row["iso_offset"] + row["chunk_offset"] + 32
         if offset not in resources:
             body, decoded = source_bytes(stream, row)
             resources[offset] = [row, body, decoded, decoded]
+            checked_resources.add(offset)
+        elif offset not in checked_resources:
+            body, decoded = source_bytes(stream, row)
+            if body != resources[offset][1] or decoded != resources[offset][2]:
+                raise ValueError(f"{path}: native texture and control source differ")
+            checked_resources.add(offset)
         resource, body, original, target = resources[offset]
+        if offset in skin_controls and row["group"] == "players":
+            control_original, control_target = control_targets[offset]
+            before_images, _, _, _ = texture_images(control_original, row["system"], row["video"],
+                                                      row["descriptor"], row["descriptor_offsets"])
+            after_images, _, _, _ = texture_images(control_target, row["system"], row["video"],
+                                                     row["descriptor"], row["descriptor_offsets"])
+            before = display(before_images[0])
+            after = display(after_images[0])
+            before_pixels = np.asarray(before)
+            after_pixels = np.asarray(after)
+            mask = np.any(before_pixels != after_pixels, axis=2)
+            if mask.any():
+                has_alpha = "A" in master.getbands() or "transparency" in master.info
+                master = master.convert("RGBA").resize(before.size, Image.Resampling.LANCZOS)
+                if not has_alpha:
+                    master.putalpha(before.getchannel("A"))
+                pixels = np.array(master)
+                pixels[mask] = after_pixels[mask]
+                master = Image.fromarray(pixels)
+                automated_masters.append(row["id"])
         if row["layout"] == "linear-shared-indices":
             shared_edits[offset].append((row, master))
             continue
         encoded, report, preview = encode(
-            original, row["system"], row["video"], row["descriptor"], row["descriptor_offsets"], master,
+            target, row["system"], row["video"], row["descriptor"], row["descriptor_offsets"], master,
             palette_colors=policy["palette_colors"].get(row["id"], palette_colors))
-        target = merge_decoded(original, target, encoded, f"Native masters in {row['asset']}")
-        resources[offset][3] = target
+        resources[offset][3] = encoded
         reports.append({"id": row["id"], "asset": row["asset"], "texture": row["texture"], "resource_offset": offset,
                         "group": row["group"], "slot": row["slot"], "path": str(path), **report})
         preview_path = workspace / "_encoded" / f"{row['id']}.png"
         preview_path.parent.mkdir(exist_ok=True)
         preview.save(preview_path)
     for offset, edits in shared_edits.items():
-        row, body, original, target = resources[offset]
+        _, body, original, target = resources[offset]
+        row = edits[0][0]
         colors = min(policy["palette_colors"].get(item["id"], palette_colors) for item, _ in edits)
         encoded, details, previews = encode_shared(
-            original, row["system"], row["video"], row["descriptor_offsets"],
+            target, row["system"], row["video"], row["descriptor_offsets"],
             {item["descriptor"]: image for item, image in edits}, palette_colors=colors)
-        resources[offset][3] = merge_decoded(original, target, encoded, f"Shared-index masters in {row['asset']}")
+        resources[offset][3] = encoded
         cohort = {item["descriptor"]: item for item in sources
                   if item["iso_offset"] + item["chunk_offset"] + 32 == offset}
         for detail in details:
-            item = cohort[detail["descriptor"]]
+            item = cohort.get(detail["descriptor"])
+            if item is None:
+                continue
             reports.append({"id": item["id"], "asset": item["asset"], "texture": item["texture"],
                             "resource_offset": offset, "group": item["group"], "slot": item["slot"],
                             "path": str(files[item["id"]]), **detail})
             preview_path = workspace / "_encoded" / f"{item['id']}.png"
             preview_path.parent.mkdir(exist_ok=True)
             previews[detail["descriptor"]].save(preview_path)
-    for offset, body, original, target, scratch, report in (court_edits or []) + (texture_edits or []):
-        if offset in inherited:
-            continue
-        if offset in resources:
-            row, existing_body, existing_original, edited = resources[offset]
-            if original != existing_original or body != existing_body:
-                raise ValueError("Native texture/control resources disagree on source bytes")
-            if edited != original and any(edit[0] == offset for edit in texture_edits or []):
-                if report.get("modifier") == "skin_tones":
-                    raise ValueError("Skin-tone plan and native master target the same player texture; choose one source")
-                raise ValueError("Lettering master and colour controls target the same texture; "
-                                 "reset overlapping palette controls before editing its pixels")
-            resources[offset][3] = merge_decoded(original, edited, target, "Controls and native masters")
-        else:
-            resources[offset] = [{"asset": report["asset"], "compressed": report.get("compressed", True), "scratch": scratch},
-                                 body, original, target]
     patches, budgets, capacity_failures = [], [], []
     for offset, (row, body, original, target) in sorted(resources.items()):
         if original == target:
@@ -501,7 +506,7 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                      "courts": [edit[5] for edit in court_edits or []],
                      "stock_centerlogo": manifest["unseeded_centerlogo"], "exceptions": manifest["exceptions"],
                      "capacity_failures": capacity_failures, "encoding_policy": policy,
-                     "manual_generated_masters": manual_generated,
+                     "masters_with_automated_controls": automated_masters,
                      "repack_archive": repack_archive, "default_palette_colors": palette_colors,
                      "uniform_copies": copy_reports}
     report["uniforms"] = ({"masters": len(uniforms["sources"]), "packages": len(uniforms["packages"]),

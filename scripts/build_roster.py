@@ -33,7 +33,6 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from rating_map_2k5 import ATTR_OFFSETS, HIDDEN_ATTR_OFFSETS, EXTRA_BYTE_COLS, EXTRA_CANONICAL, read_attrs  # noqa: E402
 from overall_data import player_extras  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
-import skin_brighten  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
 from roster_stats import encode_history, repack as repack_stats  # noqa: E402
 from player_database import APPEARANCE_FIELDS, RAW_ACCESSORY_FIELDS, PLAYER_COLUMNS, field_value, player_id  # noqa: E402
@@ -411,11 +410,10 @@ def allocate_records(pl, team_players, slots):
 
 def load_skin_tones():
     """{pid: skin tone byte (record +0x69)} of the original NBA records; legs follow this byte, so a cast player needs the tone of
-    the model he borrows. Pids of the light-arm reserve (skin_brighten.py) are recoloured light, so they get the light tone."""
+    the model he borrows."""
     tones = {int.from_bytes(b[4:6], "little"): b[P_SKIN]
              for b in (bytes.fromhex(r["hex"]) for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8"))
                        if r["team_slot"] and int(r["team_slot"]) < 39)}
-    tones.update({p: skin_brighten.LIGHT_TONE for p in skin_brighten.reserved_pids()})
     return tones
 
 
@@ -530,7 +528,7 @@ def main():
     if not a.no_stats:
         stats_source = json.loads(a.stats.read_text(encoding="utf-8"))
         if stats_source.get("schema_version") != 2:
-            raise SystemExit("Stats history requires schema_version 2; rerun scrape_proa_roster.py")
+            raise SystemExit("Stats history requires schema_version 2; rerun scrape.py")
         if a.season is not None and stats_source["season"] != a.season:
             raise SystemExit(f"Stats archive season {stats_source['season']} does not match requested {a.season}; rerun scraping")
         stats_anchor = int(stats_source["season"].split("_")[0])

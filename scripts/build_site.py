@@ -4,7 +4,7 @@
 
 Inputs (all committed):
     proa_scraped.xlsx        roster, the 19 2K5 attributes (the single source of truth for ratings)
-    data/proa_stats.json     pooled stats + team ids (written by scrape_proa_roster.py)
+    data/proa_stats.json     pooled stats + team ids (written by scrape.py)
     data/overall_model.json  fitted in-game Overall model (fit_overall.py)
     assets/PS_out/<id>.png   portraits (resized to WebP here)
     site_src/                static frontend (index.html, app.js, style.css)
