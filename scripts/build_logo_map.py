@@ -4,7 +4,7 @@ References are full logo textures listed in data/texture_map/logo_refs.csv. Two 
 candidate with an isotropic scale search (normalised cross correlation, colour):
   A  the candidate is a window of the reference frame (full logos at other resolutions, split/cropped logos)
   B  the reference sits inside the candidate (logo on a sign / composite texture)
-Output: data/texture_map/logo_variants.csv. gen_logo_replacements.py turns the A matches into replacements.
+Output: data/texture_map/logo_variants.csv for historical texture investigations.
 Usage: python scripts/build_logo_map.py [--min 0.6] [--since "2026-10-18 12:00"] [--families 00001dd3,00001dd4]
 """
 import argparse

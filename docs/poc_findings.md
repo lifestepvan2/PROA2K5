@@ -1,5 +1,7 @@
 # NBA 2K5 (PCSX2, SLES-53022) – POC findings
 
+Historical proof-of-concept notes; use `python build.py` for current ISO builds.
+
 Status: **name replacement and texture replacement both verified on screen** on the
 QuickGame > Start Game (starters) screen (76ers at Hawks).
 

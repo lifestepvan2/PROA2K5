@@ -1,5 +1,8 @@
 ﻿# PS2 2K5 architecture
 
+Historical architecture notes: the current portable workflow is `python scrape.py`,
+manual edits, then `python build.py`; see `docs/NativeTextureWorkflow.md`.
+
 ## Objective
 Turn ESPN NBA 2K5 (PS2, PCSX2) into a ProA game: replace team/player names, lineup textures and ratings
 with the current ProA roster, reproducibly for each new roster.

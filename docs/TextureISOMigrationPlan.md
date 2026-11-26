@@ -1,5 +1,9 @@
 # Texture workspace to portable ISO: migration plan
 
+This is a historical plan, not current operating instructions. The combined
+native ISO workflow is `python scrape.py`, manual edits, then `python build.py`;
+see [native textures](./NativeTextureWorkflow.md).
+
 ## Goal and boundaries
 
 Make the ISO sufficient for every supported visual mod. Keep the existing

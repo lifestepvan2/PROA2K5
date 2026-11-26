@@ -2,7 +2,7 @@
 
 Replaces the former Photoshop batch step. Window geometry was calibrated against 72 existing Photoshop crops:
 side = 3.68 x detected face width, horizontally centred on the face, face top at 21% of the window height.
-Output is opaque RGBA on white (gen_replacements / face_embed composite on white anyway).
+Output is opaque RGBA on white.
 
     python scripts/crop_headshots.py [--season 2026_2027] [--force]
 """

@@ -1475,5 +1475,385 @@
       ]
     }
   ],
-  "repack_archive": true
+  "repack_archive": true,
+  "reserve_players": [
+    {
+      "proa_id": "1400004",
+      "pid": 1118,
+      "skin_tone": 0,
+      "skin_target": 1.54,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "1400007",
+      "pid": 1021,
+      "skin_tone": 0,
+      "skin_target": 1.41,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "1400008",
+      "pid": 1032,
+      "skin_tone": 0,
+      "skin_target": 1.257,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "1400026",
+      "pid": 1033,
+      "skin_tone": 0,
+      "skin_target": 1.54,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2000797",
+      "pid": 837,
+      "skin_tone": 0,
+      "skin_target": 1.605,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001259",
+      "pid": 1188,
+      "skin_tone": 0,
+      "skin_target": 1.625,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001322",
+      "pid": 1162,
+      "skin_tone": 0,
+      "skin_target": 1.565,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001468",
+      "pid": 1040,
+      "skin_tone": 0,
+      "skin_target": 1.58,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001526",
+      "pid": 620,
+      "skin_tone": 0,
+      "skin_target": 1.475,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001540",
+      "pid": 75,
+      "skin_tone": 0,
+      "skin_target": 1.555,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001541",
+      "pid": 184,
+      "skin_tone": 0,
+      "skin_target": 1.585,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001580",
+      "pid": 643,
+      "skin_tone": 0,
+      "skin_target": 1.35,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001705",
+      "pid": 1155,
+      "skin_tone": 0,
+      "skin_target": 1.263,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001759",
+      "pid": 731,
+      "skin_tone": 0,
+      "skin_target": 1.49,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001774",
+      "pid": 102,
+      "skin_tone": 0,
+      "skin_target": 1.505,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001841",
+      "pid": 547,
+      "skin_tone": 0,
+      "skin_target": 1.515,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2001926",
+      "pid": 937,
+      "skin_tone": 0,
+      "skin_target": 1.495,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2002205",
+      "pid": 350,
+      "skin_tone": 0,
+      "skin_target": 1.357,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2002994",
+      "pid": 397,
+      "skin_tone": 0,
+      "skin_target": 1.63,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003146",
+      "pid": 392,
+      "skin_tone": 0,
+      "skin_target": 1.65,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003150",
+      "pid": 1028,
+      "skin_tone": 0,
+      "skin_target": 1.66,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003788",
+      "pid": 240,
+      "skin_tone": 0,
+      "skin_target": 1.27,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003819",
+      "pid": 1178,
+      "skin_tone": 0,
+      "skin_target": 1.5,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003945",
+      "pid": 1199,
+      "skin_tone": 0,
+      "skin_target": 1.57,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003981",
+      "pid": 268,
+      "skin_tone": 0,
+      "skin_target": 1.53,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2003985",
+      "pid": 1027,
+      "skin_tone": 0,
+      "skin_target": 1.323,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004013",
+      "pid": 1041,
+      "skin_tone": 0,
+      "skin_target": 1.25,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004014",
+      "pid": 817,
+      "skin_tone": 0,
+      "skin_target": 1.175,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004016",
+      "pid": 312,
+      "skin_tone": 0,
+      "skin_target": 1.25,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004032",
+      "pid": 334,
+      "skin_tone": 0,
+      "skin_target": 1.437,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004045",
+      "pid": 571,
+      "skin_tone": 0,
+      "skin_target": 1.485,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004048",
+      "pid": 421,
+      "skin_tone": 0,
+      "skin_target": 1.595,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004110",
+      "pid": 153,
+      "skin_tone": 0,
+      "skin_target": 1.625,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004146",
+      "pid": 1025,
+      "skin_tone": 0,
+      "skin_target": 1.635,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004187",
+      "pid": 917,
+      "skin_tone": 0,
+      "skin_target": 1.203,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004199",
+      "pid": 745,
+      "skin_tone": 0,
+      "skin_target": 1.545,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004201",
+      "pid": 1020,
+      "skin_tone": 0,
+      "skin_target": 1.377,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004206",
+      "pid": 291,
+      "skin_tone": 0,
+      "skin_target": 1.27,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004237",
+      "pid": 597,
+      "skin_tone": 0,
+      "skin_target": 1.615,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004462",
+      "pid": 1168,
+      "skin_tone": 0,
+      "skin_target": 1.37,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004463",
+      "pid": 1148,
+      "skin_tone": 0,
+      "skin_target": 1.35,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004482",
+      "pid": 751,
+      "skin_tone": 0,
+      "skin_target": 1.505,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004602",
+      "pid": 194,
+      "skin_tone": 0,
+      "skin_target": 1.535,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004675",
+      "pid": 155,
+      "skin_tone": 0,
+      "skin_target": 1.49,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004682",
+      "pid": 833,
+      "skin_tone": 0,
+      "skin_target": 1.35,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004707",
+      "pid": 1045,
+      "skin_tone": 0,
+      "skin_target": 1.555,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004723",
+      "pid": 443,
+      "skin_tone": 0,
+      "skin_target": 1.222,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004732",
+      "pid": 1158,
+      "skin_tone": 0,
+      "skin_target": 1.383,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004915",
+      "pid": 116,
+      "skin_tone": 0,
+      "skin_target": 1.525,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2004918",
+      "pid": 388,
+      "skin_tone": 0,
+      "skin_target": 1.194,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "2005106",
+      "pid": 619,
+      "skin_tone": 0,
+      "skin_target": 1.363,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "5117",
+      "pid": 98,
+      "skin_tone": 0,
+      "skin_target": 1.25,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "6272",
+      "pid": 615,
+      "skin_tone": 0,
+      "skin_target": 1.535,
+      "leg_byte": 5
+    },
+    {
+      "proa_id": "6604",
+      "pid": 1022,
+      "skin_tone": 0,
+      "skin_target": 1.585,
+      "leg_byte": 5
+    }
+  ]
 }

@@ -231,7 +231,7 @@ def move(src, dest):
 def res_of(ws, t):
     r = token_rows(ws).get(t)
     if not r:
-        raise SystemExit(f"ID {t} is not in the manifest - run texture_workspace.py export")
+        raise SystemExit(f"ID {t} is not in the historical workspace manifest")
     return f"{r['w']}x{r['h']}"
 
 
@@ -317,7 +317,7 @@ def cmd_organise(ws, dry=False):
         raise SystemExit("Cannot organise ambiguous role files:\n" + "\n".join(problems))
     rows = token_rows(ws)
     if not rows:
-        raise SystemExit("no manifest - run texture_workspace.py export first")
+        raise SystemExit("No historical workspace manifest")
     plan = []
     for entry in roles.values():
         if not team_folder(entry["label"]):

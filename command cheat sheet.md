@@ -12,8 +12,12 @@ Existing output files are not overwritten. The title image is stamped only in
 the ISO. Roster portrait and requested skin masters are regenerated in the
 workspace. For other textures, edited masters take precedence over overlapping
 generated colour controls; alternate uniform copies preserve edited resources.
-Automatic light-reserve recolouring is not yet migrated; only explicit Skin Tone
-overrides generate skin textures.
+Automatic light-reserve recolouring and explicit Skin Tone overrides generate
+model-local skin textures. Explicit overrides take precedence.
+
+Optional: `python scripts\create_baseline_jersey.py --dry-run` previews baseline
+uniform generation; omit `--dry-run` to update unedited native masters. Manually
+edited jerseys are always preserved.
 
 Optional: `python build.py --card "C:\path\to\card.ps2"` also writes the final
 roster to a memory card after the ISO succeeds. Close PCSX2 first.

@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `5e9caca0`
+- payload: 725056 bytes, CRC32 `502fcf07`
 - teams: 18, players: 252
 - string pool: free before 4000 B, freed 14640 B, free after 4758 B (largest block 4000 B)
 - stats: 252 players, 127524/175184 B; season labels require ISO anchor 2026
@@ -686,4 +686,4 @@
 - Dyami Janeck: 2026: GS unavailable (omitted in game)
 - Pablo Estelle: 2026: GS unavailable (omitted in game)
 - Mats Neumann: 2025: GS unavailable (omitted in game)
-- Skin Tone leg bytes require the matching combined ISO build from the prepared face-match plan.
+- Generated skin and leg bytes require the matching combined ISO build from the prepared face-match plan.

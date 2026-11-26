@@ -1,8 +1,8 @@
 # ProA on NBA 2K5 (PS2) - plan and todo list
 
-Workflow: `scripts/update_season.py --iso-source PRISTINE --iso-out NEW` builds from the disc baseline
-and embeds the ProA default roster in one combined ISO. Card export remains optional (`--card`, or
-`--card-only --card`); portraits/logos/legacy skin PNGs still use PCSX2 replacements. Details: `docs/roster_payload_format.md`,
+Workflow: `python scrape.py`, manual edits, then `python build.py` builds from the disc baseline
+and embeds the roster and native textures in one combined ISO. Card export remains optional (`--card PATH`).
+The checklist below contains historical research and may describe superseded approaches. Details: `docs/roster_payload_format.md`,
 `docs/player_record_layout.md`, `docs/roster_budget_plan.md`.
 
 ## Done

@@ -18,6 +18,12 @@ class RemainingTextureTests(unittest.TestCase):
     def export(self):
         return remaining.export(self.source, self.workspace, self.cache, self.legacy)
 
+    def test_fresh_native_export_does_not_read_legacy_artwork(self):
+        with patch.object(uniforms, "legacy_seed_index", side_effect=AssertionError("legacy input used")):
+            report = remaining.export(self.source, self.workspace, self.cache)
+        self.assertEqual(report["masters"], 1)
+        self.assertEqual(report["seeded_masters"], 0)
+
     def test_arena_ownership_uses_home_team_mapping_not_asset_number(self):
         path, group, slot = remaining.location("s028.iff", "floor", "sponsor_logo", "SCNE")
         self.assertEqual((group, slot), ("arenas", 1))

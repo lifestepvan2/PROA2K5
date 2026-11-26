@@ -1,130 +1,21 @@
 # Jersey (uniform) texture workflow
 
-For portable ISO mods, use the [native uniform workflow](./NativeUniformWorkflow.md)
-and edit `texture_workspace_ISO/uniforms`. It includes game/preview clothing,
-warmups, fans, cheerleaders and the other native bundle textures, imports
-verified existing manual edits, and regenerates mips at build time.
+Edit native masters in `texture_workspace_ISO\uniforms`, retaining their eight-digit IDs.
+Game, preview and warmup textures are independent; edit each desired master. Run
+`python build.py` and boot the resulting ISO afresh. See
+[NativeUniformWorkflow.md](./NativeUniformWorkflow.md) for native IDs and mip handling.
 
-The remainder preserves the **legacy PCSX2 workspace** naming and editing
-notes. `texture_workspace.py export` still updates that old workspace, but
-`texture_workspace.py sync` now previews edits from `texture_workspace_ISO`
-and no longer reads the legacy files. For the preview, edit the native masters
-and follow the steps below; old MASTER/COPY/LOD labels do not drive it.
-Background and file formats: [pcsx2_texture_mapping.md](./pcsx2_texture_mapping.md).
+## Optional baseline generation
 
-For native source identification and possible old-label mistakes, run the
-[read-only ISO catalogue/audit](./TextureISOMigrationPlan.md#milestone-1-implemented-inspection-workflow).
-It preserves every artist file and reports label suggestions separately. COPY/LOD
-labels alone are not verified ISO ownership. Legacy label grouping remains
-useful for browsing old exports, but it does not determine native preview
-ownership or ISO build behavior.
+`python scripts\create_baseline_jersey.py --dry-run` previews generation for
+identified home/away native jerseys, shorts and warmups. Remove `--dry-run` to
+write unedited masters. Manually edited masters are never overwritten, including
+when restoring backups. `--team` restricts the selection; `--restore` restores
+only files still matching this generator's last output. Templates are in
+`texture_templates`; `--fabric` exports optional editing layers there.
 
-The [native uniform format investigation](./UniformISOFormat.md) now maps all
-834 formerly blocked uniform targets exactly, including their stored mip levels.
-It explains the separate game/preview layouts and warmup bundles. This is
-source evidence used by the native exporter and the native-workspace preview.
-
-## The naming scheme
-
-Legacy labelled uniform textures live in `texture_workspace/uniforms/<Team>/`.
-Unknown/unsorted roles and unlabelled small parts stay in their existing locations.
-The filename still determines inheritance; folders are for browsing only:
-
-```
-ROLE__LABEL__RES__ID.png
-MASTER__PistonsShortsHome__512x256__7431831b.png
-COPY__PistonsShortsHome__512x256__592667fe.png
-LOD__PistonsShortsHome__32x16__d726dae8.png
-```
-
-| Part | Meaning |
-|---|---|
-| `ROLE` | `MASTER` = the file you edit. `COPY` = same size, generated from the master. `LOD` = smaller, box-downscaled from the master. |
-| `LABEL` | groups one MASTER with its COPYs and LODs (characters `A-Za-z0-9-`). The file system sorts a group together. |
-| `RES` | informational (a mismatch with the real size only warns). |
-| `ID` | 8 hex characters = the dump token. **This alone decides which in-game texture is replaced. Never edit it.** |
-
-The old PCSX2 workspace used "same LABEL" to regenerate COPY / LOD files from a MASTER. Those names are not used by
-the current preview sync. A COPY must have the MASTER's size and a LOD must be smaller only when maintaining that
-legacy workspace.
-
-Team folders use NBA / in-game names (Pistons, 76ers, etc.), matching the stable texture labels.
-Generator labels: `<Team><Item><Variant>` - Team = NBA / in-game name (Pistons, 76ers, ... see `data/team_slots.csv`),
-Item = `Jersey | Shorts | WUtorso | WUsleeves | WUlegs`, Variant = `Home | Away | Alt` (optionally followed by a counter)
-or a plain number for not-yet-identified variants. `create_baseline_jersey.py` reads these labels. Other labels
-(`Legends1`, `Unknown3`, `Unsorted2`, ...) work for the inheritance but are ignored by the generator.
-
-Not part of the scheme (stay in their sub folders, unchanged): shoes, the 64x64 parts and everything else in `uniforms/64x64`,
-`128x64`, ... that has no role name. Hand-edit those directly.
-
-## 1. Preview native uniform edits in PCSX2
-
-1. Edit the appropriate master in `texture_workspace_ISO/uniforms`, keeping its ID.
-2. Run `python scripts/texture_workspace.py sync --dry-run` to review the mapping and planned replacements.
-3. Run `python scripts/texture_workspace.py sync`, then press **F10** in PCSX2.
-
-The preview exact-matches native original pixels and stored mip digests to PCSX2 dump keys. Changed masters generate
-preview images for matching base/mip keys; conflicting sources are reported rather than selected arbitrarily.
-Reverting a native master removes only preview files still owned and unchanged by the sync. This is a preview only,
-not an ISO build. See [pcsx2_texture_mapping.md](./pcsx2_texture_mapping.md) for ownership and safety details.
-
-## 2. Legacy workspace export
-
-1. `python scripts/texture_workspace.py export` - copies the new dumps into the workspace. For new uniform-family textures it then runs `adopt` automatically: hi-res files that look like an existing group become a `COPY__<label>`, LODs become `LOD__<label>`, everything else opens a new `MASTER__Unsorted<n>__...` group (unmatched LODs become `LOD__Unmatched__...`). New 256x256 cloth is compared to the existing cloth pixels.
-2. Look at `texture_workspace/uniforms` and fix what the automatic matching got wrong (below). `python scripts/uniform_labels.py check` lists warnings and writes the tracked `data/uniform_lods/labels_snapshot.csv`.
-
-This export is separate from preview sync. New native sources must be exported into `texture_workspace_ISO` by their
-native workspace workflow before they can be previewed.
-
-`adopt` can also be run alone (`uniform_labels.py adopt [--dry-run]`); it is slow because it compares all dumps.
-
-Repeated `export` runs identify existing images by the stable `__ID` suffix,
-not their prefix or folder. Artist edits and renamed role files are preserved.
-An existing ID missing from the manifest is adopted without exporting a second
-image; its original-content hash is recovered from the dump. Duplicate IDs already
-present produce warnings (newest file wins); export does not delete artist files.
-Different dump keys can legitimately have identical-looking images: keep those
-COPY/LOD targets, since each addresses a distinct game texture.
-
-## 3. Organising groups
-
-Do it in the file explorer - rename the `ROLE` / `LABEL` part, keep `__RES__ID`. Or use the helper (names or IDs accepted):
-
-| Command | Effect |
-|---|---|
-| `uniform_labels.py list [text]` | groups with master id, size, number of COPYs and LODs |
-| `uniform_labels.py relabel OLD NEW` | rename a whole group, e.g. `Unsorted3` -> `PistonsJerseyHome2` |
-| `uniform_labels.py link FILE MASTERFILE` | make FILE a COPY / LOD of that master's group |
-| `uniform_labels.py promote FILE` | FILE becomes MASTER, the old master becomes a COPY |
-| `uniform_labels.py restore [--dry-run]` | rename everything back to the committed snapshot |
-| `uniform_labels.py organise [--dry-run]` | move clearly team-labelled roles into team folders, updating manifest paths without changing images or labels |
-
-Typical legacy work: identify an `Unsorted<n>` group -> `relabel Unsorted3 NetsJerseyAway`; wrong LOD -> `link` it
-to the right master. These labels do not affect native preview sync.
-
-`link`, `relabel`, `promote`, `adopt` and snapshot restoration retain this team-folder
-layout. Legacy scans and generation are recursive. `organise` is safe to repeat;
-ambiguous labels such as Legends/Unknown/Unsorted are not assigned to a team.
-
-Warnings you can get: *several MASTERs with label X* (demote one to COPY or relabel it), *no MASTER* (promote one), *COPY size differs*,
-*LOD not smaller*, *RES mismatch*, *duplicate ID*.
-
-## 4. Generate baseline team jerseys (legacy workspace)
-
-`python scripts/create_baseline_jersey.py` colourises `texture_workspace/uniforms/templates/{jersey,short,warmup,cloth_top,cloth_shorts}_tmpl.png`
-and writes the result over every legacy MASTER whose label is `<Team><Item><Variant>`. The current preview sync does
-not read these files; edit the native masters for PCSX2 preview and ISO builds.
-
-- Colours: `team.colorjersey1` / `team.colorjersey2` (hex) in `texture_workspace/team_palettes/<slot>/colours.json`. Home (and numbered variants) = white body, primary trim and short stripes. Away = primary body, secondary trim/stripes. Alt variants are skipped. Teams without a MASTER of an item print "no MASTER found - skipped". `colorui1` / `colorui2` are separate roster/UI controls and do not colour jersey cloth or lettering.
-- Cloth structure (folds, perforations) is kept: every template region is divided by its median brightness and that shade map is applied on the target colour (`HIGHLIGHT` in the script tames the bright side).
-- **Fabric layers for manual editing:** `python scripts/create_baseline_jersey.py --fabric` exports that shade map to `texture_workspace/uniforms/templates/fabric/` for jersey, shorts, warm-up and the 256x256 cloth (`<kind>_fabric_overlay.png`, `<kind>_fabric_shadow_light.png`, `warmup_sleeves_fabric_*`, `warmup_legs_fabric_*`). Existing files are kept (`--fabric --overwrite` regenerates).
-  - `*_overlay.png`: grey, 128 = neutral. Blend mode Overlay / Soft Light / Linear Light.
-  - `*_shadow_light.png`: black darkens, white lightens, alpha = strength; Normal blend.
-- Logos: ProA patch (`data/proa_logo.png`) on the player's left breast and club logo (`nba2k_editor/assets/<38+index>.png`) on the right breast of the jerseys. Warm-up torsos carry the club logo on the chest. Shorts are plain. Positions are constants at the top of the script.
-- Cloth (`WUsleeves`, `WUlegs`): plain `colorjersey1` from the logo-less `cloth_top_tmpl.png` / `cloth_shorts_tmpl.png`, folds kept.
-- Output PNGs have no alpha channel; the old legacy sync kept the game's original per-pixel alpha.
-- Safety: the original is copied once to `texture_workspace/uniforms/backups/<ID>.png`; a MASTER is only replaced while it is still the exported default (manifest sha1) or the previous output of this script (`backups/_generated.json`). Hand-edited masters are kept unless `--overwrite`. `--dry-run`, `--team <sheet ...>`, `--restore` (put the backups back) are available.
-- A contact sheet of the result is written to `docs/_tmp/baseline_sheet.png`.
+The sections below preserve historical lettering-format investigations; old
+standalone command examples are not the current build workflow.
 
 ## 5. Shared lettering and team-select preview plan
 
@@ -301,8 +192,7 @@ broader in-emulator acceptance still remains.
   the verified source, returning those controls to palette mode; team/court colours stay intact.
   Keep extracted copyrighted atlas previews/workspace files out of Git; compact
   the 30 combined JSON controls and dedicated README are tracked separately.
-* This folder is excluded from `texture_workspace.py export` and the uniform-label/LOD scans.
-  It targets the ISO, not PCSX2's texture-master preview replacements.
+* This folder is separate from the native image masters and targets the ISO.
 
 ### C. Inventory and pipeline integration
 
@@ -324,11 +214,8 @@ broader in-emulator acceptance still remains.
    colours. Reference colours are automatically inferred for the generic outlined
    mode; nothing is seeded from `colorjersey1/2`.
    `colorui1/2` remain exclusively roster controls.
-3. `update_season.py` is ISO-first, requiring `--iso-source` / `--iso-out` and optional
-   `--team-palettes` (`--lettering-workspace` remains an alias). It runs read-only roster/lettering/court preflight before scraping,
-   roster/card writes or replacement generation, then builds the ISO after the last
-   logo-generation step. `season_iso.py` embeds the default roster alongside all visual/year/skin patches
-   in one publication. Explicit `--card-only` / `--build-only` modes skip ISO publication.
+3. `python build.py` embeds the default roster alongside all native visual/year/skin
+   patches in one ISO. Scraping is a separate `python scrape.py` step.
    See [season commands](SeasonUpdateWorkflow.md#iso-first-roster-deployment).
 4. Build a new output from a verified pristine source, never cumulatively edit an
    unknown image. Validate every original chunk/palette, apply equal-size patches,

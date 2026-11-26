@@ -546,6 +546,14 @@ def main():
     assert len(set(slots)) == len(slots) and max(slots) < FIRST_FREE_TEAM, "bad data/team_slots.csv"
     pid_of = load_pids(a.pids)
     skin_of = load_skin_tones()
+    targets = {}
+    if Path(a.pids).is_file():
+        with Path(a.pids).open(encoding="utf-8-sig", newline="") as file:
+            targets = {row["proa_id"]: row.get("skin_target", "") for row in csv.DictReader(file)}
+    skin_plan = None
+    if not a.prepare_faces and a.skin_plan.is_file():
+        skin_plan = json.loads(a.skin_plan.read_text(encoding="utf-8"))
+    reserve = {row["proa_id"]: row for row in (skin_plan or {}).get("reserve_players", [])}
     assignments = []  # (field offset, text)
     player_rows, team_out, notes = [], [], []
     stats_replacements = {}
@@ -610,11 +618,14 @@ def main():
             skin_tone = field_value("Skin Tone", p["rowd"].get("Skin Tone") or 0)
             if skin_tone and not a.prepare_faces:
                 pl.d[rec_off(r) + P_SKIN] = 6 - skin_tone
+            elif not a.prepare_faces and str(p["proa_id"]) in reserve:
+                pl.d[rec_off(r) + P_SKIN] = reserve[str(p["proa_id"])]["leg_byte"]
             if apply_created_appearance(pl.d, rec_off(r), p["rowd"], p["proa_id"]):
                 if _acc_val(p["rowd"], "headband") not in (0, 1):
                     notes.append(f"{first} {last}: created-model Build owns +0x62; headband style preset is ignored")
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "college": colleges[r], "skin_tone": skin_tone,
+                                "skin_target": targets.get(str(p["proa_id"]), ""),
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],
                                 "starter": i < 5, "pid": pid})
 
@@ -643,12 +654,12 @@ def main():
         assignments.append((base + A_CITY, tr["city"]))
         arena_out.append({"slot": tr["nba_slot"], "row": row, "sheet": tr["sheet"], "old_arena": old, "arena": name})
 
-    if not a.prepare_faces and any(row["skin_tone"] for row in player_rows):
+    if not a.prepare_faces and (skin_plan is not None or any(row["skin_tone"] for row in player_rows)):
         import skin_tones
-        if not a.skin_plan.is_file():
+        if skin_plan is None:
             raise SystemExit("Nonzero Skin Tone needs a prepared ISO recipe; run face_match.py --iso-source PRISTINE.iso first")
-        skin_tones.validate_roster(json.loads(a.skin_plan.read_text(encoding="utf-8")), player_rows)
-        notes.append("Skin Tone leg bytes require the matching combined ISO build from the prepared face-match plan.")
+        skin_tones.validate_roster(skin_plan, player_rows)
+        notes.append("Generated skin and leg bytes require the matching combined ISO build from the prepared face-match plan.")
     college_assignments, reclaim_colleges, college_report = plan_colleges(pl, colleges)
     assignments.extend(college_assignments)
     free_before = pl.free_bytes()

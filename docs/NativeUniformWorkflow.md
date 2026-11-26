@@ -68,20 +68,10 @@ uniforms/
   explicitly addressed native level from its base master. Geometry LODs are
   not texture mips.
 
-## Optional PCSX2 preview
+## Build and preview
 
-With PCSX2 texture dumps available, preview native master edits without
-building an ISO:
-
-```powershell
-python scripts\texture_workspace.py sync --dry-run
-python scripts\texture_workspace.py sync
-```
-
-The preview exact-matches native originals and stored mip digests to dump
-keys, writes only changed and unambiguous replacements, and does not modify
-the ISO. It preserves unowned, externally changed, and pipeline-managed
-replacements. Press F10 in PCSX2 to reload.
+Run `python build.py` and boot the resulting ISO afresh. The retired emulator
+texture replacement pipeline is not used.
 
 Some crowd TSETs have several palettes but **one shared index plane**. Their
 masters are editable separately, but encoding quantizes all variants together

@@ -66,16 +66,15 @@ that hardware ceiling is not a guarantee of available heap during a match.
 
 ## Commands
 
-The old fixed-span path remains the default. Opt into the experimental allocator:
+The normal `python build.py` workflow uses the allocator. Standalone checks can
+also opt into it:
 
 ```powershell
 python scripts\texture_iso_workspace.py check --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --repack-archive
 python scripts\season_iso.py check --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ProA-repack.iso" --repack-archive
 ```
 
-Both standalone builders and `update_season.py` accept `--repack-archive`.
-`update_season.py` forwards it to preflight and final composition; it cannot be
-used in card-only/build-only mode. Always select a new output path and boot fresh.
+The standalone builders accept `--repack-archive`. Boot the resulting ISO fresh.
 
 For manual complexion overrides, the same option is passed to `face_match.py`
 and the final skin-plan compiler. Arm/neck donor selection and face recolouring

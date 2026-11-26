@@ -1,5 +1,8 @@
 # Native logo storage and rendering investigation
 
+Historical generator names below describe research, not supported commands;
+use [the native logo workflow](./NativeLogoWorkflow.md) and `python build.py`.
+
 ## Result and scope
 
 **All 90 previously blocked generated-logo targets have exact native matches.**

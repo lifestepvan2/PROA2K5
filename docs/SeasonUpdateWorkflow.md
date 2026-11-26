@@ -1,41 +1,15 @@
 # Season update workflow
 
-> **Current workflow:** Run `python scrape.py`, make manual edits, then run
-> `python build.py`. The build reads the pristine ISO at
-> `C:\Tools\isos\ESPN NBA 2K5 (Europe).iso` and publishes
-> `C:\Tools\isos\proa2k5_<build-id>.iso`. It overwrites roster-linked portrait
-> masters with generated headshots, regenerates requested skin masters, and
-> stamps the title only in the ISO. See
-> [texture precedence](NativeTextureWorkflow.md#compile-and-validate) for the
-> separate portrait, skin, jersey and other texture rules.
-> Add `--card PATH` to export the roster after ISO publication. The older
-> command examples and replacement-based instructions below are historical.
+1. Run `python scrape.py` to refresh roster and headshots.
+2. Edit `data\overrides.xlsx` and `texture_workspace_ISO`.
+3. Run `python build.py` to build the portable ISO from
+   `C:\Tools\isos\ESPN NBA 2K5 (Europe).iso`.
 
-Rebuilds the game's ProA roster for a new season and embeds it as the disc's default roster.
-The [ISO-first command](#iso-first-roster-deployment) chains everything below the *manual prerequisites*.
-An optional `--card PATH` exports the same final payload (PCSX2 must be closed for card writes).
-
-## Pipeline (automated)
-
-| # | Step | Script | Output |
-|---|------|--------|--------|
-| 1 | Scrape rosters, all selectable ProA regular-season histories and portraits; pool 6 seasons for 19 visible and 9 hidden 2K5 attributes | `scrape_proa_roster.py --season S` | `proa_scraped.xlsx`, `data/proa_stats.json`, `cache/proa_S/` |
-| 2 | Crop portraits to 512x512 head+shoulders (replaces the old Photoshop batch; only missing ones are cropped, silhouettes skipped) | `crop_headshots.py` | `assets/PS_out/<proa_id>.png` |
-| 3 | Provisional payload/player list from the pristine disc; defer manual complexion leg changes | `build_roster.py --iso-source PRISTINE --prepare-faces` | `data/roster_build/player_map.csv` |
-| 4 | ArcFace embeddings of the new headshots | `face_embed.py` | `data/face_match/*.npz` |
-| 5 | Match new players to NBA face models and prepare requested model-local skin recipes (cached players keep their pid, overrides win) | `face_match.py [--iso-source PRISTINE]` | `data/face_match/proa_pid_map.csv`, `skin_tone_plan.json`, `docs/_face_sheets/` |
-| 6 | Build payload, pass 2 (pids and validated manual leg bytes applied) | `build_roster.py --iso-source PRISTINE` | payload, `report.md` |
-| 7 | Lineup headshots (pid-keyed) and team icons | `gen_replacements.py` | PCSX2 `replacements\` |
-| 8 | Legacy logo textures (optional in ISO mode) | `gen_logo_replacements.py` | PCSX2 `replacements\` |
-| 9 | Recoloured light faces/necks and the light arm of the reserve (see `pcsx2_texture_mapping.md` item 7) | `gen_skin_replacements.py` | PCSX2 `replacements\` |
-| 10 | Single combined default-roster/lettering/court/stats-year/skin/native-texture ISO publication | `season_iso.py build --roster ... --skin-plan ...` | new ISO and `.season.json` manifest |
-| 11 | Optional export of the exact step-6 payload, only after requested ISO work succeeds | `card_patch.py --bin ... --card ...` | backed-up, verified memory card |
-
-A read-only roster/lettering/court preflight runs before step 1; publication runs
-after all replacements (the final generator is `gen_logo_replacements.py`).
-The pristine ISO supplies the roster baseline in every mode; no memory-card extraction is needed.
-`--card-only` and `--build-only` skip visual ISO preflight/publication but still verify the disc roster.
-Nonzero `Skin Tone` requires an ISO output; alternative modes stop before building a roster.
+The output is `C:\Tools\isos\proa2k5_<build-id>.iso`; existing outputs are
+not overwritten. The build applies portrait and model-local skin generation,
+including the automatic light reserve; explicit Skin Tone overrides take
+precedence. Manual jerseys remain protected. The title build ID is stamped only
+in the ISO. Add `--card PATH` for an optional memory-card export.
 
 ### Persistent player edits and exclusions
 
@@ -111,7 +85,7 @@ accessory values; legacy accessory bytes remain explicitly raw.
   Nonzero values preserve the selected face/PID, choose original arm and neck
   donors from the matching leg bucket, and recolour the face palette towards
   the donor neck. The roster leg byte is `6 - Skin Tone`.
-  This requires a matching ISO, not only PCSX2 texture replacements; see below.
+  This requires the matching combined ISO; see below.
 
 The scraper applies overrides after computing ratings and sanitizing names,
 then builds the live `Overall` formulas. Stats JSON remains independently
@@ -125,7 +99,7 @@ python scripts\build_roster.py --season 2026_2027
 ```
 
 `--workbook`, `--overrides` and `--blacklist` select alternate paths for the
-manual apply command. `update_season.py --skip-scrape` applies manual edits
+manual apply command. `build.py` applies manual edits
 before its other steps. Clearing/removing an override stops future application;
 regenerate the workbook to restore the scraped/model value already overwritten
 by an earlier application.
@@ -192,11 +166,11 @@ legacy values are rejected, rather than silently selecting one.
 
 #### Manual complexion workflow
 
-After editing `Skin Tone` in the override workbook, run the usual update with ISO
-options (and optionally `--card`, with PCSX2 closed):
+After editing `Skin Tone` in the override workbook, run the usual build
+(optionally with `--card PATH`, with PCSX2 closed):
 
 ```powershell
-python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<NEW output ISO path>"
+python build.py
 ```
 
 Face matching prepares `data/face_match/skin_tone_plan.json`, bound to every
@@ -211,20 +185,10 @@ their payload without its corresponding combined ISO. A changed PID/tone/roster
 requires preparing the recipe again. No manual tone applies to two players
 sharing a PID: model edits affect every use of that PID.
 
-Without archive repacking, the original compressed spans/scratch remain limits.
-The planner tries other safe same-bucket donors; if none fits, it stops before
-publishing the face map/plan, ISO or card, identifying the target PID and resource.
-To preserve the selected face and exact donor pixels instead of reducing quality,
-add `--repack-archive` to the update command:
-
-```powershell
-python scripts\update_season.py --skip-scrape --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "<NEW output ISO path>" --repack-archive
-```
-
-This option now reaches **both** face matching and final skin compilation.
-Arm, neck and recoloured face resources can change stored length/scratch, while
-dimensions, descriptors, face indices/alpha and unedited sibling resources stay
-unchanged. Complete player-package edits are composed before archive relocation;
+The normal build uses archive repacking for both face matching and final texture compilation.
+Arm, neck and recoloured face resources can change stored length and scratch;
+the texture encoder preserves dimensions and uses the native indexed format.
+Complete player-package edits are composed before archive relocation;
 only the selected target PID is edited, never the source donor assets.
 The plan records its required storage mode; a repacking recipe cannot accidentally
 be published through a fixed-span builder. Older fixed-span recipes remain usable.
@@ -237,15 +201,15 @@ concerns a matching **arm** TXTR, not a leg texture that needs resizing.
 Logo master caps in `texture_workspace_ISO/_iso_encoding.json` do not control
 player skin resources.
 
-No complexion is silently substituted or quantized to make it fit. Aggregate
-archive capacity, runtime scratch and geometry compatibility still apply;
+Texture encoding uses indexed palettes. Aggregate archive capacity, runtime
+scratch and geometry compatibility still apply;
 arbitrary future artwork is not guaranteed to fit an unlimited budget.
 Repacking remains experimental pending the consolidated
 [runtime review](./ArchiveRepacking.md#batched-runtime-review-gate).
-Legacy light-reserve face/neck PNG generation skips manual-tone players and
-prunes its old managed files; donor keys affected by the remaining global reserve
-replacements are excluded. Boot the new ISO and load models fresh: F10 or an old
-savestate containing loaded models does not load these ISO edits.
+The automatic light reserve generates model-local face, neck and arm masters and
+selects light legs. Explicit Skin Tone overrides take precedence. Boot the new
+ISO and load models fresh; an old savestate containing loaded models does not
+load these ISO edits.
 
 `data/blacklist.csv` has `Team,ProA ID,Reason`; only the ID affects behavior.
 Blacklisted IDs are filtered out of freshly scraped **and cached** team rosters
@@ -263,7 +227,7 @@ when only one player uses it; repeated identical files also use the existing
 cropper's shared-placeholder detection.
 
 Add a **512x512 head-and-shoulders PNG** at
-`assets/PS_out/<ProA ID>.png`, then rerun the normal replacement workflow.
+`assets/PS_out/<ProA ID>.png`, then rerun `python build.py`.
 Default cropping preserves existing images; avoid `crop_headshots.py --force`
 if you want manual portraits left alone. Source-cache placeholders are not
 silently replaced or deleted.
@@ -302,52 +266,33 @@ small REB/RPG difference instead of silently changing either component.
 `build_roster.py` embeds these histories in the payload by default, preserves
 untouched NBA/legend histories, checks fixed-pool capacity and reports missing
 GS/FLS. `--stats PATH` selects another archive; `--no-stats` explicitly retains
-the old inherited-statistics behavior. `--skip-scrape` therefore requires an
-already-updated schema-v2 archive. The built payload is not automatically
-copied to `data/roster.bin` or the card; use the existing `card_patch.py`
-workflow with PCSX2 closed.
+the old inherited-statistics behavior. Building requires an already-updated
+schema-v2 archive. The card is written only when explicitly requested.
 
 Labels use season start years: 2026/2027 displays 2026. Years Pro becomes the
 contiguous history span, including gaps; zero-game gaps are hidden by the
 game. The ISO stage automatically adds the matching season-label anchor.
-In card-only/build-only mode, counts are embedded but labels still require a separately
-patched ISO. See the [verified format and rounding limits](roster_payload_format.md#historical-player-statistics).
+See the [verified format and rounding limits](roster_payload_format.md#historical-player-statistics).
 
-### ISO-first roster deployment (historical commands)
+### ISO-first roster deployment
 
 Export and edit the [all-30-slot colour-control workspace](JerseyTextureWorkflow.md#simple-colour-controls-recommended)
-first. The ISO source must be the verified untouched European original, not a prior
-patched copy. Use a new output path:
+first. The ISO source is the verified untouched European original, not a prior
+patched copy:
 
 ```powershell
-python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
+python scrape.py
+python build.py
 ```
 
-To rebuild from the cached scrape and current `data/overrides.xlsx`, then
-publish the roster together with the native texture workspace:
-
-```powershell
-python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ProA-combined.iso" --repack-archive
-```
-
-Choose a new output filename each time. Do not follow this with a standalone
+The build reapplies `data/overrides.xlsx` without scraping, and names the output
+from its build ID. Existing output ISOs are not overwritten. Do not follow it with a standalone
 texture build from the pristine ISO: that produces a separate visual-only ISO
-and does not carry over the first ISO's roster. Without `--refresh`, scraping
-reuses cached data when available. `--skip-scrape` instead reuses the existing
-workbook; removed overrides may remain in it, as described above.
+and does not carry over the first ISO's roster. Removed overrides may remain in
+the existing workbook, as described above.
 
 Add `--card "<Mcd001.ps2>"` to export the same final roster after ISO publication (PCSX2 must be closed).
 The card exporter backs up the card, updates CRC/ECC and verifies read-back; it does not rebuild the roster.
-
-Explicit alternatives, still using the pristine disc as the baseline:
-
-```powershell
-python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --card-only --card "<Mcd001.ps2>"
-python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --build-only
-```
-
-Omitting `--iso-out` without one of these modes now fails with usage guidance, rather than silently
-producing a roster that is not deployed. `--build-only` cannot write a card; neither alternative accepts `--iso-out`.
 
 ISO mode reads [native logo masters](./NativeLogoWorkflow.md) and exported
 [native uniform masters](./NativeUniformWorkflow.md), plus exported
@@ -355,12 +300,8 @@ ISO mode reads [native logo masters](./NativeLogoWorkflow.md) and exported
 `texture_workspace_ISO`; export the required manifests before running the pipeline.
 The uniform manifest enables clothing, warmup, crowd, cheerleader and other
 bundle textures automatically, without running legacy COPY/LOD sync.
-`--texture-workspace PATH` selects another native workspace and its `team_palettes`
-subfolder. `--team-palettes PATH` overrides those palettes for both roster
-and ISO stages (`--lettering-workspace` remains an alias). It also works in alternative
-modes. A missing/mismatched workspace, invalid palette, compressed edit
-that does not fit, or existing output fails preflight before pipeline side effects.
-Alternative modes and standalone legacy tools retain their original palette defaults.
+A missing/mismatched workspace, invalid palette, compressed edit that does not
+fit, or existing output fails rather than publishing an incomplete ISO.
 
 New assignments require a new workspace and explicit palette migration.
 
@@ -375,32 +316,24 @@ number/name RGB, courts with `court.mode=recolour`, the player-card season-label
 matching `--season`, requested model-local skin recipes, and the native logo/centerlogo
 masters, plus the exported uniform bundles and other native masters. Available
 ProA headshots are encoded into native portrait textures selected by the final
-roster; manually edited portrait masters take precedence. Missing headshots and
-suppressed portraits are reported. Missing headshots use the native `nophoto`
-master unless the player's portrait master was edited manually.
+roster and take precedence over those portrait masters. Missing headshots and
+suppressed portraits are reported.
 Shared lettering/artwork resources
 are compressed once after decoded edits are composed; conflicting edits fail
-explicitly. Legacy PCSX2 skin replacement PNGs are not embedded. Number swatches update court and preview
+explicitly. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
 The source remains untouched and an adjacent `.season.json` records roster and visual
 patch fingerprints plus full source/output hashes. All changes are composed against the
 same pristine source and published once; never chain patchers over previous outputs.
 Final roster storage and all patch overlaps are validated before publication.
-Legacy logo PNG generation is skipped in ISO mode unless
-`--legacy-logo-replacements` is supplied. Existing replacement files are left
-alone; disable them when reviewing the native result. The fixed-span logo defaults
-have compression-capacity blockers. Experimental `--repack-archive` instead pools
-native package sectors without changing filesystem extents or image size; it is
-forwarded to preflight and final composition. It supports the migrated logo
-and uniform artwork without imposing a default colour reduction or degrading
-non-ProA teams, but remains opt-in pending the batched
+Archive repacking pools native package sectors without changing filesystem
+extents or image size. Runtime review remains pending; see the batched
 runtime review in [archive repacking](./ArchiveRepacking.md).
 
 Boot the new ISO **fresh**, with no savestate or old roster loaded. Disable both card
 slots for an unambiguous default-roster test. Existing saved rosters can replace disc
-defaults when loaded; existing franchise/season saves are not migrated. F10 reloads
-replacement textures, not the embedded roster or ISO assets.
+defaults when loaded; existing franchise/season saves are not migrated.
 
 Standalone `lettering_workspace.py check/build` remains available for visual-only builds;
 its `.lettering.json` output does not embed a roster. Standalone `build_roster.py --base PATH`
@@ -414,23 +347,20 @@ or the build scripts. Nothing is committed back; the site is a deploy artifact.
 
 - Ratings and bio come from `proa_scraped.xlsx` (edit there, commit, push). Overall is computed by `overall_model.py` (same model
   as the workbook's formula column). Stats come from `data/proa_stats.json`, which every scraper run writes
-  (`scrape_proa_roster.py --stats-json-only` rebuilds it from the cache without touching the workbook). Team badges are linked live from
+  (`scrape.py --stats-json-only` rebuilds it from the cache without touching the workbook). Team badges are linked live from
   `api.2basketballbundesliga.de/pics2/<season>/lp/<team id>`; portraits are resized from `assets/PS_out/`.
 - Local preview: `python scripts/build_site.py --check`, then `python -m http.server -d site`.
 - One-time setup: repository Settings -> Pages -> Source = GitHub Actions.
 
 ## Pipeline notes
 
-`skin_brighten.py scan` / `embed` are one-off setup steps (rerun only after new face dumps).
-
-Afterwards: review `docs/_face_sheets/` (edit `override_pid` in `proa_pid_map.csv` and re-run steps 6-7 for corrections), then
-press F10 in PCSX2 for replacement textures and rebuild/cold-boot the ISO for roster changes.
-For card-only exports, load the updated roster from the card instead.
+Review `docs/_face_sheets/`, edit `override_pid` in `proa_pid_map.csv` if needed,
+then rebuild and cold-boot the ISO.
 
 ## Manual prerequisites when the set of clubs changes
 
-1. `TEAM_MAP` in `scrape_proa_roster.py`: site team id -> (display name, sheet name). New ids are listed by
-   `scrape_proa_roster.py --teams-only --season S` (marked "NOT IN TEAM_MAP").
+1. `TEAM_MAP` in `scrape.py`: site team id -> (display name, sheet name). New ids are listed by
+   `scrape.py --teams-only --season S` (marked "NOT IN TEAM_MAP").
 2. `data/proa_teams.csv`: team names and home arena (see schema below).
    Row order = logo asset index (`nba2k_editor/assets/<38+row>.png`), so a new club takes the row of the club it replaces.
 3. `data/team_slots.csv`: sheet -> NBA slot. The new club inherits the slot of the replaced club (textures are keyed by NBA slot);

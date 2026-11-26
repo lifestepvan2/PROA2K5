@@ -129,7 +129,7 @@ def select_seed(token: str, candidates: set[str], manual: dict,
 
 def export(source: Path, workspace: Path = native.DEFAULT_WS,
            catalogue: Path = native.ROOT / "cache" / "texture_iso" / "catalogue.sqlite",
-           legacy_workspace: Path = uniforms.legacy.DEFAULT_WS, *, scope: str = "all") -> dict:
+           legacy_workspace: Path | None = None, *, scope: str = "all") -> dict:
     native.validate_workspace(workspace)
     if scope not in ("all", "arenas"):
         raise ValueError("Texture export scope must be all or arenas")
@@ -144,12 +144,17 @@ def export(source: Path, workspace: Path = native.DEFAULT_WS,
         external_resources[row["asset_hash"], row["ordinal"]].append(row)
     if previous and previous.get("complete") and scope == "arenas":
         raise ValueError("Cannot narrow a complete texture workspace to arena-only scope")
-    manual, seeds, warnings = uniforms.legacy_seed_index([legacy_workspace])
-    choices = migration_choices(workspace)
+    if legacy_workspace is None:
+        manual, seeds, warnings = {}, collections.defaultdict(set), []
+        choices = {}
+    else:
+        manual, seeds, warnings = uniforms.legacy_seed_index([legacy_workspace])
+        choices = migration_choices(workspace)
     covered = collections.defaultdict(set)
     for manifest in protected:
         for row in manifest.get("migration", {}).get("manual_sources", []):
-            covered[row["key"]].update(row["masters"])
+            if row["key"] in manual:
+                covered[row["key"]].update(row["masters"])
     pending = workspace / "_native_export_pending"
     pending.mkdir(parents=True, exist_ok=True)
     sources, exceptions, aliases, conflicts, packages = [], [], [], [], set()
@@ -292,6 +297,8 @@ def export(source: Path, workspace: Path = native.DEFAULT_WS,
         {"key": key, "path": manual[key]["path"], "sha1": manual[key]["sha1"], "masters": sorted(ids)}
         for key, ids in sorted(covered.items())], "unmapped_manual_edits": missing,
         "warnings": warnings, "conflicts": [], "approved_choices": choices}
+    if previous and legacy_workspace is None:
+        migration = previous["migration"]
     manifest = {"schema": 1, "source_sha256": native.SOURCE_SHA256, "complete": scope == "all",
                 "sources": sources, "migration": migration, "exceptions": [], "aliases": aliases,
                 "resources_without_textures": dict(no_textures), "packages": len(packages),
@@ -314,7 +321,7 @@ def main() -> None:
     parser.add_argument("--iso-source", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, default=native.DEFAULT_WS)
     parser.add_argument("--catalogue", type=Path, default=native.ROOT / "cache" / "texture_iso" / "catalogue.sqlite")
-    parser.add_argument("--legacy-workspace", type=Path, default=uniforms.legacy.DEFAULT_WS)
+    parser.add_argument("--legacy-workspace", type=Path, help="optionally import artwork from a historical workspace")
     parser.add_argument("--scope", choices=("all", "arenas"), default="all")
     args = parser.parse_args()
     try:

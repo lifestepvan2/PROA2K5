@@ -17,7 +17,6 @@ from pathlib import Path
 from PIL import Image
 
 import texture_iso_workspace as native
-import texture_workspace as legacy
 import uniform_labels
 from inventory_lettering_iso import asset_hash
 from texlib import dump_files
@@ -137,6 +136,7 @@ def inventory(stream, catalogue: Path, excluded: set[str],
 
 
 def legacy_edits(roots: list[Path]) -> tuple[dict, dict, list[str]]:
+    import texture_workspace as legacy
     manual, effective, warnings = {}, {}, []
     for root in roots:
         if not (root / "_manifest.csv").is_file():
@@ -239,7 +239,7 @@ def load_manifest(workspace: Path) -> dict:
 
 def export(source: Path, workspace: Path = native.DEFAULT_WS,
            catalogue: Path = native.ROOT / "cache" / "texture_iso" / "catalogue.sqlite",
-           legacy_workspace: Path = legacy.DEFAULT_WS) -> dict:
+           legacy_workspace: Path | None = None) -> dict:
     native.validate_workspace(workspace)
     logos = json.loads((workspace / native.MANIFEST).read_text(encoding="utf-8"))
     if logos.get("source_sha256") != native.SOURCE_SHA256 or logos.get("schema") != 1:
@@ -256,11 +256,14 @@ def export(source: Path, workspace: Path = native.DEFAULT_WS,
         raise ValueError("Uniform inventory lost existing masters; migrate explicitly")
     if previous and {row["id"] for row in sources} == old.keys():
         images, migration = originals, previous["migration"]
-    else:
+    elif legacy_workspace is not None:
         roots = [legacy_workspace]
         if (workspace / "_manifest.csv").exists() and workspace.resolve() != legacy_workspace.resolve():
             roots.append(workspace)
         images, migration = seed_images(sources, originals, roots)
+    else:
+        images = originals
+        migration = {"manual_sources": [], "warnings": [], "unmapped_manual_edits": [], "conflicts": []}
     for row in sources:
         if row["slot"] is not None:
             team = f"slot_{row['slot']:03}_{uniform_labels.TEAM_NAMES[row['slot']]}"
@@ -318,7 +321,7 @@ def main() -> None:
     parser.add_argument("--iso-source", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, default=native.DEFAULT_WS)
     parser.add_argument("--catalogue", type=Path, default=native.ROOT / "cache" / "texture_iso" / "catalogue.sqlite")
-    parser.add_argument("--legacy-workspace", type=Path, default=legacy.DEFAULT_WS)
+    parser.add_argument("--legacy-workspace", type=Path, help="optionally import artwork from a historical workspace")
     args = parser.parse_args()
     try:
         print(json.dumps(export(args.iso_source, args.workspace, args.catalogue, args.legacy_workspace), indent=2))

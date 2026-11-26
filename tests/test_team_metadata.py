@@ -1,7 +1,14 @@
 import csv
+import contextlib
+import io
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -9,10 +16,42 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from build_roster import (PLAYER_BASE, PLAYER_COUNT, PLAYER_STRIDE, T_COUNT, T_UI_COLOURS, TEAM_BASE, TEAM_STRIDE,
                           Payload, apply_team_colours, read_roster, write_roster)
 from create_baseline_jersey import load_teams
+import create_baseline_jersey as jerseys
+import texture_iso_workspace as native
 from team_palettes import DEFAULT_WS, team_colours
 
 
 class TeamMetadataTests(unittest.TestCase):
+    def test_native_jersey_generation_preserves_manual_art(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            default, manual = root / "default.png", root / "manual.png"
+            original = Image.new("RGBA", (512, 256), "red")
+            original.save(default)
+            Image.new("RGBA", (512, 256), "blue").save(manual)
+            digest = native.image_digest(original)
+            rows = [
+                {"id": token, "slot": 12, "variant": "home", "texture": "unif", "warmup": False,
+                 "asset": token, "width": 512, "height": 256, "original_display_digest": digest}
+                for token in ("default", "manual")
+            ]
+            masters = jerseys.team_masters(rows)
+            full = {row["id"]: {**row, "w": row["width"], "h": row["height"]} for row in rows}
+            real = {"default": default, "manual": manual}
+            before = manual.read_bytes()
+            generated, stats = {}, {"missing": 0, "protected": 0, "written": 0, "same": 0}
+            team = {"slot": 12, "sheet": "Team", "nba": "NBA"}
+            args = SimpleNamespace(dry_run=False, overwrite=True)
+            with patch.object(jerseys, "render", return_value=Image.new("RGB", (512, 256), "green")), \
+                    patch.object(jerseys, "JOBS", [("Home", "Jersey", "Jersey", 0)]), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                jerseys.process([team], masters, full, real, generated, {"Jersey": original},
+                                args, stats, lambda p, token: root / (token + ".backup"), [])
+            self.assertEqual(stats["written"], 1)
+            self.assertEqual(stats["protected"], 1)
+            self.assertEqual(manual.read_bytes(), before)
+            self.assertEqual(set(generated), {"default"})
+
     def test_ui_colours_are_independent_of_jersey_colours(self):
         buf = bytearray([0xAA] * 0x200)
         original = bytes(buf)

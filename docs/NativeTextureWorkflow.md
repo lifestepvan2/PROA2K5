@@ -14,8 +14,9 @@ python scripts\remaining_texture_workspace.py export --iso-source "C:\Tools\isos
 
 `--scope arenas` limits initial export to arenas; omit it for the complete
 inventory. A complete workspace cannot subsequently be narrowed to arenas.
-The source ISO and catalogue identity are verified. Initial migration needs
-the pristine dumps and original workspace; compilation does not.
+The source ISO and catalogue identity are verified. Export defaults to pristine
+native textures and does not require emulator dumps. Historical artwork import
+is opt-in through `--legacy-workspace`.
 
 Navigation:
 
@@ -176,9 +177,10 @@ Precedence is specific to the texture:
 
 - Roster-linked portrait masters are regenerated from headshots or the native
   no-photo image, overwriting any previous art in those masters.
-- Requested skin-tone recipes regenerate the matching face, arm and neck
-  masters. The build saves pre-automation art and restores it when the
-  override is removed, unless the master was manually edited afterward.
+- Explicit Skin Tone overrides and automatic light-reserve recipes regenerate
+  the matching model-local face, arm and neck masters; explicit overrides win.
+  The build saves pre-automation art and restores it when no skin recipe applies,
+  unless the master was manually edited afterward. Reserve legs use tone 5.
 - For other textures, an edited master takes precedence over overlapping
   generated colour controls. Unedited masters allow the controls to apply.
 - Alternate uniform copying preserves any manually edited destination resource.

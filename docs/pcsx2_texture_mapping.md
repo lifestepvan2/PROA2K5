@@ -1,11 +1,9 @@
 # PCSX2 texture mapping (empirical method)
 
-**Native ISO inspection is now available:** see the implemented
-[catalogue and non-destructive workspace audit](./TextureISOMigrationPlan.md#milestone-1-implemented-inspection-workflow).
-It matches original dump pixels against native resources, retains all aliases,
-and reports old-label conflicts without changing the workspace. Prefer this
-before new live scans. Texture ISO publication is not implemented yet; the
-procedures below remain the legacy replacement workflow and historical evidence.
+**Historical research only:** the replacement commands below are no longer
+supported. Native ISO inspection and publication are implemented; use
+[the native texture workflow](./NativeTextureWorkflow.md) and `python build.py`.
+The original dump-key observations are retained as reverse-engineering evidence.
 
 The [native logo investigation](./LogoISOFormat.md) identifies all 90 previously
 blocked generated variants, including split floor logos and misleading material

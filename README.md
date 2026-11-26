@@ -17,7 +17,7 @@ roster. Companion of the 2K26 live-memory project; only its data pipeline is reu
 ## Status
 - Names: proven live (RAM patch) and via the memory-card roster file (strings may be lengthened/relocated).
 - Roster and texture deployment uses one portable ISO built from the pristine European disc.
-- Automatic light-reserve recolouring has not yet been migrated; explicit Skin Tone overrides are embedded.
+- Automatic light-reserve recolouring and explicit Skin Tone overrides are embedded as model-local textures.
 
 ```powershell
 python scrape.py

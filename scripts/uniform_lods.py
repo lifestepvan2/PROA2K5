@@ -52,7 +52,7 @@ def workspace_state():
     """(key -> mtime of working-folder files the user changed, set of keys in the 'uniforms' group)."""
     mf = WS / "_manifest.csv"
     if not mf.exists():
-        raise SystemExit("no texture workspace manifest - run texture_workspace.py export first")
+        raise SystemExit("No historical texture workspace manifest")
     found = {}
     for p in WS.rglob("*.png"):
         if skipped(p.relative_to(WS).parts[:-1]):

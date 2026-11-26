@@ -1,17 +1,4 @@
-"""Skin brightening for the ProA roster (the "light reserve").
-
-The NBA face pool has far fewer light faces than the ProA roster has light players, and every face model (pid) may be used only
-once (the lineup portrait is keyed by pid). So the models of one arm class are reserved and recoloured light:
-  - arm textures are shared per skin class; the class with record tone byte 3 (about 63 pids) shares ONE arm texture. Its pixels
-    are replaced by those of the light class (tone 5). Every user of that class gets it, hence the whole class is reserved.
-  - legs follow the record byte +0x69, which build_roster.py sets to 5 for reserved pids.
-  - face and neck of a reserved pid are recoloured per player to that player's skin lightness (gen_skin_replacements.py);
-    only pids with a dumped face, a dumped neck that no other face shares and a dumped arm are usable.
-Commands:
-  python scripts/skin_brighten.py scan    pid -> dump keys of face/neck/arm + reserve flags -> data/texture_map/pid_skin_keys.csv
-                                          (matches the RAM textures in data/face_match/faces against all dump folders by RGB)
-  python scripts/skin_brighten.py embed   ArcFace embeddings of the recoloured reserved faces -> data/face_match/bright.npz
-"""
+"""Historical dump-based skin analysis; production uses native_light_reserve."""
 import argparse
 import collections
 import csv

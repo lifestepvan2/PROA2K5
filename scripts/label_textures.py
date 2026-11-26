@@ -1,4 +1,4 @@
-"""Build data/texture_labels/labels.csv (applied by texture_workspace.py export) from the live home-arena scan + visual labels.
+"""Build historical texture labels from the live home-arena scan and visual labels.
 
     python scripts/label_textures.py build   add missing rows to labels.csv (existing rows are never touched - edit them freely)
 
@@ -10,7 +10,6 @@ Sources, in priority order:
             1 team -> that team, 2-4 -> "A+B", 5+ -> "various"
   2. visual data/texture_labels/visual_labels.csv (token,team,kind,group,sub,evidence): hand labels, used for the team of
             textures the scan never saw; `kind`/`group`/`sub` apply always (cloth templates -> uniforms/cloth_256x256)
-Workflow: arena_scan.py scan/report -> texture_workspace.py export -> label_textures.py build -> texture_workspace.py export
 """
 import csv
 import re

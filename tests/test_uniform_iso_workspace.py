@@ -46,6 +46,12 @@ class UniformWorkspaceTests(unittest.TestCase):
     def export(self):
         return uniforms.export(self.source, self.workspace, self.cache, self.legacy)
 
+    def test_fresh_native_export_does_not_read_legacy_artwork(self):
+        with patch.object(uniforms, "legacy_seed_index", side_effect=AssertionError("legacy input used")):
+            report = uniforms.export(self.source, self.workspace, self.cache)
+        self.assertEqual(report["manual_sources"], 0)
+        self.assertEqual(report["seeded_masters"], 0)
+
     def test_native_ownership_handles_slot_ids_all_warmup_and_crowd_families(self):
         for asset in ("uh002.iff", "wh002.iff", "wuh002.iff", "puh002.iff", "suh002.iff",
                       "tuh002.iff", "cscrowd002.iff", "csch002.iff", "cstrainer002.iff"):

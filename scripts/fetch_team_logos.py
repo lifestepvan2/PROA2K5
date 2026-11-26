@@ -1,4 +1,4 @@
-"""Fetch the club logos from the Pro A website into nba2k_editor/assets/<38 + team index>.png (the logo asset gen_replacements
+"""Fetch the club logos from the Pro A website into nba2k_editor/assets/<38 + team index>.png (the logo asset
 and the logo/jersey generators use). The site only serves ~100 px logos; they are upscaled as a stopgap - replace the asset
 with a high-res logo by hand where one is available.
 

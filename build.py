@@ -45,8 +45,6 @@ def main() -> None:
     for filename in ("_iso_logos.json", "_iso_uniforms.json", "_iso_textures.json"):
         if not (workspace / filename).is_file():
             parser.error(f"Missing native workspace manifest: {workspace / filename}")
-    print("Warning: automatic light-reserve recolouring is not yet migrated to the ISO; "
-          "only explicit Skin Tone overrides are generated.", flush=True)
     run("player_database.py")
     run("crop_headshots.py", "--season", args.season)
     roster_args = ("--season", args.season, "--iso-source", str(SOURCE), "--team-palettes", str(palettes))

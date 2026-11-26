@@ -357,10 +357,8 @@ test below is diagnostic only, not the proposed production workflow.
    `texture_workspace/jersey_numbers/` and `texture_workspace/jersey_name_plates/`.
    If ambiguous, capture fresh dumps during a close-up and compare newly created
    or changed textures between variants.
-3. Recolour one candidate's opaque fill pixels to green, preserving its alpha and
-   outline pixels. Sync using `texture_workspace.py sync`, then reload textures with
-   F10 while unpaused. Check whether numbers/names change and whether this affects
-   only one uniform or other teams too. Restore after each individual test.
+3. This historical diagnostic used the retired replacement workflow. For current
+   editable controls and ISO builds, see [JerseyTextureWorkflow.md](./JerseyTextureWorkflow.md).
 4. If fill changes directly, map the texture keys and isolate the outline separately.
    If a confirmed visible glyph texture contains only white/greyscale coverage, investigate
    uniform material/vertex tinting. Read the loaded TXTR palette first: colour can be baked
@@ -821,8 +819,8 @@ also tested on a disposable sparse fixture.
 source. Uniform-level ISO palette edits propagate to generated names and numbers.
 Home/away and alternate source mapping for all 30 slots and the Pacers home preview
 are now resolved. `lettering_workspace.py` provides `export`, `check`, `build`
-and explicit per-slot `reset`; `update_season.py` provides opt-in ISO preflight and
-build stages. Each uniform now has `colours.json`: monochrome fill, generic
+and explicit per-slot `reset`; `build.py` publishes the combined ISO.
+Each uniform now has `colours.json`: monochrome fill, generic
 three-reference outlined recolouring, or legacy palette mode. Reference weights
 are derived from the pristine source, not hand-tuned per uniform or refitted against
 new colours. Monochrome covers every nonzero-alpha entry, including those used only

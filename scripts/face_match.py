@@ -4,8 +4,8 @@ Candidates are the face textures of all NBA player models (data/face_match/faces
 Cost = -ArcFace cosine similarity + W_SKIN * |skin lightness difference| (ProA photos mapped to the texture scale with the
 fixed SKIN_CAL curve). Every pid is used at most once (the lineup portrait is keyed by pid); all new players are solved in ONE
 league-wide Hungarian assignment, so scarce faces go to the players they fit best instead of to whichever team is matched first.
-Candidates must have native portrait resources. Explicit Skin Tone overrides
-produce model-local native texture recipes.
+Candidates must have native portrait resources. The light reserve uses native
+recoloured face embeddings; explicit Skin Tone overrides take precedence.
 Output: data/face_match/proa_pid_map.csv - the single, editable source of truth (also the cache):
   pid = automatic match (written by this script), override_pid = manual pick (never written by this script;
   build_roster.py uses override_pid if set, else pid), skin_target = the player's skin lightness (texture scale).
@@ -28,6 +28,7 @@ from scipy.optimize import linear_sum_assignment
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import skin_tones  # noqa: E402
+import native_light_reserve as light  # noqa: E402
 from face_embed import FACES, TEX_CROP, proa_portrait, tex_face  # noqa: E402
 from remaining_texture_workspace import load_manifest  # noqa: E402
 from texture_iso_workspace import DEFAULT_WS  # noqa: E402
@@ -42,7 +43,7 @@ CROP = (75, 20, 415, 427)
 SKIN_CAL = ([40, 100, 130, 160, 210], [40, 97, 125, 145, 170])
 
 
-def load():
+def load(reserved=(), bright_embeddings=None):
     E, S = np.load(OUT / "embeddings.npz"), np.load(OUT / "skin_lab.npz")
     names = {}
     for r in csv.DictReader(open(ROOT / "data/nba_defaults/players_unknown.csv", encoding="utf-8")):
@@ -52,6 +53,8 @@ def load():
     portraits = {row["texture"] for row in load_manifest(DEFAULT_WS)["sources"]
                  if row["asset_hash"] == "35cb8d72"}
     pids = [p for p in pids if f"{p:04}" in portraits]
+    bright_embeddings = bright_embeddings or {}
+    pids = [p for p in pids if p not in reserved or p in bright_embeddings]
     seen, uniq = set(), []
     for p in pids:  # several pids share an identical face texture (e.g. classic-team duplicates): keep one
         h = hashlib.md5((FACES / f"{p}_face.png").read_bytes()).hexdigest()
@@ -61,7 +64,9 @@ def load():
     pids = uniq
     ne = np.array([E[f"tex:{p}"] for p in pids])
     nl = np.array([S[f"tex:{p}"][0] for p in pids])
-    bright = np.zeros(len(pids), dtype=bool)
+    bright = np.array([p in bright_embeddings for p in pids])
+    for index in np.flatnonzero(bright):
+        ne[index], nl[index] = bright_embeddings[pids[index]][0], bright_embeddings[pids[index]][1][0]
     # players without a usable headshot (silhouette / no face found) get a neutral zero embedding: they take whatever pid is left
     players = list(csv.DictReader(open(ROOT / "data/roster_build/player_map.csv", encoding="utf-8")))
     have = np.array([f"proa:{r['proa_id']}" in E.files for r in players])
@@ -76,6 +81,7 @@ def skin_diff(pl, nl, bright):
     """|lightness difference| matrix (players x pids). A brightened face is recoloured to the player's own lightness, so any
     light player fits it for free; the others are ruled out strongly (the light arm class cannot be undone)."""
     d = np.abs(pl[:, None] - nl[None, :])
+    d[:, bright] = (2 * np.maximum(0, light.LIGHT_MIN - pl) + np.maximum(0, pl - light.LIGHT_MAX))[:, None]
     return d
 
 
@@ -118,18 +124,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--w-skin", type=float, default=2.0, help="weight of the skin lightness difference (L/100) against the ArcFace similarity")
     ap.add_argument("--rematch", action="store_true", help="ignore cached matches and match everybody again (override_pid is kept)")
-    ap.add_argument("--iso-source", type=Path, help="pristine ISO required for nonzero Skin Tone overrides")
+    ap.add_argument("--iso-source", type=Path, help="pristine ISO required for native face and skin recipes")
     ap.add_argument("--skin-plan", type=Path, default=skin_tones.PLAN, help="prepared complexion recipe for the combined ISO build")
     ap.add_argument("--repack-archive", action="store_true",
                     help="allow lossless skin-resource growth; the final ISO build must also use this option")
     a = ap.parse_args()
-    pids, names, ne, nl, players, pe, pl, E, bright = load()
+    if a.iso_source is None:
+        ap.error("Face matching requires --iso-source PRISTINE.iso for native light-reserve models; use build.py")
+    with a.iso_source.open("rb") as stream:
+        assets = skin_tones.Assets(stream)
+        reserved, usable = light.inventory(assets)
+        embeddings = light.reference_embeddings(assets, usable, OUT / "bright_native.npz")
+    pids, names, ne, nl, players, pe, pl, E, bright = load(reserved, embeddings)
     col = {p: c for c, p in enumerate(pids)}
     sim = pe @ ne.T
     skin = skin_diff(pl, nl, bright)
     requested = np.array([bool(skin_tones.tone_value(row)) for row in players])
-    if requested.any() and a.iso_source is None:
-        ap.error("Nonzero Skin Tone requires --iso-source PRISTINE.iso; use build.py")
     skin[requested, :] = 0  # manual complexion is applied to the selected model, not inherited from it
     cost0 = -sim + a.w_skin * skin + 0.05 * bright[None, :]  # a small preference for natural faces over recoloured ones
     prev = read_map()
@@ -161,24 +171,27 @@ def main():
     for i in range(len(players)):
         if manual(i):
             final[i] = manual(i)
-    final_rows = [{**row, "pid": final[i]} for i, row in enumerate(players)]
+    final_rows = [{**row, "pid": final[i], "skin_target": f"{pl[i]:.3f}"} for i, row in enumerate(players)]
     previews = {}
-    if requested.any():
-        with a.iso_source.open("rb") as stream:
-            complexion_plan = skin_tones.create_plan(stream, final_rows, repack_archive=a.repack_archive)
-            assets = skin_tones.Assets(stream, verify_hash=False)
-            for entry in complexion_plan["players"]:
-                recipe = next(recipe for recipe in entry["assets"] if recipe["side"] == "h")
-                _, _, decoded, system, _ = assets.resource(entry["pid"], "h", "face")
-                video = decoded[system:-1024] + bytes.fromhex(recipe["face_palette_hex"])
-                previews[entry["proa_id"]] = (entry["pid"], Image.fromarray(skin_tones.rgb_of(video, 256, 256)))
-    else:
-        complexion_plan = skin_tones.create_plan(None, final_rows, repack_archive=a.repack_archive)
+    with a.iso_source.open("rb") as stream:
+        complexion_plan = skin_tones.create_plan(stream, final_rows, repack_archive=a.repack_archive,
+                                                 reserve_pids=usable)
+        assets = skin_tones.Assets(stream, verify_hash=False)
+        for entry in complexion_plan["players"]:
+            recipe = next(recipe for recipe in entry["assets"] if recipe["side"] == "h")
+            _, _, decoded, system, _ = assets.resource(entry["pid"], "h", "face")
+            video = decoded[system:-1024] + bytes.fromhex(recipe["face_palette_hex"])
+            previews[entry["proa_id"]] = (entry["pid"], Image.fromarray(skin_tones.rgb_of(video, 256, 256)))
+        for entry in complexion_plan["reserve_players"]:
+            pid = entry["pid"]
+            face, _ = light.recolour(light.rgb(assets, pid, "h", "face"),
+                                     light.rgb(assets, pid, "h", "neck"), entry["skin_target"])
+            previews[entry["proa_id"]] = (pid, Image.fromarray(face))
     used_mask = np.array([100.0 if p in set(final.values()) else 0.0 for p in pids])
     target = {r["proa_id"]: pl[i] for i, r in enumerate(players)}
 
     def face(pid, r):
-        if skin_tones.tone_value(r):
+        if r["proa_id"] in previews:
             preview_pid, image = previews[r["proa_id"]]
             return image.crop(TEX_CROP) if pid == preview_pid else tex_face(pid)
         return tex_face(pid)
@@ -216,7 +229,8 @@ def main():
     finally:
         if created and temporary.exists():
             temporary.unlink()
-    print(f"Prepared {len(complexion_plan['players'])} model-local Skin Tone override(s) -> {a.skin_plan}")
+    print(f"Prepared {len(complexion_plan['players'])} Skin Tone override(s) and "
+          f"{len(complexion_plan['reserve_players'])} light-reserve model(s) -> {a.skin_plan}")
     sims = np.array([float(v[1]) for v in result.values()])
     n_new = len(result) - len(cached)
     d = np.array([skin[i, col[final[i]]] for i in result if final[i] in col])

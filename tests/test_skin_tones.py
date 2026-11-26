@@ -14,11 +14,10 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import skin_tones as skin
 import skin_brighten as sb
-import gen_skin_replacements as gen
+import native_light_reserve as light
 import build_roster
 import face_match
 import player_database as db
-import texlib
 from player_texture_iso import texture_resource
 from test_player_texture_iso import resource, compact_asset
 from test_player_database import workbook
@@ -88,6 +87,52 @@ class SkinToneTests(unittest.TestCase):
         skin.update_generated_masters(workspace, sources, {})
         with Image.open(master) as image:
             self.assertEqual(image.getpixel((0, 0)), (0, 128, 0, 255))
+
+    def test_native_reserve_matches_original_recolour_and_preserves_target_priority(self):
+        rng = np.random.default_rng(42)
+        face = rng.integers(0, 256, (256, 256, 3), dtype=np.uint8)
+        neck = rng.integers(0, 256, (64, 128, 3), dtype=np.uint8)
+        actual = light.recolour(face, neck, 1.53)
+        expected = sb.recolour(face, neck, 1.53)
+        for result, prior in zip(actual, expected):
+            np.testing.assert_array_equal(result, prior)
+        rows = [{**self.rows[0], "skin_target": "1.400"}, {**self.rows[1], "skin_target": "1.530"}]
+        with patch.object(skin, "Assets", FixtureAssets):
+            plan = skin.create_plan(None, rows, reserve_pids={10, 30})
+        self.assertEqual([r["proa_id"] for r in plan["players"]], ["123"])
+        self.assertEqual([(r["proa_id"], r["leg_byte"], r["skin_target"])
+                          for r in plan["reserve_players"]], [("456", 5, 1.53)])
+        skin.validate_roster(plan, rows)
+        stale = [rows[0], {**rows[1], "skin_target": "1.540"}]
+        with self.assertRaisesRegex(ValueError, "target is stale"):
+            skin.validate_roster(plan, stale)
+
+    def test_light_reserve_matching_penalizes_dark_players(self):
+        scores = face_match.skin_diff(np.array([1.0, 1.5]), np.array([1.0, 1.0]),
+                                      np.array([False, True]))
+        self.assertGreater(scores[0, 1], scores[0, 0])
+        self.assertEqual(scores[1, 1], 0)
+
+    def test_native_reference_cache_reuses_only_matching_images(self):
+        face = np.full((256, 256, 3), 140, dtype=np.uint8)
+        neck = np.full((64, 128, 3), 140, dtype=np.uint8)
+        path = self.root / "bright.npz"
+        def image(_assets, _pid, _side, part):
+            return face if part == "face" else neck
+        embedding = (np.ones(3), np.array([140., 0., 0.]))
+        with patch.object(light, "rgb", side_effect=image), \
+                patch("face_embed.embed", return_value=embedding) as embed:
+            light.reference_embeddings(None, {10}, path)
+            light.reference_embeddings(None, {10}, path)
+            self.assertEqual(embed.call_count, 1)
+            face[105:115, 5:15] = 10
+            light.reference_embeddings(None, {10}, path)
+            self.assertEqual(embed.call_count, 2)
+        temporary = path.with_name(path.name + ".tmp")
+        temporary.write_bytes(b"other writer")
+        with patch.object(light, "rgb", side_effect=image), self.assertRaises(FileExistsError):
+            light.reference_embeddings(None, {10}, path)
+        self.assertEqual(temporary.read_bytes(), b"other writer")
 
     def test_removing_skin_override_preserves_subsequent_manual_edits(self):
         workspace = self.root / "native"
@@ -266,30 +311,6 @@ class SkinToneTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "outside the requested bucket"):
             skin.compile_plan(None, plan, self.rows, FixtureAssets())
 
-    def test_legacy_replacements_ignore_manual_tone_and_keep_automatic_behavior(self):
-        path = self.root / "map.csv"
-        path.write_text("proa_id,pid,override_pid,skin_target,skin_tone\n"
-                        "123,10,,1.5,1\n456,30,,1.6,0\n", encoding="utf-8")
-        with patch.object(gen, "MAP", path), patch.object(sb, "usable_pids", return_value={10, 30}):
-            users = gen.used_reserved()
-        self.assertEqual([row["proa_id"] for row, _, _ in users], ["456"])
-
-    def test_legacy_generator_prunes_previous_manual_players_managed_pngs(self):
-        replacements = self.root / "replacements"
-        replacements.mkdir()
-        old = replacements / "old-face.png"
-        old.write_bytes(b"old managed PNG")
-        (self.root / "pipeline_managed.json").write_text(json.dumps({"skin": ["old-face"]}))
-        with patch.object(sys, "argv", ["gen_skin_replacements.py", "--out", str(replacements)]), \
-                patch.object(gen.sb, "read_keys", return_value={}), \
-                patch.object(gen, "dump_files", return_value={}), \
-                patch.object(gen, "plan", return_value={}), \
-                patch.object(gen, "used_reserved", return_value=[]), \
-                patch.object(texlib, "TEX_ROOT", self.root), contextlib.redirect_stdout(io.StringIO()):
-            gen.main()
-        self.assertFalse(old.exists())
-        self.assertEqual(json.loads((self.root / "pipeline_managed.json").read_text())["skin"], [])
-
     def test_provisional_roster_cannot_write_card(self):
         with patch.object(sys, "argv", ["build_roster.py", "--prepare-faces", "--card", "copy.ps2"]), \
                 contextlib.redirect_stderr(io.StringIO()):
@@ -338,13 +359,13 @@ class SkinToneTests(unittest.TestCase):
         plan_path = self.root / "plan.json"
         source = self.root / "source.iso"
         source.write_bytes(b"fixture")
-        plan = {"players": []}
+        plan = {"players": [], "reserve_players": []}
         with patch.object(sys, "argv", ["face_match.py", "--iso-source", str(source), "--skin-plan", str(plan_path),
                                        "--repack-archive"]), \
                 patch.object(face_match, "load", return_value=loaded), \
                 patch.object(face_match, "read_map", return_value={"123": {"pid": "10", "sim": "1", "skin_pen": "0"}}), \
-                patch.object(sb, "reserved_pids", return_value=set()), \
-                patch.object(sb, "usable_pids", return_value=set()), \
+                patch.object(light, "inventory", return_value=(set(), set())), \
+                patch.object(light, "reference_embeddings", return_value={}), \
                 patch.object(face_match, "SHEETS", self.root / "sheets"), \
                 patch.object(face_match, "sheet"), patch.object(face_match, "MAP", mapping), \
                 patch.object(skin, "create_plan", return_value=plan) as create, \
@@ -353,7 +374,7 @@ class SkinToneTests(unittest.TestCase):
         final_rows = create.call_args.args[1]
         self.assertEqual(final_rows[0]["pid"], 10)
         self.assertEqual(final_rows[0]["skin_tone"], 1)
-        self.assertEqual(create.call_args.kwargs, {"repack_archive": True})
+        self.assertEqual(create.call_args.kwargs, {"repack_archive": True, "reserve_pids": set()})
         self.assertEqual(json.loads(plan_path.read_text()), plan)
         self.assertIn("skin_tone", mapping.read_text())
 
@@ -369,11 +390,11 @@ class SkinToneTests(unittest.TestCase):
         with patch.object(sys, "argv", ["face_match.py", "--iso-source", str(source)]), \
                 patch.object(face_match, "load", return_value=loaded), \
                 patch.object(face_match, "read_map", return_value={"123": {"pid": "10", "sim": "1", "skin_pen": "0"}}), \
-                patch.object(sb, "reserved_pids", return_value=set()), \
-                patch.object(sb, "usable_pids", return_value=set()), \
+                patch.object(light, "inventory", return_value=(set(), set())), \
+                patch.object(light, "reference_embeddings", return_value={}), \
                 patch.object(face_match, "SHEETS", self.root / "sheets"), \
                 patch.object(face_match, "sheet"), patch.object(face_match, "MAP", mapping), \
-                patch.object(skin, "create_plan", return_value={"players": []}), \
+                patch.object(skin, "create_plan", return_value={"players": [], "reserve_players": []}), \
                 patch.object(skin, "save_plan", side_effect=OSError("plan is locked")), \
                 patch.object(skin, "Assets", FixtureAssets), contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaisesRegex(OSError, "plan is locked"):

@@ -170,10 +170,22 @@ def load_candidates(assets, defaults=None, keys=None):
     return donor_candidates(assets, defaults, keys)
 
 
-def create_plan(stream, rows, defaults=None, keys=None, *, repack_archive=False):
+def create_plan(stream, rows, defaults=None, keys=None, *, repack_archive=False, reserve_pids=()):
     roster = signature(rows)
     plan = {"schema": 1, "source_sha256": SOURCE_SHA256, "roster": roster, "players": [],
             "repack_archive": repack_archive}
+    by_id = {str(row["proa_id"]): row for row in rows}
+    reserve = set(reserve_pids)
+    plan["reserve_players"] = []
+    for row in roster:
+        if row["pid"] in reserve and not row["skin_tone"]:
+            target = float(by_id[row["proa_id"]]["skin_target"])
+            if not np.isfinite(target):
+                raise ValueError(f"{row['proa_id']}: invalid light-reserve target")
+            plan["reserve_players"].append({**row, "skin_target": target, "leg_byte": 5})
+    for row in plan["reserve_players"]:
+        if sum(other["pid"] == row["pid"] for other in roster) != 1:
+            raise ValueError(f"Light-reserve recolouring requires a unique PID: {row['pid']}")
     requested = [row for row in roster if row["skin_tone"]]
     if not requested:
         return plan
@@ -218,6 +230,23 @@ def validate_roster(plan, rows):
         expected = requested[row["proa_id"]]
         if any(row[key] != expected[key] for key in ("pid", "skin_tone")) or row["leg_byte"] != 6 - row["skin_tone"]:
             raise ValueError("Skin-tone plan player or leg byte mismatch")
+    reserve = plan.get("reserve_players", [])
+    by_id = {str(row["proa_id"]): row for row in rows}
+    planned = {row["proa_id"]: row for row in plan["roster"]}
+    if not isinstance(reserve, list) or len({row["proa_id"] for row in reserve}) != len(reserve):
+        raise ValueError("Invalid light-reserve plan")
+    for row in reserve:
+        expected = planned.get(row["proa_id"])
+        if (expected is None or expected["skin_tone"] or row["pid"] != expected["pid"]
+                or row["skin_tone"] != 0 or row["leg_byte"] != 5
+                or not isinstance(row["skin_target"], (int, float))
+                or not np.isfinite(row["skin_target"])):
+            raise ValueError("Light-reserve plan player, target or leg byte mismatch")
+        current = by_id[row["proa_id"]].get("skin_target")
+        if "skin_target" in by_id[row["proa_id"]] and (current in (None, "") or float(current) != row["skin_target"]):
+            raise ValueError("Light-reserve plan target is stale")
+        if sum(other["pid"] == row["pid"] for other in plan["roster"]) != 1:
+            raise ValueError("Light-reserve plan requires a unique PID")
     return players
 
 
@@ -325,7 +354,9 @@ def populate_workspace(stream, workspace, plan_path=PLAN):
     from texture_catalogue import texture_images
 
     edits = []
-    _, reports = load_patches(stream, plan_path, repack_archive=True, texture_edits=edits)
+    plan = json.loads(Path(plan_path).read_text(encoding="utf-8"))
+    rows = read_rows()
+    _, reports = compile_plan(stream, plan, rows, repack_archive=True, texture_edits=edits)
     intents = {offset: (body, target) for offset, body, _, target, _, _ in edits}
     sources = remaining_texture_workspace.load_manifest(workspace)["sources"]
     lookup = {(row["asset"], row["texture"], row["iso_offset"] + row["chunk_offset"] + 32): row
@@ -348,8 +379,37 @@ def populate_workspace(stream, workspace, plan_path=PLAN):
             images, _, _, _ = texture_images(target, row["system"], row["video"],
                                                row["descriptor"], row["descriptor_offsets"])
             selected[row["id"]] = display(images[0])
+    reserve = plan.get("reserve_players", [])
+    if reserve:
+        import native_light_reserve as light
+
+        assets = Assets(stream)
+        candidates = load_candidates(assets)
+        usable = light.inventory(assets)[1]
+        for player in reserve:
+            pid = player["pid"]
+            if pid not in usable:
+                raise ValueError(f"PID {pid} is not a native light-reserve model")
+            donor = _choose_donor(assets, pid, candidates, "arm", light.LIGHT_TONE, repack_archive=True)
+            for side in ("h", "a"):
+                face, neck = light.recolour(light.rgb(assets, pid, side, "face"),
+                                            light.rgb(assets, pid, side, "neck"), player["skin_target"])
+                pixels = {"face": face, "neck": neck, "arm": light.rgb(assets, donor, side, "arm")}
+                for part, rgb in pixels.items():
+                    asset = player_asset_name(pid, side)
+                    chunk = assets.resource(pid, side, part)[0]
+                    offset = assets.asset(pid, side)[0] + chunk + 32
+                    row = lookup.get((asset, part, offset))
+                    if row is None:
+                        raise ValueError(f"No native master for light-reserve texture {asset}/{part}")
+                    _, original = native.source_bytes(stream, row)
+                    images, _, _, _ = texture_images(original, row["system"], row["video"],
+                                                       row["descriptor"], row["descriptor_offsets"])
+                    image = Image.fromarray(rgb).convert("RGBA")
+                    image.putalpha(display(images[0]).getchannel("A"))
+                    selected[row["id"]] = image
     update_generated_masters(workspace, sources, selected)
-    return {"masters": len(selected), "players": len(reports) // 2}
+    return {"masters": len(selected), "players": len(reports) // 2 + len(reserve)}
 
 
 def update_generated_masters(workspace, sources, images):
