@@ -17,6 +17,7 @@ import argparse
 import collections
 import copy
 import csv
+import hashlib
 import json
 import re
 import struct
@@ -35,7 +36,7 @@ from overall_model import predict_overall  # noqa: E402
 import skin_brighten  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
 from roster_stats import encode_history, repack as repack_stats  # noqa: E402
-from player_database import PLAYER_COLUMNS, field_value  # noqa: E402
+from player_database import APPEARANCE_FIELDS, RAW_ACCESSORY_FIELDS, PLAYER_COLUMNS, field_value, player_id  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
@@ -261,7 +262,7 @@ def load_proa(path):
             continue
         rows = list(wb[name].iter_rows(values_only=True))
         hdr, rows = rows[0], rows[1:]
-        if missing := set(PLAYER_COLUMNS) - {"Skin Tone"} - set(hdr):
+        if missing := set(PLAYER_COLUMNS) - {"Skin Tone", *APPEARANCE_FIELDS, *RAW_ACCESSORY_FIELDS} - set(hdr):
             raise ValueError(f"{name}: missing workbook columns {sorted(missing)}; regenerate with scraper")
         players = []
         for r in rows:
@@ -439,6 +440,36 @@ def apply_accessories(buf, off, row):
         v = _acc_val(row, col)
         if v:
             buf[off + o] = presets.get(v, v)
+    for col, (offset, _) in RAW_ACCESSORY_FIELDS.items():
+        if row.get(col) not in (None, ""):
+            buf[off + offset] = field_value(col, row[col])
+
+
+def apply_created_appearance(buf, off, row, proa_id, *, force=False):
+    """Apply optional created-model selectors after accessories and final skin selection."""
+    supplied = {name: field_value(name, row[name]) for name in APPEARANCE_FIELDS
+                if row.get(name) not in (None, "")}
+    if not supplied and not force:
+        return False
+    pid = player_id(proa_id)
+    skin = buf[off + P_SKIN]
+    if skin > 5:
+        raise ValueError(f"{pid}: invalid in-game skin tone {skin}; expected 0..5")
+    buf[off + 0x08] |= 1
+    buf[off + 0x68] = 1
+    for offset, _ in APPEARANCE_FIELDS.values():
+        buf[off + offset] = 0
+    for name, value in supplied.items():
+        buf[off + APPEARANCE_FIELDS[name][0]] = value
+    if "Hairstyle" not in supplied:
+        choices = (5, 13, 22) if skin in (4, 5) else (1, 2)
+        digest = hashlib.sha256(f"proa-created-hairstyle:{pid}".encode("ascii")).digest()
+        buf[off + 0x61] = choices[int.from_bytes(digest, "big") % len(choices)]
+    if "Head" not in supplied:
+        choices = range(2, 7) if skin in (4, 5) else range(7)
+        digest = hashlib.sha256(f"proa-created-head:{pid}".encode("ascii")).digest()
+        buf[off + 0x71] = choices[int.from_bytes(digest, "big") % len(choices)]
+    return True
 
 
 def load_pids(path):
@@ -581,6 +612,9 @@ def main():
             skin_tone = field_value("Skin Tone", p["rowd"].get("Skin Tone") or 0)
             if skin_tone and not a.prepare_faces:
                 pl.d[rec_off(r) + P_SKIN] = 6 - skin_tone
+            if apply_created_appearance(pl.d, rec_off(r), p["rowd"], p["proa_id"]):
+                if _acc_val(p["rowd"], "headband") not in (0, 1):
+                    notes.append(f"{first} {last}: created-model Build owns +0x62; headband style preset is ignored")
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "college": colleges[r], "skin_tone": skin_tone,
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],

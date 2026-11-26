@@ -18,7 +18,8 @@ from inventory_lettering_iso import asset_hash
 from patch_lettering_iso import digest
 from patch_preview_lettering_iso import SOURCE_SHA256
 from player_database import field_value
-from player_texture_iso import read_archive, read_asset, replace_texture, replace_video, texture_resource
+from player_texture_iso import (player_asset_name, read_archive, read_asset, replace_texture, replace_video,
+                                 texture_resource)
 import skin_brighten as sb
 from txtr_match import SWZ
 
@@ -79,7 +80,7 @@ class Assets:
 
     @cache
     def asset(self, pid, side):
-        return read_asset(self.stream, self.entries, f"p{pid}{side}.iff")
+        return read_asset(self.stream, self.entries, player_asset_name(pid, side))
 
     @cache
     def resource(self, pid, side, part):
@@ -130,7 +131,7 @@ def donor_candidates(assets, defaults, keys):
             tones.setdefault(int.from_bytes(record[4:6], "little"), record[sb.P_SKIN])
     groups = {}
     for pid, leg in sorted(tones.items()):
-        if not all(asset_hash(f"p{pid}{side}.iff") in assets.entries for side in ("h", "a")):
+        if not all(asset_hash(player_asset_name(pid, side)) in assets.entries for side in ("h", "a")):
             continue
         for part in ("arm", "neck"):
             key_row = keys.get(pid)
@@ -240,7 +241,7 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_arc
             side = recipe["side"]
             offset, original = assets.asset(pid, side)
             if digest(original) != recipe["source_asset_sha256"]:
-                raise ValueError(f"Skin-tone source changed: p{pid}{side}.iff")
+                raise ValueError(f"Skin-tone source changed: {player_asset_name(pid, side)}")
             patched, changes = original, []
             for part in ("arm", "neck"):
                 if texture_edits is None:
@@ -272,7 +273,7 @@ def compile_plan(stream, plan, rows, assets=None, candidates=None, *, repack_arc
             reports.append({
                 "proa_id": row["proa_id"], "pid": pid, "skin_tone": row["skin_tone"],
                 "leg_byte": row["leg_byte"], "arm_donor": row["arm_donor"], "neck_donor": row["neck_donor"],
-                "asset": f"p{pid}{side}.iff", "offset": offset, "size": len(original),
+                "asset": player_asset_name(pid, side), "offset": offset, "size": len(original),
                 "new_size": len(patched) if texture_edits is None else None, "repack_archive": repack_archive,
                 "original_sha256": digest(original),
                 "patched_sha256": digest(patched) if texture_edits is None else None, "resources": changes,
@@ -289,7 +290,7 @@ def decoded_intent(assets, pid, side, part, video, edits):
     if target != original:
         offset = assets.asset(pid, side)[0] + chunk + 32
         edits.append((offset, body, original, target, scratch,
-                      {"asset": f"p{pid}{side}.iff", "compressed": True, "modifier": "skin_tones", "part": part}))
+                      {"asset": player_asset_name(pid, side), "compressed": True, "modifier": "skin_tones", "part": part}))
     return {"part": part, "source_chunk_offset": chunk, "decoded_sha256": digest(target),
             "composition": "decoded-resource-intent"}
 

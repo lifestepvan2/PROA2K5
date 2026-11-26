@@ -22,6 +22,11 @@ PARTS = {"arm": (128, 128), "neck": (128, 64)}
 TEXTURE_SIZES = {**PARTS, "face": (256, 256)}
 
 
+def player_asset_name(pid: int, side: str) -> str:
+    """Player model archive name; PIDs are zero-padded to three digits (p078h.iff)."""
+    return f"p{pid:03}{side}.iff"
+
+
 def texture_resource(asset: bytes, part: str) -> tuple[int, bytes, bytes, int, int]:
     """Return chunk offset, compressed body, decoded body, system size and scratch."""
     if part not in TEXTURE_SIZES:
@@ -159,7 +164,7 @@ def inspect(stream, pid: int, donor_pid: int, parts: list[str]) -> tuple[list, d
 
     patches, assets = [], []
     for side in ("h", "a"):
-        name, donor_name = f"p{pid}{side}.iff", f"p{donor_pid}{side}.iff"
+        name, donor_name = player_asset_name(pid, side), player_asset_name(donor_pid, side)
         offset, original = read_asset(stream, entries, name)
         _, donor = read_asset(stream, entries, donor_name)
         patched, resources = original, []

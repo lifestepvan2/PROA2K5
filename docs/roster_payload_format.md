@@ -521,6 +521,34 @@ team IDs**, which are not always roster slots (e.g. roster slot 28 uses native
 ID 29). The stage copies matched clothing/lettering resource sets and `UnAD`
 attributes without claiming to have decoded those attributes' placement fields.
 
+Team select cycles only the rows of the team's own side, so a team with one
+row on a side cannot switch there. Among ProA slots, 023 (native ID 23) has no
+home alternate (`uh023`; away `ua023`, `r1a023`); 019 and 029 have no away
+alternate. Team records hold no per-side uniform counts, and the disc has only
+one copy of the table (other `r1a023` strings are created-player gear lists).
+
+**Known limitation: these teams cannot switch jerseys on the missing side.**
+Two payload-only attempts failed or were abandoned, and their code was removed:
+
+* **Side flip** (turn `r1a023`'s side word `+4` from 1 to 0): this only moves
+  the gap to the away side. The in-game test was invalid because the ISO was
+  built from a stale roster payload, so the flip itself remains unverified.
+* **Row borrowing** (in-game test failed): `build_roster.py` reassigned a spare
+  non-ProA alternate row to the ProA team by changing its team ID (`r5h000`
+  team 0 → 23, `r4a000` → 19, `r5a000` → native 2). It moved the row directly
+  after the receiving team's rows and rewrote the self-relative `+0x0C`/`+0x10`
+  pointers. Readback was correct: same row set, teams contiguous, labels intact,
+  and the copy stage filled `r5h000`/`selr5h000` from `ua023`. Even so, Essen
+  still showed only `uh023` at home. The game therefore does not build team
+  select's list from this payload table's team-ID words alone. Ideas not yet
+  tried: the list may come from executable data, asset names (`r?h000` carries
+  the owner's ID) or a precomputed per-team index.
+
+Findings that remain useful: the payload holds only one copy of the table (the
+other `r1a023` strings are created-player gear lists). Team records hold no
+per-side uniform counts. Only the `0xB4` descriptor points into the table, so
+rows can be reordered without breaking other payload pointers.
+
 #### Patch and verified result
 
 [patch_lettering_iso.py](../scripts/patch_lettering_iso.py) changes only the

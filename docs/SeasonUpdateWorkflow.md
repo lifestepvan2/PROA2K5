@@ -64,11 +64,17 @@ appends to, or rewrites this file.
   normalized and shortened to 12 characters. Manual preferred names apply
   afterwards and must already fit those constraints.
 - Visible ratings are integers 25..99; hidden attributes use the ranges below.
-  Accessory values are integers 0..255, using the
-  existing preset/raw-index meanings. Height is metres; weight is kg.
-- Duplicate IDs, unknown columns, invalid dates/numbers/names and invalid
-  shooting-hand values fail validation before saving. Overrides for players
-  absent this season are reported and retained.
+  Accessory selectors use the ranges and preset/raw-index meanings documented
+  in [player record layout](player_record_layout.md#accessories-verified-in-game-through-the-memory-card).
+  Height is metres; weight is kg.
+- Out-of-range, fractional integer and invalid-tier **numeric CSV overrides**
+  are adjusted to the nearest allowed value with a warning identifying the
+  player and column (ties choose the lower value). The CSV is not rewritten;
+  the corrected value is applied to the workbook. Non-numeric or non-finite
+  values, duplicate IDs, unknown columns, invalid dates and invalid names still
+  fail explicitly because there is no unambiguous numeric correction. Direct
+  workbook edits remain strictly validated. Overrides for players absent this
+  season are reported and retained.
 - `Years Pro` is derived from the season-history span. With stats enabled,
   conflicting overrides are rejected by the builder rather than mislabelling
   seasons. It is freely editable only for `build_roster.py --no-stats`.

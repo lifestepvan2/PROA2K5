@@ -126,13 +126,13 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,pos,je
 20,8,Crailsheim Merlins,11,92,0x9a24,Luc,van Slooten,Vechta,0,2,11,82.2,2003178,False,839
 20,8,Crailsheim Merlins,12,80,0x9334,Matheo,Hermann,Berlin,0,1,4,79.4,2004275,False,908
 20,8,Crailsheim Merlins,13,65,0x8a88,Phil,Ikejiaku,Leverkusen,0,4,19,69.4,2004363,False,1036
-21,9,Falcons,0,267,0xff50,Larry,Austin Jr,Central Michigan,0,0,0,92.2,2005421,True,78
+21,9,Falcons,0,267,0xff50,Larry,Austin Jr,Central Michigan,3,0,0,92.2,2005421,True,78
 21,9,Falcons,1,268,0xffe4,Nate,Heise,Iowa State,1,1,33,91.5,2004101,True,1138
 21,9,Falcons,2,269,0x10078,Jenoe,Pildner,Berlin,0,2,37,83.3,2003982,True,266
 21,9,Falcons,3,270,0x1010c,Ty,Allred,Colorado Mesa,1,3,10,92.1,2004046,True,653
 21,9,Falcons,4,272,0x10234,Daniel,Helterhoff,Rider University,0,4,13,87.2,2003983,True,460
 21,9,Falcons,5,273,0x102c8,Xavier,Bell,Wichita State,0,0,4,91.8,2004435,False,303
-21,9,Falcons,6,274,0x1035c,Tim,Koepple,Ulm,3,0,5,86.7,5469,False,981
+21,9,Falcons,6,274,0x1035c,Tim,Koepple,Ulm,1,0,5,86.7,5469,False,981
 21,9,Falcons,7,275,0x103f0,Dominick,von Waaden,Bamberg,0,1,9,85.6,2004606,False,992
 21,9,Falcons,8,276,0x10484,Nic,Welp,California State,0,4,20,85.5,2004048,False,421
 21,9,Falcons,9,277,0x10518,Lars,Lagerpusch,Brunswick,0,4,44,85.1,2002186,False,457

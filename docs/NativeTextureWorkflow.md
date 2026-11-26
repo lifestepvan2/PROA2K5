@@ -42,6 +42,23 @@ physical aliases reuse one master, while separate palettes remain separately
 editable. Shared-index crowd variants are quantized jointly.
 Font masters edit atlas artwork only: glyph metrics and layout are preserved.
 
+### Frontend flipchip logos
+
+```powershell
+python scripts\propagate_logos.py --dry-run
+python scripts\propagate_logos.py
+```
+
+The script **overwrites** every native `frontend.iff` `NNN_flipchip_00`
+master, including NBA and special-team entries. Back up any manual edits
+first. It center-crops the ProA logo assets from `nba2k_editor\assets` to the
+native dimensions and composites them over an opaque dark background.
+Existing ProA team slots use their corresponding native team IDs; the other
+indices cycle through ProA teams without adjacent repeats, including the
+wraparound. Traversal by numeric index is an assumption, not an in-game
+verification. Native IDs identify masters even after they are moved or renamed.
+Run the normal ISO build afterward; the script does not patch the ISO itself.
+
 ### Stitching arena strips for editing
 
 ```powershell

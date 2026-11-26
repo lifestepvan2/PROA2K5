@@ -13,7 +13,7 @@ import openpyxl
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import player_database as db
 import scrape_proa_roster as scraper
-from build_roster import P_HAND, P_YEARS, apply_accessories, write_record_fields
+from build_roster import P_HAND, P_YEARS, apply_accessories, apply_created_appearance, write_record_fields
 from crop_headshots import placeholder_hashes, KNOWN_PLACEHOLDERS
 from rating_map_2k5 import HIDDEN_ATTR_OFFSETS, EXTRA_CANONICAL
 from overall_data import player_extras
@@ -29,6 +29,8 @@ def workbook():
     ws.title = "Example"
     ws.append(db.PLAYER_COLUMNS)
     row = {**dict.fromkeys(db.SHEET_COLUMNS, 50), **dict.fromkeys(db.ACCESSORIES, 0),
+           **dict.fromkeys(db.RAW_ACCESSORY_FIELDS),
+           **dict.fromkeys(db.APPEARANCE_FIELDS),
            "First Name": "Test", "Last Name": "Player", "Position": "PG", "Secondary Position": "N/A",
            "Birth Year": 2000, "Birth Month": 1, "Birth Day": 2, "Height": 1.90, "Weight": 85,
            "College": "", "Shooting Hand": 1, "Skin Tone": 0, "ProA ID": 123, "Years Pro": 1,
@@ -107,8 +109,8 @@ class PlayerDatabaseTests(unittest.TestCase):
         for columns, rows in [
             (["ProA ID"], [{"ProA ID": 123}, {"ProA ID": 123}]),
             (["ProA ID", "Overall"], [{"ProA ID": 123, "Overall": 99}]),
-            (["ProA ID", "Shooting Hand"], [{"ProA ID": 123, "Shooting Hand": 2}]),
-            (["ProA ID", "Dunk"], [{"ProA ID": 123, "Dunk": 100}]),
+            (["ProA ID", "Dunk"], [{"ProA ID": 123, "Dunk": "bad"}]),
+            (["ProA ID", "Dunk"], [{"ProA ID": 123, "Dunk": "nan"}]),
             (["ProA ID", "Last Name"], [{"ProA ID": 123, "Last Name": "LongerThanTwelve"}]),
             (["ProA ID", "Last Name"], [{"ProA ID": 123, "Last Name": "Müller"}]),
             (["ProA ID"], [{"ProA ID": "123.0"}]),
@@ -118,6 +120,25 @@ class PlayerDatabaseTests(unittest.TestCase):
         for value in (True, 1.5, float("nan"), -1):
             with self.assertRaises(ValueError):
                 db.field_value("headband", value)
+
+    def test_numeric_csv_overrides_use_nearest_valid_value_with_warnings(self):
+        path = self.csv_file(db.OVERRIDE_COLUMNS, [
+            {"ProA ID": 123, "Dunk": 100, "Shooting Hand": -3, "Consistency": 70,
+             "Standing Dunk": 25, "Height": 3.0, "Shades": 2.5, "Hair Color": 3},
+        ])
+        before = path.read_bytes()
+        with contextlib.redirect_stderr(io.StringIO()) as warnings:
+            values = db.load_overrides(path)[123]
+        self.assertEqual(values, {"Dunk": 99, "Shooting Hand": 0, "Consistency": 75,
+                                  "Standing Dunk": 0, "Height": 2.7, "Shades": 2,
+                                  "Hair Color": 3})
+        text = warnings.getvalue()
+        for field in ("Dunk", "Shooting Hand", "Consistency", "Standing Dunk", "Height", "Shades"):
+            self.assertIn(f"ProA ID 123, {field}:", text)
+        self.assertNotIn("Hair Color", text)
+        self.assertEqual(before, path.read_bytes())
+        with self.assertRaises(ValueError):
+            db.field_value("Consistency", 70)
 
     def test_blacklist_removes_cached_players_before_stat_requests(self):
         players = [{"proa_id": pid, "first_name": "A", "last_name": "B", "nationality": "DE"} for pid in (1, 2)]
@@ -165,7 +186,8 @@ class PlayerDatabaseTests(unittest.TestCase):
                           "nationality": "DE"}]}
         with contextlib.redirect_stdout(io.StringIO()):
             scraper.write_excel(players, output, db.SHEET_COLUMNS, headshot_map={123: 9000},
-                                overrides={123: {"Dunk": 99, "Shooting Hand": 0, "College": "Example"}})
+                                overrides={123: {"Dunk": 99, "Shooting Hand": 0, "College": "Example",
+                                                 "Beard": 0, "Shades": 6, "Sock Length": 3}})
         wb = openpyxl.load_workbook(output)
         ws = wb["Dragons"]
         headers = [c.value for c in ws[1]]
@@ -174,6 +196,11 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual((row["Dunk"], row["Shooting Hand"]), (99, 0))
         self.assertEqual(row["College"], "Example")
         self.assertEqual(row["headband"], 0)
+        self.assertEqual(row["Beard"], 0)
+        self.assertIsNone(row["Hairstyle"])
+        data = bytearray(0x94)
+        apply_accessories(data, 0, row)
+        self.assertEqual((data[0x72], data[0x83]), (6, 3))
         self.assertTrue(row["Overall"].startswith("="))
         self.assertEqual(headers[headers.index("Close Shot"):headers.index("Headshot ID")],
                          [*db.ALL_ATTRS, *db.HIDDEN_ATTRS])
@@ -227,6 +254,93 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual((data[0x67], data[0x62], data[0x75], data[0x7F]), (0, 2, 7, 6))
         apply_accessories(data, 0, {"headband": 0, "wrist_l": 0})
         self.assertEqual((data[0x67], data[0x75]), (255, 0))
+
+    def test_optional_accessory_bytes_and_created_model_are_independent(self):
+        data = bytearray([0x55] * 0x94)
+        values = {"Shades": 8, "Left Arm Band": 1, "Right Arm Band": 12,
+                  "Shorts Length": 1, "Sock Length": 3, "Home Sock Color": 1,
+                  "Away Sock Color": 0, "Legacy Accessory 0x64": 9,
+                  "Legacy Accessory 0x65": 255, "Legacy Goggles 0x66": 0}
+        apply_accessories(data, 0, values)
+        for name, value in values.items():
+            self.assertEqual(data[db.RAW_ACCESSORY_FIELDS[name][0]], value, name)
+        self.assertFalse(apply_created_appearance(data, 0, values, 123))
+        data[0x69] = 4
+        apply_created_appearance(data, 0, {"Beard": 1}, 123)
+        for name, value in values.items():
+            self.assertEqual(data[db.RAW_ACCESSORY_FIELDS[name][0]], value, name)
+        apply_accessories(data, 0, {})
+        self.assertEqual(data[0x63], 1)
+        self.assertEqual(data[0x72], 8)
+        self.assertEqual(data[0x79], 0)
+        self.assertEqual(data[0x64], 255)
+
+    def test_created_appearance_explicit_zero_and_accessories(self):
+        data = bytearray(0x94)
+        data[8], data[0x69] = 4, 5
+        apply_accessories(data, 0, {"headband": 2, "wrist_l": 1})
+        before = bytes(data)
+        self.assertFalse(apply_created_appearance(data, 0, {}, 123))
+        self.assertEqual(bytes(data), before)
+        row = {"Beard": 0, "Build": 1, "Hairstyle": 7, "Rt Forearm Tattoo": 12}
+        self.assertTrue(apply_created_appearance(data, 0, row, 123))
+        self.assertEqual((data[8], data[0x68], data[0x61], data[0x62]), (5, 1, 7, 1))
+        self.assertEqual((data[0x6E], data[0x8D], data[0x67], data[0x75]), (0, 12, 0, 7))
+        self.assertIn(data[0x71], range(2, 7))
+
+    def test_created_head_selection_is_stable_and_uses_effective_skin(self):
+        for skin in range(6):
+            heads = set()
+            for pid in range(1, 100):
+                data = bytearray(0x94)
+                data[0x69] = skin
+                apply_created_appearance(data, 0, {"Beard": 1}, pid)
+                head = data[0x71]
+                apply_created_appearance(data, 0, {"Beard": 1}, pid)
+                self.assertEqual(data[0x71], head)
+                heads.add(head)
+            self.assertEqual(heads, set(range(2, 7) if skin in (4, 5) else range(7)))
+        data[0x69] = 5
+        apply_created_appearance(data, 0, {"Head": 0}, 123)
+        self.assertEqual(data[0x71], 0)
+        data[0x69] = 6
+        with self.assertRaisesRegex(ValueError, "skin tone"):
+            apply_created_appearance(data, 0, {"Head": 1}, 123)
+
+    def test_created_hairstyle_default_is_stable_and_uses_effective_skin(self):
+        for skin in range(6):
+            hairstyles = set()
+            for pid in range(1, 100):
+                data = bytearray(0x94)
+                data[0x69] = skin
+                apply_created_appearance(data, 0, {"Beard": 0}, pid)
+                hairstyle = data[0x61]
+                apply_created_appearance(data, 0, {"Beard": 0}, pid)
+                self.assertEqual(data[0x61], hairstyle)
+                hairstyles.add(hairstyle)
+            self.assertEqual(hairstyles, {5, 13, 22} if skin in (4, 5) else {1, 2})
+        for hairstyle in (0, 7):
+            apply_created_appearance(data, 0, {"Hairstyle": hairstyle}, 123)
+            self.assertEqual(data[0x61], hairstyle)
+
+    def test_appearance_override_ranges_and_legacy_workbook_migration(self):
+        for name, (_, maximum) in db.APPEARANCE_FIELDS.items():
+            self.assertEqual(db.field_value(name, 0), 0)
+            self.assertEqual(db.field_value(name, maximum), maximum)
+            with self.assertRaises(ValueError):
+                db.field_value(name, maximum + 1)
+        wb = workbook()
+        ws = wb.active
+        optional = {*db.APPEARANCE_FIELDS, *db.RAW_ACCESSORY_FIELDS}
+        for col in sorted((c.column for c in ws[1] if c.value in optional), reverse=True):
+            ws.delete_cols(col)
+        with contextlib.redirect_stdout(io.StringIO()):
+            db.apply_overrides(wb, {123: {"Beard": 0, "Sock Length": 3}})
+        cols = {cell.value: cell.column for cell in ws[1]}
+        self.assertEqual(ws.cell(2, cols["Beard"]).value, 0)
+        self.assertEqual(ws.cell(2, cols["Sock Length"]).value, 3)
+        self.assertIsNone(ws.cell(2, cols["Head"]).value)
+        wb.close()
 
     def test_hidden_migration_preserves_existing_values_and_override_precedence(self):
         wb = workbook()

@@ -9,6 +9,7 @@ import json
 from datetime import date
 import math
 import re
+import sys
 import unicodedata
 from pathlib import Path
 
@@ -21,11 +22,26 @@ ROOT = Path(__file__).resolve().parent.parent
 OVERRIDES = ROOT / "data" / "overrides.csv"
 BLACKLIST = ROOT / "data" / "blacklist.csv"
 ACCESSORIES = ("headband", "wrist_l", "wrist_r", "arm_l", "arm_r", "knee_l", "knee_r")
+RAW_ACCESSORY_FIELDS = {
+    "Shades": (0x72, 8), "Left Arm Band": (0x79, 12), "Right Arm Band": (0x7A, 12),
+    "Shorts Length": (0x63, 1), "Sock Length": (0x83, 3),
+    "Home Sock Color": (0x84, 1), "Away Sock Color": (0x85, 1),
+    "Legacy Accessory 0x64": (0x64, 255), "Legacy Accessory 0x65": (0x65, 255),
+    "Legacy Goggles 0x66": (0x66, 255),
+}
+APPEARANCE_FIELDS = {
+    "Head": (0x71, 6), "Hairstyle": (0x61, 25), "Build": (0x62, 2),
+    "Muscle Tone": (0x6A, 1), "Hair Color": (0x70, 3),
+    "Beard": (0x6E, 6), "Moustache": (0x6D, 6), "Sideburns": (0x6F, 3),
+    "Lt Neck Tattoo": (0x86, 6), "Rt Neck Tattoo": (0x87, 6),
+    "Lt Bicep Tattoo": (0x8A, 12), "Rt Bicep Tattoo": (0x8B, 12),
+    "Lt Forearm Tattoo": (0x8C, 12), "Rt Forearm Tattoo": (0x8D, 12),
+}
 IDENTITY_COLS = [
     "First Name", "Last Name", "Position", "Secondary Position", "Jersey Number",
     "Birth Year", "Birth Month", "Birth Day", "Years Pro", "Height", "Weight",
 ]
-SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + list(HIDDEN_ATTRS) + ["Headshot ID", "College", "Shooting Hand", *ACCESSORIES, "Skin Tone"]
+SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + list(HIDDEN_ATTRS) + ["Headshot ID", "College", "Shooting Hand", *ACCESSORIES, *RAW_ACCESSORY_FIELDS, "Skin Tone", *APPEARANCE_FIELDS]
 PLAYER_COLUMNS = SHEET_COLUMNS + ["ProA ID"]
 OVERRIDE_COLUMNS = ["Team", "ProA ID", *(c for c in SHEET_COLUMNS)]
 TEXT_COLUMNS = {"First Name", "Last Name", "Position", "Secondary Position", "College"}
@@ -128,7 +144,7 @@ def player_id(value):
     return int(text)
 
 
-def field_value(column, value):
+def field_value(column, value, *, clamp=False):
     if column in TEXT_COLUMNS:
         if not isinstance(value, str):
             raise ValueError(f"{column}: expected text, got {value!r}")
@@ -159,10 +175,19 @@ def field_value(column, value):
         "Weight": (30, 250), "Headshot ID": (0, 65535), "Shooting Hand": (0, 1), "Skin Tone": (0, 6),
         **dict.fromkeys(ALL_ATTRS, (25, 99)), **dict.fromkeys(ACCESSORIES, (0, 255)),
         **HIDDEN_BOUNDS,
+        **{name: (0, maximum) for name, (_, maximum) in RAW_ACCESSORY_FIELDS.items()},
+        **{name: (0, maximum) for name, (_, maximum) in APPEARANCE_FIELDS.items()},
     }
     if column not in bounds:
         raise ValueError(f"Unknown player column: {column}")
     low, high = bounds[column]
+    if clamp:
+        number = max(low, min(high, number))
+        if column in HIDDEN_TIERS:
+            return min(HIDDEN_TIERS[column], key=lambda option: (abs(number - option), option))
+        if column not in ("Height", "Weight"):
+            return math.ceil(number - 0.5)
+        return number
     if not low <= number <= high:
         raise ValueError(f"{column}: expected {low}..{high}, got {value!r}")
     if column in ("Height", "Weight"):
@@ -209,7 +234,11 @@ def load_overrides(path=OVERRIDES):
                     raise ValueError(f"{pid}: {CLEAR} is only supported for College; use 0 for numeric fields")
                 changes[column] = ""
             else:
-                changes[column] = field_value(column, value)
+                corrected = field_value(column, value, clamp=True)
+                if column not in TEXT_COLUMNS and corrected != float(value):
+                    print(f"Warning: {path}: ProA ID {pid}, {column}: {value!r} adjusted to {corrected}",
+                          file=sys.stderr)
+                changes[column] = corrected
         result[pid] = changes
     return result
 
@@ -227,6 +256,10 @@ def apply_overrides(workbook, overrides, *, blacklist=None):
             for index in range(2, ws.max_row + 1):
                 ws.cell(index, column, 0)
             columns = {cell.value: cell.column for cell in ws[1] if cell.value}
+        for name in (*RAW_ACCESSORY_FIELDS, *APPEARANCE_FIELDS):
+            if name not in columns:
+                ws.cell(1, ws.max_column + 1, name)
+        columns = {cell.value: cell.column for cell in ws[1] if cell.value}
         missing = set(PLAYER_COLUMNS) - set(columns)
         if missing:
             raise ValueError(f"{ws.title}: missing player columns {sorted(missing)}; regenerate workbook")

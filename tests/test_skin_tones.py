@@ -36,7 +36,7 @@ def fixture_asset(red):
 class FixtureAssets:
     def __init__(self, stream=None, verify_hash=True):
         self.data = {pid: fixture_asset(value) for pid, value in ((10, 160), (20, 200), (30, 75))}
-        self.entries = {skin.asset_hash(f"p{pid}{side}.iff"): (0, len(body))
+        self.entries = {skin.asset_hash(f"p{pid:03}{side}.iff"): (0, len(body))
                         for pid, body in self.data.items() for side in ("h", "a")}
 
     def asset(self, pid, side):
@@ -93,7 +93,7 @@ class SkinToneTests(unittest.TestCase):
             self.assertEqual(old_face[:-1024], new_face[:-1024])
             self.assertEqual(old_face[-1021::4], new_face[-1021::4])
         self.assertTrue(all(row["new_size"] > row["size"] for row in reports))
-        self.assertEqual([row["asset"] for row in reports], ["p10h.iff", "p10a.iff"])
+        self.assertEqual([row["asset"] for row in reports], ["p010h.iff", "p010a.iff"])
 
     def test_repack_recipe_requires_matching_publisher_mode_and_old_recipes_remain_usable(self):
         plan = self.create(repack_archive=True)
