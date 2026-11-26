@@ -14,6 +14,7 @@ class SeasonIsoTests(unittest.TestCase):
     def invoke(self, arguments, runner):
         with patch.object(sys, "argv", ["update_season.py", *arguments]), \
                 patch.object(season, "run", runner), \
+                patch.object(season, "validate_texture_workspace"), \
                 patch.object(season.skin_tones, "workbook_requests", return_value=[]), \
                 patch("roster_iso.read_source"), patch("roster_iso.baseline"), \
                 patch("pathlib.Path.open"), \
@@ -145,6 +146,19 @@ class SeasonIsoTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 self.invoke(["--iso-source", "clean.iso", "--iso-out", "new.iso"], runner)
             self.assertEqual(len(runner.call_args_list), 1)
+
+    def test_incomplete_texture_workspace_blocks_combined_build(self):
+        import tempfile
+        import remaining_texture_workspace as remaining
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with self.assertRaisesRegex(ValueError, "missing"):
+                season.validate_texture_workspace(root)
+            for name in (season.texture_iso_workspace.MANIFEST, "_iso_uniforms.json", remaining.MANIFEST):
+                (root / name).write_text("{}")
+            with patch.object(remaining, "load_manifest", return_value={"complete": False}):
+                with self.assertRaisesRegex(ValueError, "not a complete"):
+                    season.validate_texture_workspace(root)
 
     def test_card_only_exports_the_same_final_payload_without_rebuilding(self):
         with patch.object(season, "run") as runner, patch.object(season, "pcsx2_running", return_value=False):

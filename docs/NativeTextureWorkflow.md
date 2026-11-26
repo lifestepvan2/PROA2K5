@@ -184,6 +184,8 @@ compressed resources undergo in-place safety validation.
 Offline checks do not certify rendered output. In particular, non-flat packed
 PSMT4 spatial addressing still needs a consolidated in-game visual review.
 Movies/audio and non-texture geometry are preserved, not converted to PNGs.
-Automatic season portrait/team-icon and legacy reserve-skin **generation**
-still uses its existing PCSX2 path; their native masters are editable here,
-but exporting masters does not port those automatic generators.
+The combined season build generates native roster portraits from available
+headshots; it preserves edited portrait masters instead of overwriting them.
+Missing headshots are reported and use the native `nophoto` master. Frontend team icons are authored in the
+workspace by `propagate_logos.py`; legacy reserve-skin PNG generation remains
+external to the ISO.

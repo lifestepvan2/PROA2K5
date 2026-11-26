@@ -1,5 +1,7 @@
 import io
 import json
+import csv
+import struct
 import sys
 import tempfile
 import unittest
@@ -8,7 +10,9 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import season_iso as season
+import portrait_iso
 from iso_copy import CopySpan, hash_stream
+from PIL import Image
 
 
 class SeasonCompositionTests(unittest.TestCase):
@@ -103,6 +107,96 @@ class SeasonCompositionTests(unittest.TestCase):
                            texture_workspace=native, skin_plan=self.plan, repack_archive=True)
         self.assertTrue(letters.call_args.kwargs["compose_skin"])
         self.assertIs(letters.call_args.kwargs["texture_edits"], textures.call_args.kwargs["texture_edits"])
+
+    def test_final_roster_generated_portraits_join_native_composition(self):
+        native = self.root / "native"
+        native.mkdir()
+        (native / "_iso_textures.json").write_text("{}")
+        generated = {"portrait-id": object()}
+        portrait_report = {"generated": 1}
+        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
+                patch.object(season.portrait_iso, "prepare", return_value=(generated, portrait_report)) as portraits, \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})), \
+                patch.object(season.court_colours, "decoded_edits", return_value=[]), \
+                patch.object(season.texture_iso_workspace, "prepare", return_value=([], {"courts": []})) as textures, \
+                patch.object(season, "ISO_SIZE", 32):
+            _, report = season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv",
+                                       roster=self.roster, texture_workspace=native)
+        portraits.assert_called_once_with(self.roster, native)
+        self.assertIs(textures.call_args.kwargs["generated_masters"], generated)
+        self.assertEqual(report["logos"]["portraits"], portrait_report)
+
+    def test_portraits_follow_final_roster_and_report_missing_inputs(self):
+        payload = bytearray(0x68000)
+        rows = []
+        for record, (pid, proa_id, first) in enumerate(((123, 1001, "Alice"), (124, 1002, "Bob"))):
+            offset = portrait_iso.PLAYER_BASE + record * portrait_iso.PLAYER_STRIDE
+            struct.pack_into("<HH", payload, offset + 4, pid, pid)
+            for field, text, target in ((offset + 0x10, first, 0x67000 + record * 0x40),
+                                        (offset + 0x0C, "Test", 0x67020 + record * 0x40)):
+                encoded = (text + "\0").encode("utf-16le")
+                payload[target:target + len(encoded)] = encoded
+                struct.pack_into("<i", payload, field, target - field + 1)
+            rows.append({"record": record, "pid": pid, "proa_id": proa_id, "first": first, "last": "Test"})
+        self.roster.write_bytes(payload)
+        mapping = self.root / "players.csv"
+        with mapping.open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, rows[0])
+            writer.writeheader()
+            writer.writerows(rows)
+        photos = self.root / "photos"
+        photos.mkdir()
+        Image.new("RGB", (512, 512), "red").save(photos / "1001.png")
+        manifest = {"complete": True, "sources": [
+            {"asset_hash": portrait_iso.PORTRAIT_ASSET, "texture": "0123", "id": "p1"},
+            {"asset_hash": portrait_iso.PORTRAIT_ASSET, "texture": "0124", "id": "p2"},
+            {"asset_hash": "other", "asset": "global.iff", "scene": "nophoto", "texture": "nophoto", "id": "missing"},
+        ]}
+        placeholder = photos / "nophoto.png"
+        Image.new("RGBA", (128, 128), "blue").save(placeholder)
+        with patch.object(portrait_iso.roster_iso, "validate_payload"), \
+                patch.object(portrait_iso.remaining_texture_workspace, "load_manifest", return_value=manifest), \
+                patch.object(portrait_iso.texture_iso_workspace, "scan", return_value={"missing": placeholder}):
+            generated, report = portrait_iso.prepare(self.roster, self.workspace, mapping, photos)
+            self.assertEqual(set(generated), {"p1", "p2"})
+            self.assertEqual(generated["p2"].getpixel((0, 0)), (0, 0, 255, 255))
+            self.assertEqual(report["placeholders"], 1)
+            self.assertEqual(report["missing_headshots"], [1002])
+            rows[0]["first"] = "Outdated"
+            with mapping.open("w", newline="", encoding="utf-8") as file:
+                writer = csv.DictWriter(file, rows[0])
+                writer.writeheader()
+                writer.writerows(rows)
+            with self.assertRaisesRegex(ValueError, "does not match"):
+                portrait_iso.prepare(self.roster, self.workspace, mapping, photos)
+
+    def test_portrait_generation_rejects_shared_portrait_owners(self):
+        payload = bytearray(0x68000)
+        rows = []
+        for record, proa_id in enumerate((1001, 1002)):
+            offset = portrait_iso.PLAYER_BASE + record * portrait_iso.PLAYER_STRIDE
+            struct.pack_into("<HH", payload, offset + 4, 123, 123)
+            for field, text, target in ((offset + 0x10, "Test", 0x67000 + record * 0x40),
+                                        (offset + 0x0C, "Player", 0x67020 + record * 0x40)):
+                encoded = (text + "\0").encode("utf-16le")
+                payload[target:target + len(encoded)] = encoded
+                struct.pack_into("<i", payload, field, target - field + 1)
+            rows.append({"record": record, "pid": 123, "proa_id": proa_id, "first": "Test", "last": "Player"})
+        self.roster.write_bytes(payload)
+        mapping = self.root / "players.csv"
+        with mapping.open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, rows[0])
+            writer.writeheader()
+            writer.writerows(rows)
+        photos = self.root / "photos"
+        photos.mkdir()
+        Image.new("RGB", (512, 512), "red").save(photos / "1001.png")
+        manifest = {"complete": True, "sources": [
+            {"asset_hash": portrait_iso.PORTRAIT_ASSET, "texture": "0123", "id": "p1"}]}
+        with patch.object(portrait_iso.roster_iso, "validate_payload"), \
+                patch.object(portrait_iso.remaining_texture_workspace, "load_manifest", return_value=manifest):
+            with self.assertRaisesRegex(ValueError, "share native portrait"):
+                portrait_iso.prepare(self.roster, self.workspace, mapping, photos)
 
     def test_repack_absorbs_all_archive_edits_and_preserves_outside_patches(self):
         logo_patch = (16, b"AA", b"LLL")

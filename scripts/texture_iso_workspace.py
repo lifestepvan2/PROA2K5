@@ -291,7 +291,8 @@ def export(source: Path, workspace: Path = DEFAULT_WS,
 def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = None,
             *, collect_failures: bool = False, repack_archive: bool = False,
             palette_colors: int = 256, texture_edits: list | None = None,
-            slots: Path = ROOT / "data" / "team_slots.csv") -> tuple[list, dict]:
+            slots: Path = ROOT / "data" / "team_slots.csv",
+            generated_masters: dict[str, Image.Image] | None = None) -> tuple[list, dict]:
     validate_workspace(workspace)
     if type(palette_colors) is not int or palette_colors not in (16, 32, 64, 128, 256):
         raise ValueError("Invalid default native palette color count")
@@ -315,6 +316,8 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             or any(not re.fullmatch(r"[0-9a-f]{8}", row["id"]) for row in sources)):
         raise ValueError("Native logo manifest requires unique valid master IDs")
     files = scan(workspace, sources)
+    if generated_masters and set(generated_masters) - files.keys():
+        raise ValueError("Generated textures reference unknown native masters")
     policy_path = workspace / "_iso_encoding.json"
     policy = json.loads(policy_path.read_text(encoding="utf-8")) if policy_path.exists() else {"schema": 1, "palette_colors": {}}
     if (not isinstance(policy, dict) or type(policy.get("schema")) is not int
@@ -327,18 +330,19 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
     resources = {}
     shared_edits = collections.defaultdict(list)
     reports = []
+    manual_generated = []
     for row in sources:
-        if row["iso_offset"] + row["chunk_offset"] + 32 in inherited:
-            continue
         path = files[row["id"]]
         with Image.open(path) as file:
             master = file.copy()
-        if image_digest(master) == row["original_display_digest"]:
-            continue
-        if not row["editable"]:
-            if image_digest(master) != row["seed_digest"]:
-                # raise ValueError(f"{path}: historical/unconfirmed-owner reference is outside current-team POC scope")
-                print(f"Warning: {path}: historical/unconfirmed-owner reference is outside current-team POC scope")
+        master_changed = image_digest(master) != row["original_display_digest"]
+        if generated_masters and row["id"] in generated_masters:
+            if master_changed:
+                manual_generated.append(row["id"])
+            else:
+                master = generated_masters[row["id"]]
+                master_changed = image_digest(master) != row["original_display_digest"]
+        if not master_changed:
             continue
         if row["id"] in generic_ids:
             identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
@@ -354,7 +358,11 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                 raise ValueError(f"{path}: native uniform ownership changed")
         else:
             actual_slot = current_slot(row["asset"], row["asset_hash"], row["texture"], row["group"])
-            if actual_slot is None or actual_slot != row["slot"]:
+            identity = f"{SOURCE_SHA256}:{row['asset_hash']}:{row['ordinal']}:{row['descriptor']}"
+            if (digest(identity.encode())[:8] != row["id"]
+                    or (not row["asset"].startswith("hash:")
+                        and asset_hash(row["asset"]) != int(row["asset_hash"], 16))
+                    or (row["editable"] and (actual_slot is None or actual_slot != row["slot"]))):
                 raise ValueError(f"{path}: current-team ownership does not match the native source")
         if entries.get(int(row["asset_hash"], 16)) != (row["iso_offset"], row["asset_size"]):
             raise ValueError("Native master archive identity changed")
@@ -493,6 +501,7 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
                      "courts": [edit[5] for edit in court_edits or []],
                      "stock_centerlogo": manifest["unseeded_centerlogo"], "exceptions": manifest["exceptions"],
                      "capacity_failures": capacity_failures, "encoding_policy": policy,
+                     "manual_generated_masters": manual_generated,
                      "repack_archive": repack_archive, "default_palette_colors": palette_colors,
                      "uniform_copies": copy_reports}
     report["uniforms"] = ({"masters": len(uniforms["sources"]), "packages": len(uniforms["packages"]),

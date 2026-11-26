@@ -14,6 +14,7 @@ from typing import BinaryIO
 import lettering_workspace
 import roster_iso
 import court_colours
+import portrait_iso
 import texture_iso_workspace
 from iso_copy import publish_iso_copy, validate_patches
 from patch_lettering_iso import ISO_SIZE
@@ -47,14 +48,19 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
                                   for filename in (UNIFORM_MANIFEST, TEXTURE_MANIFEST)) else None)
         options = {"texture_edits": uniform_edits} if uniform_edits is not None else {}
         skin_options = {"compose_skin": True} if (texture_workspace / TEXTURE_MANIFEST).is_file() else {}
+        portrait_report = None
+        if roster is not None and (texture_workspace / TEXTURE_MANIFEST).is_file():
+            generated, portrait_report = portrait_iso.prepare(roster, texture_workspace)
+            options["generated_masters"] = generated
         visual_patches, visual_report = lettering_workspace.prepare(
             stream, workspace, slots, None, skin_plan, include_courts=False, repack_archive=repack_archive,
-            **options, **skin_options)
+            **({"texture_edits": uniform_edits} if uniform_edits is not None else {}), **skin_options)
         logo_patches, logo_report = texture_iso_workspace.prepare(
             stream, texture_workspace, court_colours.decoded_edits(stream, workspace),
             repack_archive=repack_archive, slots=slots, **options)
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
+        logo_report["portraits"] = portrait_report
     patches.extend(visual_patches)
     if stats_year is not None or roster_report.get("elf_crc_delta"):
         year_patches, visual_report["stats_year"] = prepare_year_patch(
@@ -63,8 +69,10 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
     report = {
         "schema": 1, "source_sha256": SOURCE_SHA256, "iso_size": ISO_SIZE,
         "roster": roster_report, "visuals": visual_report, "logos": logo_report,
-        "scope": ("Default roster and exported native texture masters embedded; portraits and legacy skin PNGs remain external"
-                  if logo_report is not None else "Default roster embedded; logo migration not selected"),
+        "scope": ("Default roster, exported native texture masters and available roster portraits embedded; "
+                  "legacy skin replacement PNGs remain external"
+                  if logo_report is not None and logo_report.get("portraits") is not None
+                  else "Default roster embedded; automatic native portraits not selected"),
         "restore": "Boot the untouched pristine ISO; rebuild from it rather than patching a previous output",
     }
     if repack_archive:
@@ -129,6 +137,14 @@ def main() -> None:
                            repack_archive=args.repack_archive)
         print(f"Verified default roster and {report['visuals']['sources']} lettering sources; "
               f"roster {'embedded' if args.roster is not None else 'source checked'}.")
+        portraits = (report.get("logos") or {}).get("portraits")
+        if portraits:
+            for key, label in (("missing_headshots", "missing headshots"), ("suppressed_portraits", "suppressed portraits")):
+                if portraits[key]:
+                    print(f"Warning: {label} for ProA IDs {', '.join(map(str, portraits[key]))}")
+            print(f"Native portraits generated: {portraits['generated']}; "
+                  f"no-photo placeholders: {portraits['placeholders']}; "
+                  f"manual portrait masters retained: {len(report['logos']['manual_generated_masters'])}")
     except (OSError, ValueError, MemoryError) as error:
         parser.exit(1, f"Season ISO failed: {error}\n")
 

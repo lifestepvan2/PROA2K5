@@ -8,7 +8,7 @@ Manual prerequisites (see docs/SeasonUpdateWorkflow.md): when the league's team 
 scrape_proa_roster.py, data/proa_teams.csv (including arenas), data/team_slots.csv and run fetch_team_logos.py once for
 the new clubs. Without --card the card is left alone (writing needs PCSX2 closed).
 The default roster is embedded alongside lettering/court/year/skin patches and exported native texture masters.
-Export/edit texture_workspace_ISO first. Portrait/legacy skin replacements remain external.
+Export/edit texture_workspace_ISO first. Available portraits are embedded; legacy skin replacements remain external.
 Card-only/build-only modes are explicit alternatives; nonzero Skin Tone requires an ISO output.
 """
 import argparse
@@ -32,6 +32,18 @@ def run(*args):
 def pcsx2_running():
     out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq pcsx2-qt.exe"], capture_output=True, text=True).stdout
     return "pcsx2" in out.lower()
+
+
+def validate_texture_workspace(workspace):
+    from remaining_texture_workspace import MANIFEST as TEXTURES, load_manifest
+    from uniform_iso_workspace import MANIFEST as UNIFORMS
+
+    workspace = Path(workspace)
+    for filename in (texture_iso_workspace.MANIFEST, UNIFORMS, TEXTURES):
+        if not (workspace / filename).is_file():
+            raise ValueError(f"{workspace}: missing {filename}; export the complete native texture workspace")
+    if not load_manifest(workspace).get("complete"):
+        raise ValueError(f"{workspace}: native texture workspace is not a complete export")
 
 
 def main():
@@ -76,6 +88,7 @@ def main():
     iso_args = []
     workspace = a.team_palettes or str(Path(a.texture_workspace) / "team_palettes")
     if a.iso_out:
+        validate_texture_workspace(a.texture_workspace)
         iso_args = ["--iso-source", a.iso_source, "--iso-out", a.iso_out, "--workspace", workspace,
                     "--stats-year", a.season.split("_")[0], "--texture-workspace", a.texture_workspace]
         if a.repack_archive:

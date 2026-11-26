@@ -98,6 +98,17 @@ class UniformSlotCopyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "resource set"):
             copies.chunks(self.target.replace(metrics(20), b"", 1), False)
 
+    def test_edited_destination_resource_overrides_donor_copy(self):
+        target_offset = self.entries[asset_hash("r2h021.iff")][0]
+        original = resource("unif", 20)
+        modified = resource("unif", 99)
+        patch = (target_offset + self.target.index(original), original, modified)
+        result, reports = copies.compose(self.source, [patch], self.rules)
+        updated = next(after for offset, _, after in result if offset == target_offset)
+        self.assertIn(modified, updated)
+        self.assertIn(resource("short", 10), updated)
+        self.assertEqual(reports[0]["manual_resources"], ["unif"])
+
     def test_inherited_offsets_exclude_coach_and_bands(self):
         offsets = copies.inherited_offsets(self.source, self.rules)
         target_offset = self.entries[asset_hash("r2h021.iff")][0]

@@ -111,8 +111,9 @@ Continue editing the default home/away artwork and the existing per-team
 The inherited resources are jersey, shorts, clothing `logo`, names/numbers and
 their glyph metrics, plus uniform attributes. Both game and selection-preview
 packages are updated after donor artwork/lettering composition and before
-archive allocation. Alternate artwork/lettering edits to these resources are
-ignored in ISO output; the workspace files remain untouched.
+archive allocation. An explicitly edited alternate master takes precedence
+for its resource; otherwise it inherits the donor. Alternate colour-control
+edits still follow the donor, and workspace files remain untouched.
 
 Coach, crowd, mascot, bands and separate warmup resources are not copied.
 Uniform selection labels and unlock/selection availability are unchanged.
@@ -120,9 +121,10 @@ The copy list and output fingerprints appear in `uniform_copies` in a native
 build report (`logos.uniform_copies` in a season report).
 
 This workflow requires `--repack-archive`; a fixed-span build fails explicitly
-rather than leaving alternate uniforms inconsistent. Offline checks verify
-byte-exact donor resource copies, including glyph metrics and uniform
-attributes. Placement and rendering still require a fresh-boot in-game check.
+rather than leaving alternate uniforms inconsistent. Reports list retained
+alternate edits in `manual_resources`. Offline checks verify byte-exact
+donor copies or edited destination resources. Placement and rendering still
+require a fresh-boot in-game check.
 
 ## Check / build
 

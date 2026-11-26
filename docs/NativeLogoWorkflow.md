@@ -2,8 +2,8 @@
 
 Use `texture_workspace_ISO`, never the legacy `texture_workspace`, for this
 workflow. The original workspace and PCSX2 replacements remain available for
-comparison; uniforms, portraits and other copied image categories have **not**
-been migrated by this POC.
+comparison. This document describes the original logo POC; the combined season
+workflow now also supports uniforms, portraits and other native textures.
 
 ## Export and edit
 
@@ -38,9 +38,10 @@ Build resizes to the native base and generates every stored mip, quantizing all
 levels together against one native palette. Do not author separate mip files.
 
 Export currently discovers **987 masters: 590 team logos and 397 centerlogo
-textures**, with 343 confirmed-current sources editable and no unsupported
-inventory exceptions. Historical/unconfirmed owners remain stock references;
-editing them fails explicitly. No content-alias fan-out is applied.
+textures**, with 343 confirmed-current sources and no unsupported inventory
+exceptions. Historical/unconfirmed owners start as stock references, but
+manual edits to them are also compiled by their verified native identity.
+No content-alias fan-out is applied.
 Native numbered team IDs are mapped through `teams_unknown.csv`, not treated
 as roster slots; arena ownership uses `court_sources.csv`.
 

@@ -178,12 +178,23 @@ def compose(stream: BinaryIO, patches: list[tuple[int, bytes, bytes]],
         donor = final[donor_key]
         replacements = {name: donor[start:end] for start, end, name in chunks(donor, preview)
                         if name is not None}
+        original_chunks = chunks(originals[target_key], preview)
+        manual_names = {
+            name for start, end, name in original_chunks if name is not None
+            and any(offset < entries[target_key][0] + end
+                    and offset + len(before) > entries[target_key][0] + start
+                    for offset, before, _ in grouped[target_key])
+        }
         target = final[target_key]
-        updated = b"".join(replacements[name] if name is not None else target[start:end]
+        updated = b"".join(replacements[name] if name is not None and name not in manual_names else target[start:end]
                            for start, end, name in chunks(target, preview))
         verified = {name: updated[start:end] for start, end, name in chunks(updated, preview)
                     if name is not None}
-        if verified != replacements:
+        target_parts = {name: target[start:end] for start, end, name in chunks(target, preview)
+                        if name is not None}
+        expected = {name: target_parts[name] if name in manual_names else part
+                    for name, part in replacements.items()}
+        if verified != expected:
             raise ValueError(f"Uniform donor readback failed: {copy.destination}")
         original = originals[target_key]
         if updated != original:
@@ -191,6 +202,7 @@ def compose(stream: BinaryIO, patches: list[tuple[int, bytes, bytes]],
         reports.append({
             "slot": copy.slot, "team": copy.team, "donor": copy.donor, "destination": copy.destination,
             "destination_hash": f"{target_key:08x}", "resources": sorted(replacements),
+            "manual_resources": sorted(manual_names),
             "original_size": len(original), "size": len(updated),
             "sha256": digest(updated), "donor_resources_sha256": digest(b"".join(
                 replacements[name] for name in sorted(replacements))),

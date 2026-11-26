@@ -312,6 +312,19 @@ patched copy. Use a new output path:
 python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ESPN NBA 2K5 (Europe) - ProA.iso"
 ```
 
+To rebuild from the cached scrape and current `data/overrides.xlsx`, then
+publish the roster together with the native texture workspace:
+
+```powershell
+python scripts\update_season.py --season 2026_2027 --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --iso-out "C:\Tools\isos\ProA-combined.iso" --repack-archive
+```
+
+Choose a new output filename each time. Do not follow this with a standalone
+texture build from the pristine ISO: that produces a separate visual-only ISO
+and does not carry over the first ISO's roster. Without `--refresh`, scraping
+reuses cached data when available. `--skip-scrape` instead reuses the existing
+workbook; removed overrides may remain in it, as described above.
+
 Add `--card "<Mcd001.ps2>"` to export the same final roster after ISO publication (PCSX2 must be closed).
 The card exporter backs up the card, updates CRC/ECC and verifies read-back; it does not rebuild the roster.
 
@@ -349,10 +362,14 @@ The ISO stage embeds the complete final default roster: names, teams, starters, 
 PIDs, accessories, colleges, arena names and historical statistics. It also patches shared
 number/name RGB, courts with `court.mode=recolour`, the player-card season-label anchor
 matching `--season`, requested model-local skin recipes, and the native logo/centerlogo
-masters, plus the exported uniform bundles. Shared lettering/artwork resources
+masters, plus the exported uniform bundles and other native masters. Available
+ProA headshots are encoded into native portrait textures selected by the final
+roster; manually edited portrait masters take precedence. Missing headshots and
+suppressed portraits are reported. Missing headshots use the native `nophoto`
+master unless the player's portrait master was edited manually.
+Shared lettering/artwork resources
 are compressed once after decoded edits are composed; conflicting edits fail
-explicitly. It does **not** embed PCSX2 portrait/legacy skin replacement PNGs. This extends the **roster-portable milestone**,
-not yet a fully portable visual mod. Number swatches update court and preview
+explicitly. Legacy PCSX2 skin replacement PNGs are not embedded. Number swatches update court and preview
 sources together; names remain independent. Artist edits are never overwritten or
 derived automatically from the independent jersey/UI settings. Existing output ISOs are refused.
 The source remains untouched and an adjacent `.season.json` records roster and visual

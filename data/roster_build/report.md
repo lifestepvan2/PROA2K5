@@ -1,6 +1,6 @@
 # build_roster report
 
-- payload: 725056 bytes, CRC32 `a8b73f0c`
+- payload: 725056 bytes, CRC32 `502fcf07`
 - teams: 18, players: 252
 - string pool: free before 4000 B, freed 14640 B, free after 4758 B (largest block 4000 B)
 - stats: 252 players, 127524/175184 B; season labels require ISO anchor 2026
@@ -348,6 +348,7 @@
 - Peyton Gerald: 2026: GS unavailable (omitted in game)
 - Courtney Alexander: 2023: GS unavailable (omitted in game)
 - Courtney Alexander: 2026: GS unavailable (omitted in game)
+- Courtney Alexander: created-model Build owns +0x62; headband style preset is ignored
 - Luc van Slooten: 2017: GS unavailable (omitted in game)
 - Luc van Slooten: 2023: GS unavailable (omitted in game)
 - Luc van Slooten: 2024: GS unavailable (omitted in game)

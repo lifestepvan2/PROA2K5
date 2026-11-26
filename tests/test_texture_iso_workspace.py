@@ -79,7 +79,7 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertEqual(self.source.read_bytes(), before)
         self.assertIn("__512x256__", self.master.name)
 
-    def test_alternate_copy_stage_skips_inherited_master_and_requires_repacking(self):
+    def test_alternate_copy_stage_keeps_edited_master_and_requires_repacking(self):
         import uniform_iso_workspace
 
         self.edit()
@@ -92,14 +92,14 @@ class NativeWorkspaceTests(unittest.TestCase):
                 patch.object(native.uniform_slot_copies, "rules", return_value=copy_rules), \
                 patch.object(native.uniform_slot_copies, "inherited_offsets", return_value={offset}), \
                 patch.object(native.uniform_slot_copies, "compose",
-                             return_value=([copied_patch], [{"destination": "r2h021.iff"}])) as compose, \
-                patch.object(native, "encode", side_effect=AssertionError("Inherited master must not be encoded")):
+                             return_value=([copied_patch], [{"destination": "r2h021.iff"}])) as compose:
             with self.assertRaisesRegex(ValueError, "require --repack-archive"):
                 self.prepare()
             patches, report = self.prepare(repack_archive=True)
         self.assertEqual(patches, [copied_patch])
         self.assertEqual(report["uniform_copies"], [{"destination": "r2h021.iff"}])
-        self.assertEqual(compose.call_args.args[1:], ([], copy_rules))
+        self.assertEqual(len(compose.call_args.args[1]), 1)
+        self.assertEqual(compose.call_args.args[2], copy_rules)
 
     def test_moved_renamed_master_survives_reexport_and_updates_all_mips(self):
         self.edit()
@@ -124,12 +124,24 @@ class NativeWorkspaceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Missing"):
             self.prepare()
 
-    def test_reference_edit_is_not_silently_applied_to_unknown_owner(self):
+    def test_edited_reference_master_is_patched_by_native_identity(self):
         self.edit()
         self.manifest["sources"][0].update(editable=False, slot=None, asset="hash:" + self.key)
         self.manifest_path.write_text(json.dumps(self.manifest))
-        with self.assertRaisesRegex(ValueError, "outside current-team"):
-            self.prepare()
+        patches, report = self.prepare()
+        self.assertEqual(len(patches), 1)
+        self.assertEqual(report["textures"][0]["id"], self.row["id"])
+
+    def test_generated_master_uses_original_but_preserves_manual_edit(self):
+        generated = {self.row["id"]: Image.new("RGBA", (256, 128), (12, 34, 56, 255))}
+        patches, report = self.prepare(generated_masters=generated)
+        self.assertEqual(len(patches), 1)
+        self.assertEqual(report["manual_generated_masters"], [])
+        self.edit()
+        manual_patches, report = self.prepare(generated_masters=generated)
+        self.assertEqual(report["manual_generated_masters"], [self.row["id"]])
+        self.assertNotEqual(patches, manual_patches)
+        self.assertEqual(manual_patches, self.prepare()[0])
 
     def test_court_and_logo_edits_share_one_resource_without_overwriting(self):
         self.edit()
