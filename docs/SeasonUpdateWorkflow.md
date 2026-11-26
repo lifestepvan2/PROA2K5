@@ -44,12 +44,15 @@ legacy CSV, but the default season workflow reads the XLSX only.
 
 The `Enumerations` sheet contains a pair of columns per dropdown: the raw value
 and its display label. To add an option, append both cells immediately below
-that field's existing entries; the label must start with `value - ` and values
-must be unique and valid for that field. Edit descriptions after the prefix to
-refine uncertain labels. Dropdowns automatically include added contiguous rows
-through row 1024. Existing selected labels retain their numeric meaning if a
-description is changed. Raw numeric values can still be entered directly; the
-lists are suggestions, not a substitute for pipeline validation. Unlabeled
+that field's existing entries; values must be valid and both values and labels
+must be unique within the field. Labels can be text or numbers. Dropdowns
+automatically include added contiguous rows through row 1024. If a label without
+a value prefix is renamed, update existing selections to the new label too;
+an unrecognized selection is an error. Older `value - description` selections
+retain their value when renamed. Raw numeric values can still be entered directly,
+but a value matching a numeric dropdown label is interpreted as that label first
+(for example, Head 1 selects raw value 0). The lists are suggestions, not a
+substitute for pipeline validation. Unlabeled
 valid hairstyles may be added this way. Do not invent labels for unverified
 accessory values; legacy accessory bytes remain explicitly raw.
 

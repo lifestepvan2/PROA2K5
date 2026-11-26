@@ -215,6 +215,30 @@ class PlayerDatabaseTests(unittest.TestCase):
         values = db.load_overrides(path)[123]
         self.assertEqual((values["Shooting Hand"], values["Hairstyle"]), (0, 24))
 
+    def test_xlsx_uses_edited_text_and_numeric_labels(self):
+        wb = overrides_xlsx.make_workbook([
+            {"ProA ID": 123, "Shooting Hand": "0 - Left", "Head": 0, "arm_l": 6},
+        ], db.OVERRIDE_COLUMNS)
+        enum, ws = wb["Enumerations"], wb["Overrides"]
+        cols = {enum.cell(1, col).value: col for col in range(1, enum.max_column + 1, 2)}
+        enum.cell(2, cols["Shooting Hand"] + 1, "Left")
+        for i in range(7):
+            enum.cell(i + 2, cols["Head"] + 1, i + 1)
+        ws.cell(2, db.OVERRIDE_COLUMNS.index("Shooting Hand") + 1, "Left")
+        ws.cell(2, db.OVERRIDE_COLUMNS.index("Head") + 1, 1)
+        path = self.root / "labels.xlsx"
+        wb.save(path)
+        wb.close()
+        values = db.load_overrides(path)[123]
+        self.assertEqual((values["Shooting Hand"], values["Head"], values["arm_l"]), (0, 0, 6))
+
+        wb = openpyxl.load_workbook(path)
+        wb["Enumerations"].cell(3, cols["Shooting Hand"] + 1, "Left")
+        wb.save(path)
+        wb.close()
+        with self.assertRaisesRegex(ValueError, "duplicate value or invalid label"):
+            db.load_overrides(path)
+
     def test_blacklist_removes_cached_players_before_stat_requests(self):
         players = [{"proa_id": pid, "first_name": "A", "last_name": "B", "nationality": "DE"} for pid in (1, 2)]
         with patch.object(scraper, "fetch_html", return_value=""), \
