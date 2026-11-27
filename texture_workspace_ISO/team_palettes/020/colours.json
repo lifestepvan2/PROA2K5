@@ -1,6 +1,8 @@
 {
   "schema": 1,
   "team": {
+    "colorprimary": "#0f4281",
+    "colorsecondary": "#EEEEEE",
     "colorjersey1": "#0f4281",
     "colorjersey2": "#0f4281",
     "colorui1": "#0f4281",

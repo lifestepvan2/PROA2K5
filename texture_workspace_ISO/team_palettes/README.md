@@ -15,6 +15,8 @@ uniform variants are supported. Existing lettering edits were migrated unchanged
 {
   "schema": 1,
   "team": {
+    "colorprimary": "#B51514",
+    "colorsecondary": "#EEEEEE",
     "colorjersey1": "#B51514",
     "colorjersey2": "#000000",
     "colorui1": "#B51514",
@@ -51,6 +53,8 @@ present); the abbreviated example shows only `home`.
 
 | Value | Effect |
 |---|---|
+| `team.colorprimary` | Optional crowd clothing/cap and alternative undershirt colour for the standalone review-copy generator; no automatic build effect |
+| `team.colorsecondary` | Optional validated RGB metadata; currently unused by generators and builds |
 | `team.colorjersey1` | Reserved for native cloth migration; legacy cloth uses the original workspace |
 | `team.colorjersey2` | Reserved for native cloth migration; legacy cloth uses the original workspace |
 | `team.colorui1`, `team.colorui2` | Two roster/UI RGB triplets; independent of cloth and lettering |
@@ -94,6 +98,126 @@ Every build still verifies its exact requested profile and refuses overflow
 without publishing an ISO; no controls are silently ignored or downgraded.
 
 ## Commands (repository root)
+
+### Optional fan-texture review copies
+
+```powershell
+python scripts\generate_fans.py --020
+```
+
+Use the three-digit **roster slot** (`--012` through `--029` for the assigned
+ProA teams), not the crowd package number. Add `team.colorprimary` and
+`team.colorsecondary` to that slot's JSON first. These remain optional for
+existing build workflows, but the generator requires both explicitly and never
+falls back to another colour. The JSON must also contain home and away
+`uniforms.<variant>.numbers.fill` controls.
+
+Each invocation creates a new `texture_auto/fans/slot_020_<unique>/` folder
+outside the live workspace. PNGs have the current target masters' filenames,
+including their native IDs. Review them, then manually copy/move accepted files to the destination
+printed by the script and confirm replacement only if satisfied. Rerunning never
+overwrites earlier review copies or live edits. The output folder is Git-ignored.
+
+The generator reuses the logo-free grayscale
+[`fan1_tmpl.png`](../../texture_templates/fan1_tmpl.png) for cloth wrinkles,
+recolours the shirt and cap with `colorprimary`, and fits the assigned ProA logo
+into the original chest and cap logo boxes. Shoes, swatches and alpha come from
+the current T-shirt master unchanged.
+
+The `sweatshirt` atlas uses primary-colour fabric and the ProA chest logo, with
+its own knit hem, collar and long-sleeve wrinkles preserved by the reusable
+[`fan_sweatshirt_tmpl.png`](../../texture_templates/fan_sweatshirt_tmpl.png).
+The template comes from the original slot-020 sweatshirt with the NBA logo
+replaced by a feathered patch of neighbouring fabric. It is not regenerated
+from live artwork. Unlike the T-shirt atlas, the sweatshirt has **no cap panel**:
+its upper-right sleeve fabric is recoloured, not stamped with a second logo.
+
+All six `generictshirt_*` variants are also exported, changing **only** the cap
+rectangle (pixels x=192..255, y=0..49) and adding the ProA cap logo. Their shirt
+artwork, shoes, swatches and alpha remain pixel-identical to the current masters.
+Cap backgrounds alternate deterministically in alphabetical variant order:
+
+- `black`, `purple`, `white`: `colorprimary`.
+- `blue`, `red`, `yellow`: dark grey (`#303030`).
+
+Thus exactly half have each cap colour; the names describe the **unchanged shirt**
+colours. Variants are discovered from the manifest, not guessed from filenames;
+an empty or odd-sized set is rejected rather than silently breaking the equal split.
+
+The same run also generates the crowd `jersey` atlas from the team's current
+**gameplay away** `unif` master over a white T-shirt. `_alt/` contains the
+alternative using the **gameplay home** master over `colorprimary`. Both alternatives
+keep the final crowd master's filename, so copying either one needs no rename.
+Choose **one**, not both, for the live crowd jersey.
+
+The player jersey is remapped panel-by-panel into the crowd atlas's wrapped torso
+layout. Its front/back neck depths are registered to the crowd layout; an immutable
+[`fan_jersey_undershirt.png`](../../texture_templates/fan_jersey_undershirt.png)
+overlay preserves the original crowd neck/armhole silhouettes and sleeve wrinkles.
+This template was extracted from the original slot-020 crowd jersey: only
+top-connected neutral fabric and the separate sleeve panel are opaque; jersey
+artwork is transparent. Edit the grayscale fabric/alpha only if intentionally
+changing this shared template. No template is regenerated from live fan artwork.
+Sponsor/logo artwork is copied from the manually edited player jerseys, not
+recreated from palette colours or team logos. Atlas registration is checked offline; review
+the fit in game before accepting, especially for custom player-jersey layouts.
+The template expects the standard 2:1 player atlas; incompatible dimensions,
+missing/ambiguous gameplay masters, or missing inputs are errors before publication.
+
+The `varsity` jacket has two versions:
+
+- Main: `colorprimary` jacket, `colorsecondary` ribbing/accents, gameplay **home**
+  jersey visible through the opening.
+- `_alt/`: dark grey (`#303030`) jacket, `colorprimary` accents, gameplay **away**
+  jersey underneath.
+
+Both carry the team chest logo and the jersey number of that team's highest
+**pooled multi-season `points_avg`** player from
+[`proa_stats.json`](../../data/proa_stats.json), restricted to players on the
+assigned sheet in `proa_scraped.xlsx`. This intentionally uses the rating
+pipeline's pooled PPG, not current-season PPG. Equal PPG selects the lowest
+numeric ProA ID. The number comes from the workbook's `Jersey Number`; the
+script prints the chosen player, number and PPG. Missing/invalid PPG or an invalid
+selected number is an error, not a random-player fallback.
+
+Numbers use a portable, resizable Pillow built-in font, made monochrome with
+`uniforms.home.numbers.fill` for main and `uniforms.away.numbers.fill` for `_alt`.
+No outlines, preview atlases or cached lettering colours are used. This requires
+Pillow 10.1+ with FreeType, as supplied by current Pillow wheels.
+
+The reusable [`fan_varsity_tmpl.png`](../../texture_templates/fan_varsity_tmpl.png)
+and [`fan_varsity_accents.png`](../../texture_templates/fan_varsity_accents.png)
+retain jacket folds and define accent coverage. The fabric comes from the
+handmade slot-021 example, with its chest badge patched out; the
+slot-020 white inset defines the jersey opening. Template alpha excludes the
+opening, neck void and lower central swatch. Those latter two regions and the
+entire atlas alpha are preserved from the current target master. Only the
+opening receives the registered player-jersey front and added number; sponsor
+art is naturally cropped by the jacket. The templates are fixed assets, never
+regenerated from live artwork.
+
+The `crowdsign` atlas is primary-colour with the centred team logo. Its `_alt/`
+version instead has two large, fitted lines:
+
+```text
+Auf geht's
+<nickname>
+```
+
+`nickname` comes from [`proa_teams.csv`](../../data/proa_teams.csv), e.g. `Merlins`,
+not the full sheet/club name. Text is black or white, whichever has the higher
+sRGB relative-luminance contrast against `colorprimary`. Each line is fitted
+independently inside the 128x128 sign, including multiword nicknames. Original
+sign alpha is preserved.
+
+Each standard team run produces eleven main PNGs plus three alternatives
+in `_alt/` (fourteen PNGs total). Choose main **or** `_alt` independently for
+the crowd jersey, varsity and sign; each alternative keeps its final target
+filename. All required inputs are validated/rendered before a review folder is
+created, so input errors cannot publish a partial set.
+There is **no integration into builds, exports or texture propagation**.
+
+### Existing palette/ISO commands
 
 ```powershell
 # Export missing assets and refresh lettering previews, preserving edits:

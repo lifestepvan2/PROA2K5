@@ -30,6 +30,7 @@ class TeamPaletteTests(unittest.TestCase):
             lambda c: c["team"].pop("colorui1"),
             lambda c: c["team"].update(colorjersey1="#12345678"),
             lambda c: c["team"].update(colorprimary="#12345678"),
+            lambda c: c["team"].update(colorsecondary="#12345678"),
             lambda c: c["team"].update(unknown="#123456"),
             lambda c: c["uniforms"]["home"]["names"].update(fill="#GGGGGG"),
             lambda c: c["court"].update(mode="silent"),
@@ -42,11 +43,13 @@ class TeamPaletteTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 palettes.validate(value)
 
-    def test_primary_colour_is_optional_and_preserved_when_present(self):
+    def test_extra_team_colours_are_optional_and_preserved_when_present(self):
         value = config()
         self.assertNotIn("colorprimary", palettes.validate(value)["team"])
         value["team"]["colorprimary"] = "#0f4281"
+        value["team"]["colorsecondary"] = "#EEEEEE"
         self.assertEqual(palettes.validate(value)["team"]["colorprimary"], "#0f4281")
+        self.assertEqual(palettes.validate(value)["team"]["colorsecondary"], "#EEEEEE")
 
     def test_migration_preserves_all_uniform_controls_and_binary_files(self):
         with tempfile.TemporaryDirectory() as directory:

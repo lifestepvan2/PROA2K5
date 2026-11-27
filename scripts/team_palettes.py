@@ -24,9 +24,9 @@ def validate(value: object) -> dict:
         raise ValueError("Team colours require schema 1, team, uniforms and court")
     if (not isinstance(value["team"], dict)
             or not set(TEAM_FIELDS) <= set(value["team"])
-            or set(value["team"]) - set(TEAM_FIELDS) - {"colorprimary"}):
+            or set(value["team"]) - set(TEAM_FIELDS) - {"colorprimary", "colorsecondary"}):
         raise ValueError("team requires colorjersey1, colorjersey2, colorui1 and colorui2; "
-                         "colorprimary is optional")
+                         "colorprimary and colorsecondary are optional")
     for colour in value["team"].values():
         parse_hex(colour)
     if not isinstance(value["uniforms"], dict) or not value["uniforms"]:
