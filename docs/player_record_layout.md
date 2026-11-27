@@ -243,8 +243,32 @@ hairstyle defaults were added after this card was prepared.
 
 ### Created-player hairstyle level of detail
 
-Issue #35 reports different hairstyles at gameplay distance and a reddish
-close-up beard. The latest tested ISO, `proa2k5_493cc7292c1186db.iso`, contains
+**Current default, approved 2026-11-27:** the user accepted the final
+780-triangle cornrow revision and the complete supported per-style mesh set.
+Normal `build.py` builds now apply that exact geometry and selector through
+`scripts/created_hair_lod.py`, using the versioned assets and fingerprints in
+`data/created_hair_lod`. Styles 1 and 7 retain the stock short and afro meshes;
+styles 2, 5, 10, 11, 13, 16, 18, 19, 21, 22 and 23 use the approved custom
+streams. `--basic-meshes` retains the explicit three-stock-mesh fallback below.
+No high-LOD forcing, experimental roster assignments or session-file dependency
+is included. The final scene, selector and binding patches were compared
+byte-for-byte with the approved ISO before integration.
+
+Each expanded scene has 18 parts/materials and 109,552 decoded bytes.
+Cornrows use 1,565 transformed vertices; the other custom styles use 278..445.
+These are resource/renderer counts, not measured per-player RAM or hardware
+performance. Original PS2 hardware remains unvalidated. The user considers the
+build pipeline feature-complete, with manual texture artwork still required.
+
+#### Investigation and review history
+
+The following describes the earlier prototypes; statements that a prototype
+was not part of normal builds refer to that stage, before the integration above.
+The generated experimental ISOs were later removed to recover disk space;
+the approved assets and their provenance remain in the repository.
+
+Issue #35 reported different hairstyles at gameplay distance and a reddish
+close-up beard. The initially tested ISO, `proa2k5_493cc7292c1186db.iso`, contained
 the current generated roster payload. Its records and the live game agree:
 Addae-Wusu has head 0, hairstyle 10 and Black hair; Mayer has head 5,
 hairstyle 22; Uzoma has head 5, hairstyle 7. All three have the created-model
@@ -381,6 +405,215 @@ prototype; its roster and selector bytes were unchanged. This second ISO
 was also reviewed in-game by the user on 2026-11-27 and looked the same as
 the first. Original-hardware behavior remains untested, and vertex counts
 alone do not prove a performance improvement.
+
+The fourth-mesh experiment adds the same strip-encoded dreadlock candidate
+as a new `hair10_mat` part, rather than overwriting `hair03_mat`. Both
+`locreatehead` copies retain the original seven parts/materials and add an
+eighth. The decoded scene grows from 21,408 to 30,064 bytes (+8,656); this
+is resource size, not a measured per-player RAM increase. The added material
+starts hidden and reuses executable binding index 32, which already maps
+`hair10_mat` to the generated `hair` texture.
+
+An isolated low-detail-only code replacement at EE `0x18BF58..0x18C064`
+selects one of runtime bindings 20, 21, 22 or 32 and hides the other three,
+using the existing material lookup and visibility helper. Hairstyle 11 selects
+the fourth part; the other supported styles follow the user's basic mapping.
+Unlisted styles retain their stock selection. No new scene pool or forced
+high LOD is introduced.
+
+Isolated MIPS execution checked all 256 hairstyle-byte values through the
+existing name-based and cached material lookup paths, the actual 64-bit
+visibility flag updates, and repeated changes in two independent synthetic
+scene instances. R5900 quadword save/restore, three-register multiplication
+and conditional moves are explicitly emulated where Unicorn lacks support;
+the UTF-16 equality helper is intercepted. The cached lookup test supplies
+the expected cache entries; it does **not** prove that the game populates
+those entries or allocates independent materials for the expanded scene.
+Native stream roundtrips compare oriented geometry, UVs and normals and
+verify that the three original hair meshes and face are unchanged.
+The user subsequently reported that the four-mesh experiment was working
+fine in game. That supports the selection approach in the reviewed matchup,
+but does not establish original-hardware performance or all game modes.
+
+The previously published `C:\Tools\isos\proa2k5_four_hair_experiment.iso`
+was removed to free disk space. It passed full output-hash verification,
+relocated scene/vertex-attribute readback and
+complete ELF readback; its game XOR CRC remains `0xF5931256`. It uses the
+current roster payload and native workspace, but changes only its private
+roster copy: Addae-Wusu becomes hairstyle 11/head 5, and Till Isemann becomes
+hairstyle 16 with his existing head 2. Neither the workbook nor normal builds
+are changed. Cold boot a Crailsheim-Essen game, not a previous save state:
+Addae-Wusu tests the new fourth mesh, Marko Dordevic the stock short mesh,
+Isemann the stock long mesh, and Uzoma the stock afro. Check their coexistence,
+close/distant transitions, hair colour and scalp coverage, including after
+replays and substitutions. The user reported the experiment working fine
+in game; the report did not detail individual review cases.
+
+The expanded test uses eleven new custom meshes and the three original
+stock meshes: supported hairstyle 1 selects the stock short mesh, and 7 the
+stock afro. The remaining supported hairstyles select their own simplified
+mesh. The original stock meshes remain available for unsupported hairstyle
+values. Each scene copy has 18 parts and 18 materials, and its decoded
+system size is 92,752 bytes instead of 21,408. This is resource size, not
+measured per-instance RAM. Selector and existing material lookup code were
+checked offline for all byte values, including repeated updates of synthetic
+instances; real pool memory, gameplay performance and original hardware are
+not yet established for the larger scene.
+
+All eleven custom meshes derive from high-detail head 5, use per-scene scale
+and approximate face alignment, and retain at most 240 reconstructed
+triangles apiece. They are experimental, not in the normal build. The coarse
+radial clearance probe is not a reliable visibility or skinning simulation:
+the most negative samples for style 10 and style 5 were respectively about
+7.7% and 6.1% of head width inside the low head, including original hairline
+anchor positions. The user-tested dreadlocks measured 1.7% by the same
+approximation. Style 10 also has visibly coarser untextured strand geometry.
+In-game scalp coverage, textures and LOD transitions should be reviewed
+especially for those styles before treating the candidates as final.
+
+The original test was `C:\Tools\isos\proa2k5_thirteen_hair_experiment.iso`;
+it was later removed to free disk space.
+The ISO, selector, both relocated scenes, all hair vertex attributes and the
+private roster were read back; PCSX2 XOR CRC remains `0xF5931256`. It leaves
+the workbook and normal build unchanged. Cold boot Crailsheim vs Essen and
+review all 13 styles using these temporary assignments:
+
+| Hairstyle | Test player | Team | Starting? |
+|---:|---|---|---|
+| 1 (stock short) | Simon Krajcovic | Crailsheim | yes |
+| 2 | Nico Hoellerl | Crailsheim | yes |
+| 5 | Quashawn Lane | Essen | yes |
+| 7 (stock afro) | Benjamin Uzoma | Essen | yes |
+| 10 | Isaiah Jevon Sanders | Essen | yes |
+| 11 | Dylan Addae-Wusu | Crailsheim | yes |
+| 13 | Marko Dordevic | Crailsheim | yes |
+| 16 | Till Isemann | Crailsheim | yes |
+| 18 | Hendrik Drescher | Crailsheim | substitute |
+| 19 | Darius Dawson | Essen | yes |
+| 21 | Courtney Alexander | Crailsheim | substitute |
+| 22 | Lucas Mayer | Crailsheim | substitute |
+| 23 | JJ Mann | Essen | yes |
+
+Five players normally using NBA PID models were temporarily converted to
+created models for this ISO; their PID, portrait and skin byte are retained.
+Check the entire batch for simultaneous correct selection, scalp gaps or
+clipping, texture/colour, and close-to-distant transitions. Also check for
+gameplay or loading issues; the larger scene has not been tested on hardware.
+
+The user reviewed the thirteen-style ISO: style 10 cornrows lost too much
+detail, and styles 2, 13 and 16 exposed scalp at the rear corners. Styles 5,
+18, 19, 21, 22 and 23 were reported satisfactory. Earlier tests established
+that the stock short and afro and the custom dreadlocks worked in the
+reviewed matchup; this feedback is not a hardware performance test.
+
+A targeted follow-up candidate replaces only styles 2, 10, 13 and 16.
+For cornrows it retains 540 triangles instead of 240 (high-detail source:
+894), giving visibly more detail in untextured offline projections. It
+requires 1,154 transformed vertices versus 561 in the prior 240-triangle
+candidate; the cost on hardware is unknown. All four candidates add a
+smooth, radial rear-corner adjustment, up to 2.7% of head width, tapering
+off toward the front and lower head. Identical positions receive identical
+displacement across UV seams; front hairline anchors remain in place.
+UVs and normals are unchanged. This may affect rear silhouette and must be
+reviewed in game.
+
+An offline ray test sampled each hair triangle at a four-interval barycentric
+grid, selecting rear-corner points above the lower head. The fractions of
+samples inside the low-head surface before and after the adjustment were
+27.3% to 0.1% for style 2, 12.5% to 0.2% for style 10, 19.9% to 0.2%
+for style 13, and 8.6% to 0% for style 16. Points enter or leave the
+region as geometry moves, so counts differ slightly between measurements.
+These rays do not model visibility, deformation or animation, and do not
+detect absent hair coverage. In particular, some style-10 samples remain
+deep inside the head near an edge; the probe cannot determine whether these
+are intentional intersections or visible gaps.
+
+The follow-up ISO is `C:\Tools\isos\proa2k5_revised_hair_experiment.iso`
+(SHA-256 `a7bbcfab9ab74d3bd6e5dde78bbdc741a80652724348070ee713e721ffced199`).
+Both scene copies were read back: the revised streams match their encoded
+candidates, and every other mesh stream is byte-identical to the previous
+test. The full private roster matches the previous test, the complete ELF
+was read back, and the PCSX2 XOR CRC remains `0xF5931256`. Each decoded
+scene is now 102,736 bytes. Normal builds remain unchanged.
+
+Cold boot the same Crailsheim vs Essen matchup for one review batch:
+
+| Style | Player | Review |
+|---:|---|---|
+| 2 | Nico Hoellerl | Rear-corner scalp coverage, silhouette and hairline |
+| 10 | Isaiah Jevon Sanders | Braid shape and texture, scalp coverage, transitions |
+| 13 | Marko Dordevic | Rear-corner scalp coverage, silhouette and hairline |
+| 16 | Till Isemann | Rear-corner scalp coverage, silhouette and hairline |
+
+Check close and distant views, both rear corners, movement and replays,
+and report loading or gameplay problems. This is an isolated experiment,
+not an original-hardware validation or production integration.
+
+The user reported that styles 2, 13 and 16 no longer showed problems in
+the follow-up ISO, but that cornrows still needed work at the lower back.
+The next candidate protects 272 lower-rear source triangles, including
+their UVs and normals, during simplification. Their positions are then
+aligned to the low head and receive the bounded clearance adjustment.
+The candidate retains 540 triangles total and uses 1,127 transformed
+vertices, compared with 1,154 for the preceding cornrow candidate.
+An additional lower-back offset of up to 2% of head width is combined with,
+not added to, the earlier rear-corner offset. It tapers off at the low
+tips and toward the front.
+
+On a lower-rear subset of the same offline ray probe, 29.6% of samples
+intersected the head in the reviewed candidate and 14.1% in the new one.
+The topology and sample counts differ, and some deep intersections remain;
+these values cannot establish visible coverage, texture quality or
+animation behavior. The new candidate must still be reviewed in game.
+
+The new test is `C:\Tools\isos\proa2k5_cornrow_back_experiment.iso`
+(SHA-256 `01a8fd2a33a9ce2053866727712758b86cce0bfa4dea993693caeced5b3df39a`).
+It is a verified copy of the reviewed follow-up with only the cornrow
+stream changed in both low-head scenes. Both scene streams, the complete
+roster and the ELF were read back; all other hair streams are byte-identical.
+The decoded scene size and selector are unchanged. Cold boot Crailsheim vs
+Essen and review Isaiah Jevon Sanders' cornrows from the rear and sides,
+including the low tips, scalp coverage, close-to-distant transitions,
+movement and replays. Also watch for loading or gameplay issues.
+
+The user accepted the lower-back cornrow revision, but reported a jarring
+transition between the two row shapes. The user subsequently questioned
+which version was straighter; the goal is matching the high-detail source,
+not making either version deliberately straighter or wavier.
+A higher-budget candidate retains 780 of the source's 894 triangles
+instead of 540, preserving the same 272 lower-rear source triangles and
+clearance treatment. Its encoded stream uses 1,565 transformed vertices
+instead of 1,127 (+38.9%), with 33 copied vertices and 26,384 stream bytes.
+Rear-view offline projections retain more of the original strand detail.
+This is an explicit cornrow-only budget exception, not forced high LOD.
+
+The candidate passed native geometry/UV/normal roundtrip, both scene
+replacement checks, source-ISO hash verification and archive allocation
+planning. The larger stream requires more scene storage; all other mesh
+streams remain unchanged. Disk exhaustion initially prevented publication.
+After the experimental ISOs were removed to recover space, the next test
+was rebuilt from the pristine disc and the saved accepted mesh streams.
+The new candidate is not yet reviewed in game or on original hardware,
+and does not change normal builds.
+
+An offline comparison uses the aligned head-5 high-detail hair with the
+same accepted clearance adjustment as the reference. For 3,576 fixed
+reference vertex/centroid samples, exact nearest-triangle distances give
+RMS surface error of 0.698% of head width for the accepted 540-triangle
+candidate and 0.361% for the 780-triangle candidate. The 95th-percentile
+error falls from 1.447% to 0.814%. This measures geometric fidelity on
+fixed samples, not texture alignment, animation or visible LOD popping;
+the reference also includes the intentional scalp-clearance displacement.
+
+The published test is `C:\Tools\isos\proa2k5_cornrow_wave_experiment.iso`
+(SHA-256 `8edfb1fe27bdc5703868da0edb09bd30d63976a08c8bf3a157186b1e95495c80`).
+Both scene copies' custom streams match the saved accepted candidates
+byte-for-byte, except style 10, which matches the new 780-triangle stream.
+The full private test roster and ELF were read back, and the PCSX2 XOR CRC
+remains `0xF5931256`. Each decoded scene is 109,552 bytes.
+Cold boot Crailsheim vs Essen and review Sanders' cornrow shape and
+low/high transitions, especially from the rear and sides during replays.
+Also check that the accepted lower-back coverage is preserved.
 
 The VIF streams use V3-8 or V4-8 normal-like arrays, V2-16 UV-like arrays,
 and V4-16 packed coordinates plus output addresses. Batch metadata can

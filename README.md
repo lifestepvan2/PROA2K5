@@ -18,6 +18,9 @@ roster. Companion of the 2K26 live-memory project; only its data pipeline is reu
 - Names: proven live (RAM patch) and via the memory-card roster file (strings may be lengthened/relocated).
 - Roster and texture deployment uses one portable ISO built from the pristine European disc.
 - Automatic light-reserve recolouring and explicit Skin Tone overrides are embedded as model-local textures.
+- Approved per-style created-player low-detail hair is embedded by default, including the final cornrows.
+- The conversion build pipeline is feature-complete; manual texture artwork is the remaining conversion work.
+  Further automation and quality-of-life improvements are optional. Original PS2 hardware remains unvalidated.
 
 ```powershell
 python scrape.py
@@ -27,4 +30,5 @@ python build.py
 
 The ISO is named `C:\Tools\isos\proa2k5_<build-id>.iso`; existing outputs are not overwritten.
 Boot fresh without loading an older roster or savestate. Add `--card PATH` for an additional card export.
+Use `--basic-meshes` only to fall back to the three stock low-detail hair meshes.
 See [season setup and commands](docs/SeasonUpdateWorkflow.md#iso-first-roster-deployment).

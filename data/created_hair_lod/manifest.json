@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "source_head": 5,
+  "approved_iso_sha256": "8edfb1fe27bdc5703868da0edb09bd30d63976a08c8bf3a157186b1e95495c80",
+  "selector_sha256": "b4b4d4ca8255544d67fe8a05e25149d18bdbf90f5a751b55eccf7f9d6a028729",
+  "meshes": [
+    {"style": 2, "triangles": 160, "transformed_vertices": 309, "sha256": "cc9e98fe4d8358f480f6adda021b892a48a473cf4489e6a5c914017b52b2f10d"},
+    {"style": 5, "triangles": 240, "transformed_vertices": 278, "sha256": "b01039ccd979c171f8c5e82784a1fbe70d974ad886fbcca0b10bfbd4808acbb0"},
+    {"style": 10, "triangles": 780, "transformed_vertices": 1565, "sha256": "d6ca61c1b7b1df66b4c83b6c77ff6cf476f7c7545c6f80429882a45d7b895cad"},
+    {"style": 11, "triangles": 240, "transformed_vertices": 445, "sha256": "5f2779ec673955ef494cdb3632c6672d8ab7fed5ae2ef12f6bd8e1c1785c2eb2"},
+    {"style": 13, "triangles": 240, "transformed_vertices": 349, "sha256": "75d9f3c141efd5f91a68f5a877cf6623d3b8b85580dadacf6b7100183ae342af"},
+    {"style": 16, "triangles": 240, "transformed_vertices": 324, "sha256": "d6a03bb5bb1eea6c05e1d4ccdaadc4397948793e5deb538340930241d688b44f"},
+    {"style": 18, "triangles": 240, "transformed_vertices": 293, "sha256": "c227816c367cdb3711b72e66c590ff0213372b2f2f9379e20c4bb738d6174a6e"},
+    {"style": 19, "triangles": 240, "transformed_vertices": 334, "sha256": "832918c5078363cacb905a00b8897bdc4b09c231b729320cae7132b54603e730"},
+    {"style": 21, "triangles": 240, "transformed_vertices": 383, "sha256": "1670d4881a3eec6addbedc8a445daff3c89ca658745a4521b0c9c94950df7a2b"},
+    {"style": 22, "triangles": 240, "transformed_vertices": 328, "sha256": "329a9e895f325d9d1014c104645a07ffb68e24499b35fc8fc58804ff14e013bd"},
+    {"style": 23, "triangles": 240, "transformed_vertices": 317, "sha256": "6b9cfa3ac126cdf3046fe4bdb9f8a96a51e5fbd545d4fed1a7cf312824b6b484"}
+  ]
+}

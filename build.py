@@ -29,7 +29,7 @@ def main() -> None:
     parser.add_argument("--card", type=Path, help="optionally export the finished roster to a memory card")
     parser.add_argument("--rematch-faces", action="store_true", help="redo automatic face matches")
     parser.add_argument("--basic-meshes", action="store_true",
-                        help="map created hairstyles to the three stock low-detail hair meshes")
+                        help="use the three stock low-detail hair meshes instead of the approved per-style set")
     args = parser.parse_args()
     years = args.season.split("_")
     if (len(years) != 2 or not all(len(year) == 4 and year.isdecimal() for year in years)

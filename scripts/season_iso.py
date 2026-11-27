@@ -60,10 +60,15 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
     patches.extend(visual_patches)
-    hair_delta = 0
     if basic_meshes:
         hair_patches, hair_delta = created_hair_lod.prepare_basic(stream)
-        patches.extend(hair_patches)
+        hair_report = {"mode": "basic", "elf_crc_delta": hair_delta}
+    else:
+        hair_patches, hair_delta, hair_report = created_hair_lod.prepare_custom(stream)
+        if not repack_archive and any(len(before) != len(after) for _, before, after in hair_patches):
+            raise ValueError("Per-style hair meshes require archive repacking; use repack_archive=True "
+                             "or --basic-meshes for the stock fallback")
+    patches.extend(hair_patches)
     elf_delta = roster_report.get("elf_crc_delta", 0) ^ hair_delta
     if stats_year is not None or elf_delta:
         year_patches, visual_report["stats_year"] = prepare_year_patch(
@@ -73,10 +78,9 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         "schema": 1, "source_sha256": SOURCE_SHA256, "iso_size": ISO_SIZE,
         "roster": roster_report, "visuals": visual_report, "logos": logo_report,
         "scope": "Default roster and native texture workspace embedded",
+        "created_hair_lod": hair_report,
         "restore": "Boot the untouched pristine ISO; rebuild from it rather than patching a previous output",
     }
-    if basic_meshes:
-        report["created_hair_lod"] = {"mode": "basic", "elf_crc_delta": hair_delta}
     if repack_archive:
         report["archive"] = archive_iso.plan(stream, patches)[2]
     else:
@@ -206,21 +210,22 @@ def build_named(source: Path, output_dir: Path, roster: Path, workspace: Path,
 def check(source: Path, output: Path, workspace: Path = lettering_workspace.DEFAULT_WS,
           slots: Path = lettering_workspace.DEFAULT_SLOTS, stats_year: int | None = None,
           roster: Path | None = None, skin_plan: Path | None = None,
-          texture_workspace: Path | None = None, *, repack_archive: bool = False) -> dict:
+          texture_workspace: Path | None = None, *, repack_archive: bool = True,
+          basic_meshes: bool = False) -> dict:
     validate_output(source, output, workspace)
     with source.open("rb") as stream:
         return prepare(stream, workspace, slots, stats_year, roster, skin_plan, texture_workspace,
-                       repack_archive=repack_archive)[1]
+                       repack_archive=repack_archive, basic_meshes=basic_meshes)[1]
 
 
 def build(source: Path, output: Path, roster: Path, workspace: Path = lettering_workspace.DEFAULT_WS,
           slots: Path = lettering_workspace.DEFAULT_SLOTS, stats_year: int | None = None,
           skin_plan: Path | None = None, texture_workspace: Path | None = None, *,
-          repack_archive: bool = False) -> dict:
+          repack_archive: bool = True, basic_meshes: bool = False) -> dict:
     output = validate_output(source, output, workspace)
     with source.open("rb") as stream:
         patches, report = prepare(stream, workspace, slots, stats_year, roster, skin_plan, texture_workspace,
-                                  repack_archive=repack_archive)
+                                  repack_archive=repack_archive, basic_meshes=basic_meshes)
         copy_plan = None
         if repack_archive:
             copy_plan, patches, report["archive"] = archive_iso.plan(stream, patches)
@@ -240,8 +245,10 @@ def main() -> None:
     parser.add_argument("--workspace", type=Path, help="team palettes (default: TEXTURE_WORKSPACE/team_palettes)")
     parser.add_argument("--slots", type=Path, default=lettering_workspace.DEFAULT_SLOTS)
     parser.add_argument("--texture-workspace", type=Path, default=texture_iso_workspace.DEFAULT_WS)
-    parser.add_argument("--repack-archive", action="store_true",
-                        help="Experimental: pool package sectors within the existing disc extents")
+    parser.add_argument("--repack-archive", action="store_true", default=True,
+                        help="pool package sectors within the existing disc extents (enabled by default)")
+    parser.add_argument("--basic-meshes", action="store_true",
+                        help="use the three stock low-detail hair meshes instead of the approved per-style set")
     args = parser.parse_args()
     if args.workspace is None:
         args.workspace = args.texture_workspace / "team_palettes"
@@ -251,11 +258,11 @@ def main() -> None:
         if args.command == "build":
             report = build(args.iso_source, args.iso_out, args.roster, args.workspace,
                            args.slots, args.stats_year, args.skin_plan, args.texture_workspace,
-                           repack_archive=args.repack_archive)
+                           repack_archive=args.repack_archive, basic_meshes=args.basic_meshes)
         else:
             report = check(args.iso_source, args.iso_out, args.workspace, args.slots,
                            args.stats_year, args.roster, args.skin_plan, args.texture_workspace,
-                           repack_archive=args.repack_archive)
+                           repack_archive=args.repack_archive, basic_meshes=args.basic_meshes)
         print(f"Verified default roster and {report['visuals']['sources']} lettering sources; "
               f"roster {'embedded' if args.roster is not None else 'source checked'}.")
     except (OSError, ValueError, MemoryError) as error:

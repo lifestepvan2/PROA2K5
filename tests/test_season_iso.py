@@ -28,6 +28,8 @@ class SeasonCompositionTests(unittest.TestCase):
         self.roster, self.plan = self.root / "payload.bin", self.root / "skin.json"
         self.roster_patch = (0, b"AA", b"RR")
         self.visual_patch = (8, b"AA", b"VV")
+        self.custom_hair = self.enterContext(patch.object(
+            season.created_hair_lod, "prepare_custom", return_value=([], 0, {"mode": "per-style"})))
 
     def test_composes_all_components_in_one_verified_copy(self):
         with patch.object(season.roster_iso, "prepare", return_value=([self.roster_patch], {"asset": "roster.iff"})) as roster, \
@@ -37,7 +39,7 @@ class SeasonCompositionTests(unittest.TestCase):
                 patch.object(season, "ISO_SIZE", 32), \
                 patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
             report = season.build(self.source, self.output, self.roster, self.workspace,
-                                  stats_year=2026, skin_plan=self.plan)
+                                  stats_year=2026, skin_plan=self.plan, repack_archive=False)
         roster.assert_called_once()
         self.assertEqual(roster.call_args.args[1], self.roster)
         self.assertEqual(visuals.call_args.args[3:], (None, self.plan))
@@ -52,7 +54,7 @@ class SeasonCompositionTests(unittest.TestCase):
         with patch.object(season.roster_iso, "prepare", return_value=([], {})) as roster, \
                 patch.object(season.lettering_workspace, "prepare", return_value=([], {})) as visuals, \
                 patch.object(season, "prepare_year_patch", return_value=([], {})):
-            season.check(self.source, self.output, self.workspace, stats_year=2026)
+            season.check(self.source, self.output, self.workspace, stats_year=2026, repack_archive=False)
         self.assertIsNone(roster.call_args.args[1])
         self.assertIsNone(visuals.call_args.args[-1])
         self.assertEqual(list(self.root.iterdir()), [self.source])
@@ -69,7 +71,7 @@ class SeasonCompositionTests(unittest.TestCase):
                 patch.object(season, "ISO_SIZE", 32), \
                 patch.object(season, "SOURCE_SHA256", hash_stream(io.BytesIO(b"A" * 32))):
             report = season.build(self.source, self.output, self.roster, self.workspace,
-                                  texture_workspace=native_workspace)
+                                  texture_workspace=native_workspace, repack_archive=False)
         self.assertEqual(visual.call_args.kwargs, {"include_courts": False, "repack_archive": False})
         self.assertEqual(logos.call_args.args[1:], (native_workspace, court_edits))
         self.assertEqual(report["visuals"]["courts"], report["logos"]["courts"])
@@ -79,7 +81,8 @@ class SeasonCompositionTests(unittest.TestCase):
         with patch.object(season.roster_iso, "prepare", return_value=([self.roster_patch], {})), \
                 patch.object(season.lettering_workspace, "prepare", return_value=([(1, b"AA", b"VV")], {})):
             with self.assertRaisesRegex(ValueError, "disjoint"):
-                season.check(self.source, self.output, self.workspace, roster=self.roster)
+                season.check(self.source, self.output, self.workspace, roster=self.roster,
+                             repack_archive=False)
         self.assertFalse(self.output.exists())
 
     def test_basic_hair_meshes_patch_only_the_requested_selector_entries(self):
@@ -122,6 +125,28 @@ class SeasonCompositionTests(unittest.TestCase):
         year.assert_called_once_with(unittest.mock.ANY, 2004, 0x1234 ^ 0x5678)
         self.assertIn(hair_patch, patches)
         self.assertEqual(report["created_hair_lod"]["mode"], "basic")
+        self.custom_hair.assert_not_called()
+
+    def test_default_per_style_hair_combines_scene_patches_and_elf_crc(self):
+        hair_patches = [(16, b"AA", b"HHH"), (20, b"AA", b"EE")]
+        self.custom_hair.return_value = (hair_patches, 0x5678, {"mode": "per-style"})
+        with patch.object(season.roster_iso, "prepare", return_value=([], {"elf_crc_delta": 0x1234})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})), \
+                patch.object(season, "prepare_year_patch", return_value=([], {})) as year, \
+                patch.object(season.archive_iso, "plan", return_value=([], [], {})):
+            patches, report = season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv",
+                                             repack_archive=True)
+        year.assert_called_once_with(unittest.mock.ANY, 2004, 0x1234 ^ 0x5678)
+        self.assertEqual(patches, hair_patches)
+        self.assertEqual(report["created_hair_lod"]["mode"], "per-style")
+
+    def test_per_style_hair_rejects_fixed_span_mode_before_publication(self):
+        self.custom_hair.return_value = ([(16, b"AA", b"HHH")], 0, {"mode": "per-style"})
+        with patch.object(season.roster_iso, "prepare", return_value=([], {})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})):
+            with self.assertRaisesRegex(ValueError, "require archive repacking"):
+                season.build(self.source, self.output, self.roster, self.workspace, repack_archive=False)
+        self.assertFalse(self.output.exists())
 
     def test_uniform_workspace_routes_lettering_through_single_resource_composer(self):
         native = self.root / "native"

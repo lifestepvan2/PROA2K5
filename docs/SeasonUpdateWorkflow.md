@@ -13,6 +13,44 @@ in the ISO. The ID hashes the ISO creation timestamp rather than the payload;
 the manifest records the timestamp, and separate source/output hashes still
 verify publication. Add `--card PATH` for an optional memory-card export.
 
+### Created-player hair and completion status
+
+The normal build now embeds the approved per-style low-detail hair meshes and
+selector in both native low-head scene copies. Supported non-bald styles are
+1, 2, 5, 7, 10, 11, 13, 16, 18, 19, 21, 22 and 23. Styles 1 and 7 reuse the
+stock short and afro meshes; the other eleven use the in-game-reviewed custom
+meshes, including the final 780-triangle cornrows. The game still switches LOD
+normally; high detail is not forced. Bald and unsupported selector values keep
+the tested selector's original fallback behavior.
+
+The approved streams and selector are versioned in `data/created_hair_lod`.
+Builds verify their fingerprints and the pristine scene/executable before
+patching. They do not regenerate or simplify the meshes, require session files,
+or apply the temporary review roster. Actual hairstyles, head choices and
+created-model gates continue to come from the normal roster pipeline.
+The ISO manifest records `created_hair_lod` mode, mesh fingerprints, scene
+budgets and executable CRC delta. Hair, roster-startup and stats-year changes
+share the existing checksum compensation.
+
+For the optional conservative fallback:
+
+```powershell
+python build.py --basic-meshes
+```
+
+This adds no custom hair geometry and selects stock short for
+1/2/5/13/18/22/23, stock afro for 7, and stock long for 10/11/16/19/21.
+The same flag is available in standalone `scripts/season_iso.py`; standalone
+checks/builds now enable archive repacking by default. Python callers using
+`season_iso.prepare` must request `repack_archive=True` for per-style meshes.
+
+The conversion build pipeline is considered feature-complete after the final
+in-game hair review. Manual artwork in `texture_workspace_ISO` remains necessary
+for the finished conversion; further automation and QOL work are optional.
+This is not certification for original PS2 hardware: the larger shared scene,
+especially the cornrow vertex-budget exception, still needs hardware testing.
+Cold boot new builds rather than reusing a savestate with old loaded models.
+
 ### Persistent player edits and exclusions
 
 `proa_scraped.xlsx` is generated output, including accessory columns, `College`
@@ -195,7 +233,8 @@ only the selected target PID is edited, never the source donor assets.
 The plan records its required storage mode; a repacking recipe cannot accidentally
 be published through a fixed-span builder. Older fixed-span recipes remain usable.
 For standalone planning, use `face_match.py --iso-source ... --repack-archive`,
-then pass the same flag to `season_iso.py` for the combined build.
+then run `season_iso.py` for the combined build (archive repacking is now the
+default; the explicit flag is still accepted).
 
 The legs themselves still use the roster's `+0x69` selector for the existing six
 stock textures. A failure saying `no compatible arm donor for leg tone ...`
