@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "team": {
-    "colorjersey1": "#104485",
-    "colorjersey2": "#1b1936",
-    "colorui1": "#104485",
-    "colorui2": "#104485"
+    "colorjersey1": "#0f4281",
+    "colorjersey2": "#0f4281",
+    "colorui1": "#0f4281",
+    "colorui2": "#0f4281"
   },
   "uniforms": {
     "alt": {
@@ -51,9 +51,9 @@
     }
   },
   "court": {
-    "mode": "original",
-    "primary": "#32317E",
-    "secondary": "#E2C429",
-    "lines": "#FFFFFF"
+    "mode": "recolour",
+    "primary": "#0f4281",
+    "secondary": "#0f4281",
+    "lines": "#EEEEEE"
   }
 }

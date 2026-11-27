@@ -112,15 +112,15 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,skin_t
 19,7,46ers,10,254,0xf7cc,Kai,Muesse,Hesse,0,1.357,4,15,80.8,2000861,False,629
 19,7,46ers,11,147,0xb9f0,Luca-Noel,Nickel,Giessen,0,1.480,0,11,79.2,2004603,False,741
 19,7,46ers,12,135,0xb300,Milan Elias,Genius,Giessen,0,1.430,0,2,77.6,2004605,False,905
-20,8,Crailsheim Merlins,0,255,0xf860,Simon,Krajcovic,Slovakia,0,0.979,0,55,91.4,2003170,True,1013
+20,8,Crailsheim Merlins,0,255,0xf860,Simon,Krajcovic,Slovakia,2,0.979,0,55,91.4,2003170,True,1013
 20,8,Crailsheim Merlins,1,256,0xf8f4,Dylan,Addae-Wusu,Seton Hall,0,0.428,1,7,90.6,2005235,True,209
 20,8,Crailsheim Merlins,2,259,0xfab0,Nico,Hoellerl,Austria,0,1.231,2,5,84.5,2004274,True,784
 20,8,Crailsheim Merlins,3,261,0xfbd8,Marko,Dordevic,Berlin,0,1.525,3,25,86.5,2005213,True,922
-20,8,Crailsheim Merlins,4,262,0xfc6c,Till,Isemann,Oldenburg,0,1.133,4,21,89.1,2003107,True,79
+20,8,Crailsheim Merlins,4,262,0xfc6c,Till,Isemann,Oldenburg,1,1.133,4,21,89.1,2003107,True,79
 20,8,Crailsheim Merlins,5,263,0xfd00,Booker,Coplin,Augsburg,0,1.290,1,6,90.3,2003864,False,67
 20,8,Crailsheim Merlins,6,264,0xfd94,Lucas,Mayer,Giessen,0,1.054,1,8,89.2,2003168,False,288
 20,8,Crailsheim Merlins,7,265,0xfe28,Gianni,Otto,Ludwigsburg,0,1.270,0,10,87.5,2001472,False,918
-20,8,Crailsheim Merlins,8,266,0xfebc,Hendrik,Drescher,Berlin,0,1.045,3,9,85.0,2003169,False,617
+20,8,Crailsheim Merlins,8,266,0xfebc,Hendrik,Drescher,Berlin,2,1.045,3,9,85.0,2003169,False,617
 20,8,Crailsheim Merlins,9,117,0xa898,Peyton,Gerald,Florida Southern,0,0.780,3,13,84.1,2003862,False,195
 20,8,Crailsheim Merlins,10,109,0xa3f8,Courtney,Alexander,Tennessee Tech,0,0.861,4,2,82.4,2004273,False,564
 20,8,Crailsheim Merlins,11,92,0x9a24,Luc,van Slooten,Vechta,0,1.082,2,11,82.2,2003178,False,839
@@ -156,7 +156,7 @@ team_slot,proa_team,sheet,slot,record,offset,first,last,college,skin_tone,skin_t
 23,11,Essen,1,296,0x11014,Isaiah Jevon,Sanders,Fairmont State,0,1.490,1,10,90.3,2004675,True,155
 23,11,Essen,2,297,0x110a8,Darius,Dawson,Austin Peay State,0,0.951,2,13,94.0,2004674,True,369
 23,11,Essen,3,298,0x1113c,JJ,Mann,Belmont,0,1.194,3,35,88.2,2004673,True,625
-23,11,Essen,4,299,0x111d0,Benjamin,Uzoma,Aachen,0,1.397,4,5,90.9,2000439,True,847
+23,11,Essen,4,299,0x111d0,Benjamin,Uzoma,Aachen,3,1.397,4,5,90.9,2000439,True,847
 23,11,Essen,5,300,0x11264,Marc William,Friederici,Berlin,0,1.620,0,30,91.0,2001908,False,1160
 23,11,Essen,6,302,0x1138c,Tre,Beard,Cleveland State,0,1.317,0,3,89.3,2004987,False,801
 23,11,Essen,7,303,0x11420,Jonathan,Almstedt,Saarland,1,1.330,4,26,88.2,2001911,False,412
