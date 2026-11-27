@@ -43,7 +43,7 @@ physical aliases reuse one master, while separate palettes remain separately
 editable. Shared-index crowd variants are quantized jointly.
 Font masters edit atlas artwork only: glyph metrics and layout are preserved.
 
-### Frontend flipchip logos
+### Propagated team logos
 
 ```powershell
 python scripts\propagate_logos.py --dry-run
@@ -51,9 +51,18 @@ python scripts\propagate_logos.py
 ```
 
 The script **overwrites** every native `frontend.iff` `NNN_flipchip_00`
-master, including NBA and special-team entries. Back up any manual edits
-first. It center-crops the ProA logo assets from `nba2k_editor\assets` to the
-native dimensions and composites them over an opaque dark background.
+master, including NBA and special-team entries, the 256x256 studio logo
+collage (`217648db`), the 512x512 title logo sheet (`ea06148d`), and the `pNNN.iff/2dNNN_0` and
+`franchise.iff/NNN_mlogo` masters for ProA teams. Back up any manual edits first.
+The title sheet places up to 18 distinct ProA logos with soft shadows in the
+middle three rows of a six-column grid, leaving the top and bottom rows empty.
+The latter two families receive the full logo, centered with transparency and
+its aspect ratio preserved. Their numbered names use native team IDs, not
+necessarily roster slots; unassigned NBA and special teams are left unchanged.
+For flipchips and the collage, it center-crops the ProA logo assets from
+`nba2k_editor\assets` and composites them over an opaque dark background.
+The collage is a six-column, five-row
+grid, ordered by flipchip indices 000 through 029.
 Existing ProA team slots use their corresponding native team IDs; the other
 indices cycle through ProA teams without adjacent repeats, including the
 wraparound. Traversal by numeric index is an assumption, not an in-game
@@ -189,6 +198,21 @@ Supported images include linear indexed 4/8-bit, true-color PSMCT32,
 GS-upload indexed 4/8-bit, font atlases and shared-index palette variants.
 Unchanged masters produce no patches. Encoded resources are decoded again and
 compressed resources undergo in-place safety validation.
+
+Player face, arm and neck atlases can contain meaningful RGB even where alpha
+is zero. Their encoder preserves that RGB when resizing and quantizes with
+exact PS2 alpha values; a palette too small to represent the alpha values is
+rejected. Player-atlas reports include `rgb_rmse_all` to measure colour error
+across all pixels, including zero-alpha pixels.
+
+Issue #34: Sanders uses PID 155, whose pristine face atlas has an eye. The old
+encoder blackened RGB at alpha zero, including most of that eye; automatic
+light-reserve recolouring caused the atlas to be encoded. In a subsequent
+experimental ISO, 102 of 130 edited home/away face atlases (51 PIDs, including
+Sanders) had eye-region RGB RMSE above 20 versus pristine. The 479 available
+face-match dumps checked against their native home atlases matched exactly:
+this was not evidence of a wrong donor category. Rebuild the ISO to replace
+damaged encoded atlases; already-built ISOs are not repaired automatically.
 
 Offline checks do not certify rendered output. In particular, non-flat packed
 PSMT4 spatial addressing still needs a consolidated in-game visual review.

@@ -105,6 +105,42 @@ class NativeTextureTests(unittest.TestCase):
         self.assertEqual(target, data)
         self.assertFalse(report["changed"])
 
+    def test_player_atlas_preserves_zero_alpha_rgb_and_resized_mips(self):
+        data, system, video = texture(19, 8, 8, 2)
+        master = Image.new("RGBA", (16, 16), (90, 150, 210, 0))
+        target, report, preview = native.encode(
+            data, system, video, 48, [48], master, preserve_transparent_rgb=True)
+        images = texture_images(target, system, video, 48, [48])[0]
+        self.assertTrue(all(image["rgba"] == bytes((90, 150, 210, 0)) * image["width"] * image["height"]
+                            for image in images))
+        self.assertEqual(preview.getpixel((0, 0)), (90, 150, 210, 0))
+        self.assertEqual(report["rgb_rmse_all"], 0)
+
+    def test_player_quantization_keeps_distinct_alpha_values(self):
+        data, system, video = texture(19, 32, 32, 1)
+        pixels = np.zeros((32, 32, 4), dtype=np.uint8)
+        y, x = np.indices((32, 32))
+        pixels[..., 0] = x * 8
+        pixels[..., 1] = y * 8
+        pixels[..., 2] = (x + y) * 4
+        pixels[..., 3] = np.where(x < 16, 0, 200)
+        target, report, _ = native.encode(
+            data, system, video, 48, [48], Image.fromarray(pixels), palette_colors=16,
+            preserve_transparent_rgb=True)
+        decoded = np.frombuffer(texture_images(target, system, video, 48, [48])[0][0]["rgba"],
+                                dtype=np.uint8).reshape(32, 32, 4)
+        self.assertTrue(np.array_equal(decoded[..., 3], np.where(x < 16, 0, 100)))
+        self.assertGreater(decoded[:, :16, :3].mean(), 20)
+        self.assertEqual(report["alpha_max_error_ps2"], 0)
+
+    def test_player_palette_budget_rejects_too_many_alpha_values(self):
+        data, system, video = texture(19, 8, 8, 1)
+        pixels = np.zeros((8, 8, 4), dtype=np.uint8)
+        pixels[..., 3] = np.arange(64, dtype=np.uint8).reshape(8, 8) * 4
+        with self.assertRaisesRegex(ValueError, "alpha values.*palette entries"):
+            native.encode(data, system, video, 48, [48], Image.fromarray(pixels),
+                          palette_colors=16, preserve_transparent_rgb=True)
+
     def test_linear_seven_mips_encode_and_read_back(self):
         data, system, video = texture(19, 64, 64, 7)
         target, report, _ = native.encode(

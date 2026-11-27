@@ -173,6 +173,17 @@ class NativeWorkspaceTests(unittest.TestCase):
         self.assertLessEqual(native.np.abs(result[mask] - control[mask]).max(), 3)
         self.assertLessEqual(native.np.abs(result[~mask] - [30, 70, 120, 255]).max(), 3)
 
+    def test_player_master_preserves_zero_alpha_rgb(self):
+        self.manifest["sources"][0]["group"] = "players"
+        self.manifest["sources"][0]["texture"] = "face"
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        Image.new("RGBA", (512, 256), (80, 120, 160, 0)).save(self.master)
+        patches, report = self.prepare()
+        image = catalogue.texture_images(patches[0][2], 112, 180224, self.row["descriptor"],
+                                         self.row["descriptor_offsets"])[0][0]
+        self.assertEqual(image["rgba"][:4], bytes((80, 120, 160, 0)))
+        self.assertEqual(report["textures"][0]["rgb_rmse_all"], 0)
+
     def test_manual_jersey_master_wins_over_overlapping_controls(self):
         self.edit()
         self.manifest["sources"][0]["group"] = "uniforms"

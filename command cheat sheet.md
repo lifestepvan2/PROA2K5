@@ -6,11 +6,16 @@
 
 For another season, pass the same `--season YYYY_YYYY` to both commands.
 
+Optional: `python build.py --basic-meshes` maps the supported created hairstyles
+to the three stock low-detail hair meshes. Without the flag, the game retains
+its original low-detail selection; custom low-detail meshes are not yet integrated.
+
 The build reads `C:\Tools\isos\ESPN NBA 2K5 (Europe).iso` and writes
 `C:\Tools\isos\proa2k5_<16-digit-build-id>.iso` plus a `.season.json` manifest.
 Existing output files are not overwritten. The title image is stamped only in
-the ISO. Roster portrait and requested skin masters are regenerated in the
-workspace. For other textures, edited masters take precedence over overlapping
+the ISO. The build ID is derived from the creation timestamp, not the payload;
+identical inputs produce different IDs. Roster portrait and requested skin
+masters are regenerated in the workspace. For other textures, edited masters take precedence over overlapping
 generated colour controls; alternate uniform copies preserve edited resources.
 Automatic light-reserve recolouring and explicit Skin Tone overrides generate
 model-local skin textures. Explicit overrides take precedence.

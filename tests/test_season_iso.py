@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import season_iso as season
+import created_hair_lod
 import portrait_iso
 from iso_copy import CopySpan, hash_stream
 from PIL import Image
@@ -81,6 +82,47 @@ class SeasonCompositionTests(unittest.TestCase):
                 season.check(self.source, self.output, self.workspace, roster=self.roster)
         self.assertFalse(self.output.exists())
 
+    def test_basic_hair_meshes_patch_only_the_requested_selector_entries(self):
+        table = struct.pack("<27I", *created_hair_lod.ORIGINAL_TARGETS)
+        source = io.BytesIO(bytes(created_hair_lod.TABLE_OFFSET) + table)
+        patches, delta = created_hair_lod.prepare_basic(source)
+        offset, before, after = patches[0]
+        self.assertEqual(offset, created_hair_lod.TABLE_OFFSET)
+        self.assertEqual(before, table)
+        targets = struct.unpack("<27I", after)
+        expected = {
+            1: 0x18B740, 2: 0x18B740, 5: 0x18B740, 13: 0x18B740,
+            18: 0x18B740, 22: 0x18B740, 23: 0x18B740,
+            7: 0x18B7B0,
+            10: 0x18B770, 11: 0x18B770, 16: 0x18B770,
+            19: 0x18B770, 21: 0x18B770,
+        }
+        for index, (old, new) in enumerate(zip(created_hair_lod.ORIGINAL_TARGETS, targets)):
+            self.assertEqual(new, expected.get(index - 1, old))
+        actual_delta = 0
+        for old, new in zip(struct.unpack("<27I", before), targets):
+            actual_delta ^= old ^ new
+        self.assertEqual(delta, actual_delta)
+        source.seek(created_hair_lod.TABLE_OFFSET)
+        source.write(b"\0")
+        with self.assertRaisesRegex(ValueError, "selector table"):
+            created_hair_lod.prepare_basic(source)
+
+    def test_basic_hair_delta_combines_with_roster_for_crc_compensation(self):
+        hair_patch = (16, b"AA", b"HH")
+        with patch.object(season.roster_iso, "prepare",
+                          return_value=([], {"elf_crc_delta": 0x1234})), \
+                patch.object(season.lettering_workspace, "prepare", return_value=([], {})), \
+                patch.object(season.created_hair_lod, "prepare_basic",
+                             return_value=([hair_patch], 0x5678)), \
+                patch.object(season, "prepare_year_patch", return_value=([], {})) as year, \
+                patch.object(season, "ISO_SIZE", 32):
+            patches, report = season.prepare(io.BytesIO(), self.workspace, self.root / "slots.csv",
+                                             basic_meshes=True)
+        year.assert_called_once_with(unittest.mock.ANY, 2004, 0x1234 ^ 0x5678)
+        self.assertIn(hair_patch, patches)
+        self.assertEqual(report["created_hair_lod"]["mode"], "basic")
+
     def test_uniform_workspace_routes_lettering_through_single_resource_composer(self):
         native = self.root / "native"
         native.mkdir()
@@ -109,13 +151,11 @@ class SeasonCompositionTests(unittest.TestCase):
         self.assertTrue(letters.call_args.kwargs["compose_skin"])
         self.assertIs(letters.call_args.kwargs["texture_edits"], textures.call_args.kwargs["texture_edits"])
 
-    def test_build_id_depends_on_payload_and_not_patch_order(self):
-        patches = [self.roster_patch, self.visual_patch]
-        identity = season.build_id(patches)
-        self.assertEqual(len(identity), 16)
-        self.assertEqual(identity, season.build_id(list(reversed(patches))))
-        self.assertNotEqual(identity, season.build_id([(0, b"AA", b"SS"), self.visual_patch]))
-        self.assertNotEqual(identity, season.build_id([self.roster_patch, (8, b"AA", b"WW")]))
+    def test_build_id_uses_timestamp(self):
+        timestamp = 1_800_000_000_123_456_789
+        identity = season.build_id(timestamp)
+        self.assertEqual(identity, hashlib.sha256(str(timestamp).encode("ascii")).hexdigest()[:16])
+        self.assertNotEqual(identity, season.build_id(timestamp + 1))
 
     def test_stamp_is_small_grey_and_does_not_modify_master(self):
         master = Image.new("RGBA", (512, 512), "white")
@@ -137,16 +177,36 @@ class SeasonCompositionTests(unittest.TestCase):
             target.append(title)
             manifest["build_id"] = {"value": identity}
 
-        with patch.object(season, "prepare", return_value=(patches, report)), \
+        with patch.object(season, "prepare", return_value=(patches, report)) as prepare, \
                 patch.object(season, "add_title_stamp", side_effect=stamp), \
+                patch.object(season.time, "time_ns", return_value=1_800_000_000_123_456_789), \
                 patch.object(season.archive_iso, "plan", return_value=(copy_plan, [], {})) as plan, \
                 patch.object(season, "publish_iso_copy", side_effect=lambda *args, **kwargs: args[5]) as publish:
             result = season.build_named(self.source, self.root, self.roster, self.workspace,
-                                        texture_workspace=self.workspace)
+                                        texture_workspace=self.workspace, basic_meshes=True)
+        self.assertTrue(prepare.call_args.kwargs["basic_meshes"])
         self.assertIn(title, plan.call_args.args[1])
-        identity = season.build_id([self.roster_patch, self.visual_patch])
+        identity = season.build_id(1_800_000_000_123_456_789)
         self.assertEqual(publish.call_args.args[1].name, f"proa2k5_{identity}.iso")
         self.assertEqual(result["build_id"]["value"], identity)
+        self.assertEqual(result["build_id"]["timestamp_ns"], "1800000000123456789")
+
+    def test_identical_payloads_get_distinct_timestamp_ids(self):
+        def prepare(*args, **kwargs):
+            return [self.roster_patch, self.visual_patch], {}
+
+        def stamp(stream, workspace, target, identity, manifest):
+            manifest["build_id"] = {"value": identity}
+
+        with patch.object(season, "prepare", side_effect=prepare), \
+                patch.object(season, "add_title_stamp", side_effect=stamp), \
+                patch.object(season.time, "time_ns", side_effect=[1000, 1001]), \
+                patch.object(season.archive_iso, "plan", return_value=([], [], {})), \
+                patch.object(season, "publish_iso_copy", side_effect=lambda *args, **kwargs: args[5]):
+            first = season.build_named(self.source, self.root, self.roster, self.workspace)
+            second = season.build_named(self.source, self.root, self.roster, self.workspace)
+        self.assertNotEqual(first["output"], second["output"])
+        self.assertNotEqual(first["build_id"]["value"], second["build_id"]["value"])
 
     def test_title_stamp_updates_report_to_final_encoded_bytes(self):
         import remaining_texture_workspace

@@ -9,7 +9,7 @@ supplying them also verifies their final content before publication.
 import argparse
 import archive_iso
 import hashlib
-import struct
+import time
 from pathlib import Path
 from typing import BinaryIO
 
@@ -17,6 +17,7 @@ from PIL import Image, ImageDraw
 import lettering_workspace
 import roster_iso
 import court_colours
+import created_hair_lod
 import texture_iso_workspace
 from iso_copy import publish_iso_copy, validate_patches
 from patch_lettering_iso import ISO_SIZE
@@ -36,7 +37,7 @@ def validate_output(source: Path, output: Path, workspace: Path) -> Path:
 def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | None = None,
             roster: Path | None = None, skin_plan: Path | None = None,
             texture_workspace: Path | None = None, *,
-            repack_archive: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
+            repack_archive: bool = False, basic_meshes: bool = False) -> tuple[list[tuple[int, bytes, bytes]], dict]:
     patches, roster_report = roster_iso.prepare(stream, roster)
     if texture_workspace is None:
         visual_patches, visual_report = lettering_workspace.prepare(
@@ -59,9 +60,14 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         visual_patches.extend(logo_patches)
         visual_report["courts"] = logo_report["courts"]
     patches.extend(visual_patches)
-    if stats_year is not None or roster_report.get("elf_crc_delta"):
+    hair_delta = 0
+    if basic_meshes:
+        hair_patches, hair_delta = created_hair_lod.prepare_basic(stream)
+        patches.extend(hair_patches)
+    elf_delta = roster_report.get("elf_crc_delta", 0) ^ hair_delta
+    if stats_year is not None or elf_delta:
         year_patches, visual_report["stats_year"] = prepare_year_patch(
-            stream, stats_year if stats_year is not None else 2004, roster_report.get("elf_crc_delta", 0))
+            stream, stats_year if stats_year is not None else 2004, elf_delta)
         patches.extend(year_patches)
     report = {
         "schema": 1, "source_sha256": SOURCE_SHA256, "iso_size": ISO_SIZE,
@@ -69,6 +75,8 @@ def prepare(stream: BinaryIO, workspace: Path, slots: Path, stats_year: int | No
         "scope": "Default roster and native texture workspace embedded",
         "restore": "Boot the untouched pristine ISO; rebuild from it rather than patching a previous output",
     }
+    if basic_meshes:
+        report["created_hair_lod"] = {"mode": "basic", "elf_crc_delta": hair_delta}
     if repack_archive:
         report["archive"] = archive_iso.plan(stream, patches)[2]
     else:
@@ -92,14 +100,9 @@ GLYPHS = {
 }
 
 
-def build_id(patches: list[tuple[int, bytes, bytes]]) -> str:
-    """Hash the pristine source identity and unstamped, original-coordinate payload."""
-    digest = hashlib.sha256(b"PROA2K5 native build v2\0" + bytes.fromhex(SOURCE_SHA256))
-    for offset, before, after in sorted(patches):
-        digest.update(struct.pack("<QQQ", offset, len(before), len(after)))
-        digest.update(before)
-        digest.update(after)
-    return digest.hexdigest()[:16]
+def build_id(timestamp_ns: int) -> str:
+    """Hash the ISO creation time, not the roster or texture payload."""
+    return hashlib.sha256(str(timestamp_ns).encode("ascii")).hexdigest()[:16]
 
 
 def stamp_title(image: Image.Image, identity: str) -> Image.Image:
@@ -173,22 +176,26 @@ def add_title_stamp(stream: BinaryIO, workspace: Path, patches: list[tuple[int, 
                 "group": row["group"], "slot": row["slot"], "path": str(path), **detail,
             })
     report["build_id"] = {
-        "value": identity, "algorithm": "first 64 bits of SHA-256",
-        "input": "PROA2K5 native build v2, pristine SHA-256, then sorted unstamped original-coordinate patches "
-                 "(offset, original length, replacement length as little-endian u64, original and replacement bytes)",
-        "title_id": TITLE_ID, "title_encoding": detail,
+        "value": identity, "title_id": TITLE_ID, "title_encoding": detail,
     }
 
 
 def build_named(source: Path, output_dir: Path, roster: Path, workspace: Path,
                 slots: Path = lettering_workspace.DEFAULT_SLOTS, stats_year: int | None = None,
-                skin_plan: Path | None = None, texture_workspace: Path = texture_iso_workspace.DEFAULT_WS) -> dict:
+                skin_plan: Path | None = None, texture_workspace: Path = texture_iso_workspace.DEFAULT_WS,
+                *, basic_meshes: bool = False) -> dict:
     with source.open("rb") as stream:
         patches, report = prepare(stream, workspace, slots, stats_year, roster, skin_plan, texture_workspace,
-                                  repack_archive=True)
-        identity = build_id(patches)
+                                  repack_archive=True, basic_meshes=basic_meshes)
+        timestamp_ns = time.time_ns()
+        identity = build_id(timestamp_ns)
         output = validate_output(source, output_dir / f"proa2k5_{identity}.iso", workspace)
         add_title_stamp(stream, texture_workspace, patches, identity, report)
+        report["build_id"].update({
+            "algorithm": "first 64 bits of SHA-256",
+            "input": "ASCII decimal Unix timestamp in nanoseconds",
+            "timestamp_ns": str(timestamp_ns),
+        })
         copy_plan, patches, report["archive"] = archive_iso.plan(stream, patches)
         report["source"] = str(source.resolve())
         report["output"] = str(output.resolve())

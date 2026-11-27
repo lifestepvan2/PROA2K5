@@ -28,6 +28,8 @@ def main() -> None:
     parser.add_argument("--season", default=SEASON, help="season in consecutive YYYY_YYYY form")
     parser.add_argument("--card", type=Path, help="optionally export the finished roster to a memory card")
     parser.add_argument("--rematch-faces", action="store_true", help="redo automatic face matches")
+    parser.add_argument("--basic-meshes", action="store_true",
+                        help="map created hairstyles to the three stock low-detail hair meshes")
     args = parser.parse_args()
     years = args.season.split("_")
     if (len(years) != 2 or not all(len(year) == 4 and year.isdecimal() for year in years)
@@ -62,7 +64,8 @@ def main() -> None:
             print(f"Warning: {key}: {', '.join(map(str, portraits[key]))}", flush=True)
     print(f"Updated {portraits['generated']} portraits and {portraits['placeholders']} placeholders.", flush=True)
     report = season_iso.build_named(SOURCE, OUTPUT_DIR, ROSTER, palettes, stats_year=int(years[0]),
-                                    skin_plan=skin_tones.PLAN, texture_workspace=workspace)
+                                    skin_plan=skin_tones.PLAN, texture_workspace=workspace,
+                                    basic_meshes=args.basic_meshes)
     if args.card:
         run("card_patch.py", "--bin", str(ROSTER), "--card", str(args.card))
     print(f"\nBuilt {report['output']} (build 0x{report['build_id']['value']})")

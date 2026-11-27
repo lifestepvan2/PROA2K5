@@ -23,7 +23,7 @@ import archive_iso
 import uniform_slot_copies
 from inventory_lettering_iso import asset_hash
 from iso_copy import hash_stream, publish_iso_copy
-from native_texture import display, encode, encode_shared
+from native_texture import display, encode, encode_shared, resize_rgba
 from patch_lettering_iso import ISO_SIZE
 from patch_preview_lettering_iso import SOURCE_SHA256
 from player_texture_iso import read_archive
@@ -383,7 +383,7 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             mask = np.any(before_pixels != after_pixels, axis=2)
             if mask.any():
                 has_alpha = "A" in master.getbands() or "transparency" in master.info
-                master = master.convert("RGBA").resize(before.size, Image.Resampling.LANCZOS)
+                master = resize_rgba(master.convert("RGBA"), before.size, preserve_rgb=True)
                 if not has_alpha:
                     master.putalpha(before.getchannel("A"))
                 pixels = np.array(master)
@@ -395,7 +395,8 @@ def prepare(stream, workspace: Path = DEFAULT_WS, court_edits: list | None = Non
             continue
         encoded, report, preview = encode(
             target, row["system"], row["video"], row["descriptor"], row["descriptor_offsets"], master,
-            palette_colors=policy["palette_colors"].get(row["id"], palette_colors))
+            palette_colors=policy["palette_colors"].get(row["id"], palette_colors),
+            preserve_transparent_rgb=row["group"] == "players" and row["texture"] in ("face", "arm", "neck"))
         resources[offset][3] = encoded
         reports.append({"id": row["id"], "asset": row["asset"], "texture": row["texture"], "resource_offset": offset,
                         "group": row["group"], "slot": row["slot"], "path": str(path), **report})

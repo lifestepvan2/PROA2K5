@@ -241,6 +241,195 @@ the created-model approach, though the report does not establish that every
 appearance combination or game mode has been tested. The newer randomized
 hairstyle defaults were added after this card was prepared.
 
+### Created-player hairstyle level of detail
+
+Issue #35 reports different hairstyles at gameplay distance and a reddish
+close-up beard. The latest tested ISO, `proa2k5_493cc7292c1186db.iso`, contains
+the current generated roster payload. Its records and the live game agree:
+Addae-Wusu has head 0, hairstyle 10 and Black hair; Mayer has head 5,
+hairstyle 22; Uzoma has head 5, hairstyle 7. All three have the created-model
+gate enabled. The earlier bald-only stress test did not test this mismatch.
+
+The Europe executable loads the selected `hihead%02d%02d.iff` for a created
+head. At EE `0x18A894..0x18A8AC`, it deliberately skips the player's `lohead`
+lookup for created models. Instead, it initializes a separate
+`locreatehead` pool at `0x18A59C..0x18A5B8` and allocates from it at
+`0x18C7D4..0x18C844`. In the running game, both Addae-Wusu and Mayer were in
+LOD state 1 and their low-head scenes were distinct instances of
+`locreatehead`; their high-head scenes were `hihead`. The shared low-head
+scene contains only `hair01_mat`, `hair02_mat` and `hair03_mat`, whereas
+the selected high-head resources contain hairstyle-specific geometry.
+The game's `0x18BF58..0x18C060` logic maps `+0x61` into those few low-detail
+parts; it does not load a matching low-detail model for every hairstyle.
+The mapping itself also contributes to the mismatches: live LOD-1 samples
+show hairstyle 10 uses `hair01_mat`, hairstyle 7 uses `hair03_mat`, and
+hairstyle 22 uses `hair02_mat`. Hairstyle 22 shares that fallback with 15,
+16, 21, 23 and 24, despite the different high-detail styles.
+
+An isolated MIPS execution experiment changed only hairstyle 22's jump-table
+entry at EE `0x41473C` from `0x18B7B0` to `0x18B740`. This selects
+`hair01_mat` instead of `hair02_mat`; all 25 other supported selectors kept
+their stock results. The prototype
+`C:\Tools\isos\proa2k5_493cc7292c1186db_lod22_experiment.iso` contains that
+change and an ELF checksum compensation. The user confirmed in game that
+Mayer's distant hairstyle is more suitable; Addae-Wusu and Uzoma were
+unchanged. Hardware performance remains untested. Cold boot the prototype
+rather than loading a save state containing the old executable; it inherits
+the source ISO's title build ID. It is not part of the normal build.
+
+The pristine `frontend.iff` and `gamedataextra.iff` each contain an
+identical `locreatehead` SCNE: 14,256 compressed bytes, 21,408 decoded
+system bytes and no video tail. Its single player mesh has seven parts and
+seven material slots. Their hair parts are:
+
+| Runtime material | Mesh part | Stream bytes | Packed input points |
+|---|---:|---:|---:|
+| `hair01_mat` | 2 | 1,568 | 59 |
+| `hair02_mat` | 3 | 2,128 | 99 |
+| `hair03_mat` | 4 | 1,664 | 66 |
+
+These are **input points, not triangle counts**: vertices can be reused.
+The game's material lookup at EE `0x18AFF0..0x18B01C` reads names from
+`scene.materials + index * 0x60 + 0x58`. The older
+`texture_catalogue.scene_materials` inspector reads the previous record's
+name, so its labels and `inspect_logo_iso.material_consumers` labels are
+shifted; do not use them to identify a mesh until that shared inspector and
+its workspace consumers are migrated. Its descriptor links have not been
+revalidated by this discovery.
+
+The archive also has all 182 `hihead%02d%02d.iff` combinations for heads
+0..6 and hairstyle selectors 0..25. Each selector 1..25 has a hair material
+`hair{selector - 1:02d}_mat`; selector 0 has none. For example, Addae-Wusu's
+high-detail hair is `hihead0010.iff` / `hair09_mat`, part 4, with 1,305
+packed input points; Uzoma's is `hihead0507.iff` / `hair06_mat`, part 0, with
+467; Mayer's is `hihead0522.iff` / `hair21_mat`, part 0, with 201. The
+executable's binding table associates all three low materials and all 25
+high hair materials with a texture named `hair`. The exact generated texture
+instance, UV interpretation and colour treatment remain to be traced; the
+SCNE has no embedded video texture.
+
+For offline inspection of the original Europe ISO:
+
+```powershell
+python scripts\inspect_created_hair.py --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --head 5 --output "C:\Tools\isos\hair-review-head05"
+```
+
+The output directory must be new. It contains four contact sheets, a CSV
+inventory, and colour-coded PLY point clouds (grey face, orange hair) for
+the three low variants and all 26 high styles for that head. These are
+quantized local coordinates, **not decoded surfaces**: texture, face/strip
+connectivity, transforms and runtime deformation are not reproduced. The
+front and side projections are for shape comparison only. The three shared
+low meshes are visibly much simpler than the affected high-detail hair;
+the point clouds alone cannot establish that any low mesh is an unselected
+dreadlock or show the actual textured result.
+
+For experimental triangle surfaces instead, use a different new directory:
+
+```powershell
+python scripts\inspect_created_hair_surfaces.py --iso-source "C:\Tools\isos\ESPN NBA 2K5 (Europe).iso" --head 5 --output "C:\Tools\isos\hair-surfaces-head05"
+```
+
+This exports OBJ meshes, a triangle-count inventory, and untextured contact
+sheets. Triangles are reconstructed from the VIF output slots and strip
+restart metadata; runtime VU instructions mark each listed start and its
+following vertex. The export does not reproduce skinning, transforms, UVs,
+texture or lighting. The contact sheets use approximate painter sorting,
+not a depth buffer, and are not proof of surface coverage or clipping.
+
+The user's visually assessed fallback mapping, if custom low-detail meshes
+are not feasible, is:
+
+| Low mesh | Hairstyle byte values |
+|---|---|
+| `low_01` / `hair01_mat` (short) | 1, 2, 5, 13, 18, 22, 23 |
+| `low_02` / `hair02_mat` (Afro) | 7 |
+| `low_03` / `hair03_mat` (long) | 10, 11, 16, 19, 21 |
+
+`python build.py --basic-meshes` applies this mapping to the ISO; values not
+listed retain their original selection. All 26 selectors were checked in
+isolated executable emulation, but the complete mapping has not been validated
+in game or on original hardware. Without the flag the normal build still uses
+the original selection; custom low-detail meshes are not yet integrated.
+
+An isolated experimental ISO, `C:\Tools\isos\proa2k5_hair11_experiment.iso`,
+replaces `hair03_mat` with a 240-triangle candidate in both scene copies. Its
+private roster copy sets Crailsheim's Dylan Addae-Wusu to head 5, hairstyle 11.
+For this experiment only, hairstyle 11 selects the custom slot, hairstyle 7
+selects stock `hair02_mat`, and hairstyle 22 selects stock `hair01_mat`.
+All other selector results were checked unchanged in isolated MIPS execution.
+The ISO uses the existing generated roster payload and current native texture
+workspace; it does not change the workbook, normal build, or memory cards.
+Both relocated scenes, the roster bytes and selector table were read back
+after publication. On 2026-11-27 the user confirmed that the ISO boots and
+plays, Addae-Wusu's hair "looks fantastic", scalp clipping was not noticeable,
+and Uzoma's and Mayer's hair both looked fine. This is an emulator observation,
+not proof for every view, player, game mode or original hardware. The
+experiment is not a production build. Although it reduces triangle count,
+its simple independent-triangle encoder submits 720 packed input vertices,
+versus 464 for the original high-detail hair and 66 for stock `hair03_mat`;
+triangle count alone therefore does not demonstrate a lower vertex-processing
+cost.
+
+The separate `C:\Tools\isos\proa2k5_hair11_strips_experiment.iso` re-encodes
+the same candidate using [`created_hair_strips.py`](../scripts/created_hair_strips.py):
+118 triangle strips, 476 output slots and 445 packed input vertices, with
+31 output vertices copied from the preceding VU batch. The stream is 7,664
+bytes rather than 12,240. After repacking, both scene copies were read back
+and their oriented triangles, UVs and normals compared against the first
+prototype; its roster and selector bytes were unchanged. This second ISO
+was also reviewed in-game by the user on 2026-11-27 and looked the same as
+the first. Original-hardware behavior remains untested, and vertex counts
+alone do not prove a performance improvement.
+
+The VIF streams use V3-8 or V4-8 normal-like arrays, V2-16 UV-like arrays,
+and V4-16 packed coordinates plus output addresses. Batch metadata can
+copy previously emitted vertices into output slots and mark strip starts.
+In a read-only gameplay save, renderer command lists set both VIF ROW and
+COL to `0x48000000` in every lane. For an unsigned 16-bit value added to
+that ROW, the resulting float is `131072 + value / 64`. Scene scale and
+bias are then involved in the VU matrix construction. This supports the
+high-to-low scale ratio used by the experiment, but does not establish the
+relative high- and low-head bone transforms.
+The experimental surface decoder processed all 182 high-head scenes.
+For head 5, hairstyle 11 (`hair10_mat`) it reconstructs 536 triangles;
+the three stock low hairs reconstruct 92, 108 and 103 triangles.
+An offline 240-triangle simplification and native-stream encoding experiment
+round-tripped through the experimental decoder and was subsequently observed
+in-game by the user. The simplifier experimented with retaining hairline
+anchors and a slight outward offset, but neither anchor detection nor
+complete clearance against the head surface is established. The candidate uses an
+approximate face-surface alignment; a coarse radial check against the
+low-head mesh found 11 inward samples out of 960, with the largest penetration
+about 1.7% of head width. That check does not prove complete coverage and
+does not model runtime skinning. The experimental ISO above contains the
+candidate; no custom geometry patch is integrated in the normal build. For comparison,
+`hihead0010.iff` and `hihead0507.iff` have 73,632 and 58,464 decoded system
+bytes respectively. This makes custom simplified low-detail hair plausible,
+but not a texture replacement: the encoded stream, UVs, native coordinate
+conversion, skinning, and per-hairstyle selection still need validation.
+
+The tested build's archive report has 30,531,584 bytes free; this is disc
+capacity, not a guarantee of runtime memory or original-hardware performance.
+Adding parts to the shared scene may increase the size of every instance;
+separate low-detail scenes would require new loading/selection logic and may
+require archive-directory changes beyond the existing repacker. A prototype
+must check all relevant scene copies and modes, bounded RAM and renderer
+workload, colour and headband behavior, and LOD transitions before deployment.
+It must also retain scalp coverage without significant clipping against the
+low-detail head. Test a mild outward displacement if needed, while keeping
+hairline anchors aligned to the head; validate coverage rather than assuming
+that a radial offset alone is sufficient.
+The experimental remap alone cannot provide dreadlocks or resolve all
+hairstyle transitions. Forcing high detail risks finite scene pools and
+performance.
+
+Addae-Wusu's Black beard (`+0x70 = 0`, `+0x6E = 1`) uses `beard0000`.
+That texture is byte-identical in the pristine and tested ISOs, and its
+visible pixels average RGB approximately `(62, 44, 26)`: the stock Black
+beard source is brown-tinted. This is consistent with the red/brown report,
+although lighting and compositing have not been independently isolated.
+
 ### Portrait selection
 
 These are numeric IDs, not a stored pointer to portrait pixels. In Roster7,

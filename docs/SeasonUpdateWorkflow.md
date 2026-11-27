@@ -9,7 +9,9 @@ The output is `C:\Tools\isos\proa2k5_<build-id>.iso`; existing outputs are
 not overwritten. The build applies portrait and model-local skin generation,
 including the automatic light reserve; explicit Skin Tone overrides take
 precedence. Manual jerseys remain protected. The title build ID is stamped only
-in the ISO. Add `--card PATH` for an optional memory-card export.
+in the ISO. The ID hashes the ISO creation timestamp rather than the payload;
+the manifest records the timestamp, and separate source/output hashes still
+verify publication. Add `--card PATH` for an optional memory-card export.
 
 ### Persistent player edits and exclusions
 

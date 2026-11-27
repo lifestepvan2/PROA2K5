@@ -17,15 +17,57 @@ def display(image: dict) -> Image.Image:
     return Image.fromarray(rgba)
 
 
+def quantize_vectors(vectors: np.ndarray, colors: int, *, exact_alpha: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    values, inverse, counts = np.unique(vectors, axis=0, return_inverse=True, return_counts=True)
+    values = values.astype(np.float64)
+
+    def partition(indices):
+        weights = counts[indices]
+        mean = np.average(values[indices], axis=0, weights=weights)
+        variance = np.sum((values[indices] - mean) ** 2 * weights[:, None], axis=0)
+        return (float(variance.sum()), int(variance.argmax()), indices)
+
+    if exact_alpha:
+        alphas = np.unique(values[:, 3])
+        if len(alphas) > colors:
+            raise ValueError(f"Player texture has {len(alphas)} alpha values but only {colors} palette entries")
+        groups = [partition(np.flatnonzero(values[:, 3] == alpha)) for alpha in alphas]
+    else:
+        groups = [partition(np.arange(len(values)))]
+    while len(groups) < min(colors, len(values)):
+        selected = max(range(len(groups)), key=lambda index: groups[index][0])
+        error, axis, indices = groups[selected]
+        if not error or len(indices) < 2:
+            break
+        ordered = indices[np.argsort(values[indices, axis], kind="stable")]
+        middle = int(np.searchsorted(np.cumsum(counts[ordered]), counts[ordered].sum() / 2)) + 1
+        middle = min(max(1, middle), len(ordered) - 1)
+        groups[selected] = partition(ordered[:middle])
+        groups.append(partition(ordered[middle:]))
+    mapping = np.zeros(len(values), dtype=np.uint8)
+    palette = np.zeros((colors, vectors.shape[1]), dtype=np.uint8)
+    for index, (_, _, entries) in enumerate(groups):
+        mapping[entries] = index
+        palette[index] = np.rint(np.average(values[entries], axis=0, weights=counts[entries])).astype(np.uint8)
+    return palette, mapping[inverse]
+
+
+def resize_rgba(image: Image.Image, size: tuple[int, int], preserve_rgb: bool) -> Image.Image:
+    if preserve_rgb and image.size != size:
+        return Image.merge("RGBA", [channel.resize(size, Image.Resampling.LANCZOS) for channel in image.split()])
+    return image.resize(size, Image.Resampling.LANCZOS)
+
+
 def encode(data: bytes, system: int, video: int, descriptor: int, offsets: list[int],
-           master: Image.Image, *, palette_colors: int = 256) -> tuple[bytes, dict, Image.Image]:
+           master: Image.Image, *, palette_colors: int = 256,
+           preserve_transparent_rgb: bool = False) -> tuple[bytes, dict, Image.Image]:
     images, layout, start, end = texture_images(data, system, video, descriptor, offsets)
     if layout == "linear-shared-indices":
         raise ValueError("Shared-index texture sets must be encoded together with encode_shared")
     original = display(images[0])
     master = master.copy()
     has_alpha = "A" in master.getbands() or "transparency" in master.info
-    master = master.convert("RGBA").resize(original.size, Image.Resampling.LANCZOS)
+    master = resize_rgba(master.convert("RGBA"), original.size, preserve_transparent_rgb)
     if not has_alpha:
         master.putalpha(original.getchannel("A"))
     if master.tobytes() == original.tobytes():
@@ -39,9 +81,10 @@ def encode(data: bytes, system: int, video: int, descriptor: int, offsets: list[
     colors = min(256 if psm == 19 else 16, palette_colors)
     desired = []
     for image in images:
-        rgba = np.array(master.resize((image["width"], image["height"]), Image.Resampling.LANCZOS))
+        rgba = np.array(resize_rgba(master, (image["width"], image["height"]), preserve_transparent_rgb))
         rgba[..., 3] = np.rint(rgba[..., 3].astype(np.float32) * 128 / 255).astype(np.uint8)
-        rgba[rgba[..., 3] == 0, :3] = 0
+        if not preserve_transparent_rgb:
+            rgba[rgba[..., 3] == 0, :3] = 0
         desired.append(rgba.reshape(-1, 4))
     if psm == 0:
         target = bytearray(data)
@@ -59,14 +102,17 @@ def encode(data: bytes, system: int, video: int, descriptor: int, offsets: list[
         return target, {"changed": target != data, "layout": layout, "mips": len(images),
                         "rgb_rmse_visible": 0.0, "alpha_max_error_ps2": 0}, display(verified[0])
     pixels = np.concatenate(desired)
-    width = images[0]["width"]
-    sheet = np.zeros((math.ceil(len(pixels) / width) * width, 4), dtype=np.uint8)
-    sheet[:len(pixels)] = pixels
-    indexed = Image.fromarray(sheet.reshape(-1, width, 4)).quantize(
-        colors=colors, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
-    palette = np.asarray(indexed.getpalette("RGBA"), dtype=np.uint8).reshape(-1, 4)[:colors]
+    if preserve_transparent_rgb:
+        palette, indices = quantize_vectors(pixels, colors, exact_alpha=True)
+    else:
+        width = images[0]["width"]
+        sheet = np.zeros((math.ceil(len(pixels) / width) * width, 4), dtype=np.uint8)
+        sheet[:len(pixels)] = pixels
+        indexed = Image.fromarray(sheet.reshape(-1, width, 4)).quantize(
+            colors=colors, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
+        palette = np.asarray(indexed.getpalette("RGBA"), dtype=np.uint8).reshape(-1, 4)[:colors]
+        indices = np.asarray(indexed).ravel()[:len(pixels)]
     palette = np.pad(palette, ((0, (256 if psm == 19 else 16) - len(palette)), (0, 0)))
-    indices = np.asarray(indexed).ravel()[:len(pixels)]
     target, allowed = bytearray(data), np.zeros(len(data), dtype=bool)
     allowed_nibbles = np.zeros(len(data) * 2, dtype=bool)
 
@@ -139,6 +185,8 @@ def encode(data: bytes, system: int, video: int, descriptor: int, offsets: list[
         "alpha_max_error_ps2": int(np.max(np.abs(difference[:, 3]))),
         "base_decoded_sha256": hashlib.sha256(verified[0]["rgba"]).hexdigest(),
     }
+    if preserve_transparent_rgb:
+        report["rgb_rmse_all"] = float(np.sqrt(np.mean(difference[:, :3].astype(np.float64) ** 2)))
     return target, report, display(verified[0])
 
 
@@ -169,32 +217,9 @@ def encode_shared(data: bytes, system: int, video: int, offsets: list[int],
         desired.append(rgba)
         locations.append(images[0]["palette_offset"])
     vectors = np.concatenate(desired, axis=1)
-    values, inverse, counts = np.unique(vectors, axis=0, return_inverse=True, return_counts=True)
-    values = values.astype(np.float64)
-
-    def partition(indices):
-        weights = counts[indices]
-        mean = np.average(values[indices], axis=0, weights=weights)
-        variance = np.sum((values[indices] - mean) ** 2 * weights[:, None], axis=0)
-        return (float(variance.sum()), int(variance.argmax()), indices)
-
-    groups = [partition(np.arange(len(values)))]
-    while len(groups) < min(palette_colors, len(values)):
-        selected = max(range(len(groups)), key=lambda index: groups[index][0])
-        error, axis, indices = groups[selected]
-        if not error or len(indices) < 2:
-            break
-        ordered = indices[np.argsort(values[indices, axis], kind="stable")]
-        middle = int(np.searchsorted(np.cumsum(counts[ordered]), counts[ordered].sum() / 2)) + 1
-        middle = min(max(1, middle), len(ordered) - 1)
-        groups[selected] = partition(ordered[:middle])
-        groups.append(partition(ordered[middle:]))
-    mapping = np.zeros(len(values), dtype=np.uint8)
-    palettes = np.zeros((256, len(offsets) * 4), dtype=np.uint8)
-    for index, (_, _, entries) in enumerate(groups):
-        mapping[entries] = index
-        palettes[index] = np.rint(np.average(values[entries], axis=0, weights=counts[entries])).astype(np.uint8)
-    indices = mapping[inverse]
+    palettes, indices = quantize_vectors(vectors, palette_colors)
+    used_colors = len(np.unique(indices))
+    palettes = np.pad(palettes, ((0, 256 - len(palettes)), (0, 0)))
     target = bytearray(data)
     target[system:system + len(indices)] = indices.tobytes()
     reports, previews = [], {}
@@ -211,7 +236,7 @@ def encode_shared(data: bytes, system: int, video: int, offsets: list[int],
         difference = actual.astype(np.int16) - desired[index].astype(np.int16)
         visible = desired[index][:, 3] > 0
         reports.append({"descriptor": descriptor, "changed": target != data, "layout": "linear-shared-indices",
-                        "mips": 1, "palette_colors": len(groups), "shared_index_cohort": len(offsets),
+                        "mips": 1, "palette_colors": used_colors, "shared_index_cohort": len(offsets),
                         "rgb_rmse_visible": float(np.sqrt(np.mean(difference[visible, :3].astype(np.float64) ** 2)))
                         if visible.any() else 0.0, "alpha_max_error_ps2": int(np.abs(difference[:, 3]).max())})
         previews[descriptor] = display(images[0])

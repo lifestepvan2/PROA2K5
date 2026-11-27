@@ -119,13 +119,21 @@ sequence and separates structural role, filename resolution and known ownership.
 
 ## Floor rendering and misleading material names
 
+**Later correction:** the material-name labels in the historical report below
+are shifted by one record. Game-side lookup reads the name at table pointer
+`+ index * 0x60 + 0x58`; the current shared catalogue inspector reads the
+preceding prefix instead. This does not by itself invalidate the pixel
+matches, but the quoted material labels must not be used as evidence until
+the inspector and its workspace consumers have been migrated and rechecked.
+
 For every matched scene descriptor, the inspector follows:
 
 `descriptor <- material texture reference <- mesh part material index`.
 
-The material table uses 96-byte records; the table pointer is biased 16 bytes
-into the first record. Name, RGBA and descriptor reference are at record
-`+0x08`, `+0x58` and `+0x5C`. Meshes have 112-byte records, names at `+0x40`,
+The historical inspector treats the material table pointer as biased 16 bytes
+into 96-byte records and reads name, RGBA and descriptor reference at record
+`+0x08`, `+0x58` and `+0x5C`. The name offset is incorrect as noted above;
+descriptor associations need independent revalidation. Meshes have 112-byte records, names at `+0x40`,
 part counts at `+0x68`, and part pointers at `+0x6C`. Each 24-byte part selects
 its material at `+0x08`. All arrays, references and stream spans are bounds-checked.
 
