@@ -22,8 +22,11 @@ def validate(value: object) -> dict:
     if (not isinstance(value, dict) or set(value) != {"schema", "team", "uniforms", "court"}
             or type(value["schema"]) is not int or value["schema"] != 1):
         raise ValueError("Team colours require schema 1, team, uniforms and court")
-    if not isinstance(value["team"], dict) or set(value["team"]) != set(TEAM_FIELDS):
-        raise ValueError("team requires colorjersey1, colorjersey2, colorui1 and colorui2")
+    if (not isinstance(value["team"], dict)
+            or not set(TEAM_FIELDS) <= set(value["team"])
+            or set(value["team"]) - set(TEAM_FIELDS) - {"colorprimary"}):
+        raise ValueError("team requires colorjersey1, colorjersey2, colorui1 and colorui2; "
+                         "colorprimary is optional")
     for colour in value["team"].values():
         parse_hex(colour)
     if not isinstance(value["uniforms"], dict) or not value["uniforms"]:
