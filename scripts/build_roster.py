@@ -96,6 +96,22 @@ def apply_team_colours(buf, base, team):
         buf[base + offset:base + offset + 3] = colours[field]
 
 
+def set_non_proa_ratings(data: bytearray, proa_records: set[int]) -> int:
+    """Set non-ProA main-table visible ratings to 50; preserve hidden fields/templates."""
+    if len(data) < PLAYER_BASE + PLAYER_COUNT * PLAYER_STRIDE:
+        raise ValueError("Roster payload does not contain the complete player table")
+    if any(isinstance(record, bool) or not isinstance(record, int) or not 0 <= record < PLAYER_COUNT
+           for record in proa_records):
+        raise ValueError("ProA record allocation is outside the main player table")
+    for record in range(PLAYER_COUNT):
+        if record in proa_records:
+            continue
+        base = PLAYER_BASE + record * PLAYER_STRIDE
+        for offset in ATTR_OFFSETS.values():
+            data[base + offset] = 50
+    return PLAYER_COUNT - len(proa_records)
+
+
 class Payload:
     def __init__(self, data):
         self.d = bytearray(data)
@@ -509,6 +525,8 @@ def main():
     ap.add_argument("--season", help="require the stats archive to match this YYYY_YYYY season")
     ap.add_argument("--card", help="write result into this memory card (PCSX2 closed!)")
     ap.add_argument("--prepare-faces", action="store_true", help="provisional face-match input; defer nonzero Skin Tone leg changes")
+    ap.add_argument("--suppress-non-proa", action="store_true",
+                    help="set all non-ProA main-table players' 19 visible ratings to 50 (hidden fields unchanged)")
     ap.add_argument("--skin-plan", type=Path, default=ROOT / "data" / "face_match" / "skin_tone_plan.json",
                     help="face-match recipe required before applying nonzero Skin Tone leg bytes")
     a = ap.parse_args()
@@ -628,6 +646,11 @@ def main():
                                 "skin_target": targets.get(str(p["proa_id"]), ""),
                                 "pos": p["pos"], "jersey": p["jersey"], "ovr": round(p["ovr"], 1), "proa_id": p["proa_id"],
                                 "starter": i < 5, "pid": pid})
+
+    if a.suppress_non_proa:
+        count = set_non_proa_ratings(pl.d, {row["record"] for row in player_rows})
+        notes.append(f"Fantasy draft: {count} non-ProA players set to 50 in all 19 visible ratings; "
+                     "hidden fields and auxiliary templates preserved.")
 
     # home arenas: venue rows are keyed by the "sNNN" string (NBA team slot), not by row index
     venue_row = {}

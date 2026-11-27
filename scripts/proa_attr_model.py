@@ -7,7 +7,8 @@ Stats-driven attribute model for ProA roster imports. It outputs the 19 NBA 2K5 
 Pipeline overview
 -----------------
 Each step is a function with signature (ratings: Ratings, ctx: PlayerContext) -> None.
-Steps mutate *ratings* in-place and are applied in the order listed in PIPELINE.
+Visible-stat steps mutate *ratings* in-place in the order listed in PIPELINE.
+The final quality balance runs after hidden attributes have been generated.
 To disable a step, comment it out of PIPELINE. To add a new rule, add a function
 and append it to PIPELINE — no other wiring is required.
 
@@ -19,6 +20,9 @@ Steps
 4. apply_physical_modifiers    – Height and weight → athleticism / size adjustments
 5. apply_age_modifiers         – Career arc: raw youth vs IQ of veterans
 6. apply_positional_floors     – Guarantee no position is "unplayable"
+7. apply_quality_balance       – Rebalance actual attributes using the fitted OVR
+
+The final balance runs after hidden attributes, since they contribute to OVR.
 
 Attribute names are the column names of proa_scraped.xlsx (ALL_ATTRS).
 
@@ -30,6 +34,7 @@ rule on "Passing IQ" only moves "Passing" by a third (it was the average of thre
 from __future__ import annotations
 
 import datetime
+import math
 import random
 import warnings
 from dataclasses import dataclass
@@ -688,6 +693,50 @@ def hidden_ratings(ctx: PlayerContext, speed: int) -> Ratings:
     }
 
 
+def apply_quality_balance(ratings: Ratings, ctx: PlayerContext) -> None:
+    """Shift real visible attributes, not the OVR predictor or displayed formula."""
+    if __package__:
+        from .overall_data import player_extras
+        from .overall_model import predict_overall
+    else:
+        from overall_data import player_extras
+        from overall_model import predict_overall
+    position = ctx.position if ctx.position in _POSITION_BASELINES else "SG"
+
+    def overall(values: Ratings) -> float:
+        value = predict_overall(position, values, ctx.height_m, ctx.weight_kg,
+                                player_extras(values, values))
+        if value is None or not math.isfinite(value):
+            raise ValueError("Rating balance requires a finite fitted Overall prediction")
+        return value
+
+    original = overall(ratings)
+    # Fixed league calibration: widen the lower/middle tiers, soften the elite
+    # tail, and leave high OVR earned by statistics rather than a player quota.
+    target = 80.25 + 1.8 * (original - 86)
+    if target > 88:
+        target = 88 + .1 * (target - 88)
+    if ctx.age < 22:
+        target = max(74, min(target, 75 + max(0, ctx.mpg - 5)))
+    best, best_error = None, (float("inf"), float("inf"))
+    # Integer attribute offsets preserve specialists and avoid rounding/clamp
+    # errors from assuming OVR changes one-for-one with attribute points.
+    for offset in range(-25, 26):
+        candidate = ratings.copy()
+        _add_many(candidate, list(ALL_ATTRS), offset)
+        apply_positional_floors(candidate, ctx)
+        candidate["Fastbreak"] = max(50, min(99, candidate["Speed"]))
+        predicted = overall(candidate)
+        if ctx.age < 22 and ctx.mpg <= 5 and not 69.5 <= predicted < 75.5:
+            continue
+        error = (abs(predicted - target), abs(offset))
+        if error < best_error:
+            best, best_error = candidate, error
+    if best is None:
+        raise ValueError("Cannot balance developmental ratings within the positional floors")
+    ratings.update(best)
+
+
 def build_ratings(ctx: PlayerContext, *, debug: bool = False) -> Ratings:
     """
     Run the full attribute pipeline for one player and return a Ratings dict.
@@ -707,7 +756,9 @@ def build_ratings(ctx: PlayerContext, *, debug: bool = False) -> Ratings:
             _print_debug_snapshot(label, ratings)
 
     ratings.update(hidden_ratings(ctx, ratings["Speed"]))
+    apply_quality_balance(ratings, ctx)
     if debug:
+        _print_debug_snapshot("7_quality_balance", {name: ratings[name] for name in ALL_ATTRS})
         _print_debug_snapshot("hidden attributes", {name: ratings[name] for name in HIDDEN_ATTRS})
     return ratings
 

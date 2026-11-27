@@ -5,8 +5,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from proa_attr_model import PlayerContext, build_ratings, hidden_ratings, league_defense_averages
+from proa_attr_model import ALL_ATTRS, PIPELINE, PlayerContext, apply_quality_balance, build_ratings, hidden_ratings, league_defense_averages
 from rating_map_2k5 import HIDDEN_ATTR_OFFSETS, HIDDEN_BOUNDS, HIDDEN_TIERS
+from overall_data import player_extras
+from overall_model import predict_overall
 from player_database import field_value
 from season_stats import COUNT_KEYS, pool_seasons
 
@@ -101,6 +103,58 @@ class HiddenRatingsTests(unittest.TestCase):
         self.assertAlmostEqual(result["fga_avg"], (100 + .8 * 50 + .6 * 50) / (10 + .8 * 10 + .6 * 10), places=5)
         self.assertIsNone(pool_seasons({2026: totals(10, 6000, 100, None)}, 2026)["fouls_per_min"])
         self.assertEqual(pool_seasons({2026: totals(10, 6000, 100, 0)}, 2026)["fouls_per_min"], 0)
+
+
+class QualityBalanceTests(unittest.TestCase):
+    def overall(self, ctx, ratings):
+        return predict_overall(ctx.position, ratings, ctx.height_m, ctx.weight_kg,
+                               player_extras(ratings, ratings))
+
+    def test_young_low_minutes_retain_70_to_75_even_with_lucky_shooting(self):
+        with patch("proa_attr_model.random.randint", return_value=0):
+            for position, height, weight in (("PG", 1.9, 85), ("SG", 1.96, 90),
+                                            ("SF", 2, 95), ("PF", 2.06, 105), ("C", 2.12, 110)):
+                for minutes in (0, 4, 5):
+                    with self.subTest(position=position, minutes=minutes):
+                        ctx = PlayerContext(position=position, birth_year=2007, rating_year=2026,
+                                            height_m=height, weight_kg=weight, games=20,
+                                            minutes_total_sec=20 * minutes * 60, points_avg=2,
+                                            fg_pct=100, fg3_pct=100, ft_pct=100, fga_avg=1,
+                                            fouls_per_min=.1)
+                        ratings = build_ratings(ctx)
+                        self.assertTrue(69.5 <= self.overall(ctx, ratings) < 75.5)
+                        self.assertTrue(all(50 <= ratings[name] <= 99 for name in ALL_ATTRS))
+
+    def test_balance_changes_real_attributes_and_preserves_specialists_and_hidden_values(self):
+        ctx = PlayerContext(position="PG", birth_year=1998, rating_year=2026,
+                            games=30, minutes_total_sec=30 * 30 * 60, points_avg=22,
+                            assists_avg=8, fg_pct=55, fg3_pct=45, ft_pct=90,
+                            turnovers_avg=1.5, fga_avg=15, fouls_per_min=.1)
+        ratings = {}
+        for _, fn in PIPELINE:
+            fn(ratings, ctx)
+        with patch("proa_attr_model.random.randint", return_value=3):
+            ratings.update(hidden_ratings(ctx, ratings["Speed"]))
+        before = ratings.copy()
+        apply_quality_balance(ratings, ctx)
+        self.assertLess(self.overall(ctx, ratings), self.overall(ctx, before) - 3)
+        self.assertLess(self.overall(ctx, ratings), 95)
+        self.assertGreaterEqual(ratings["3pt Shot"], 90)
+        self.assertNotEqual([ratings[n] for n in ALL_ATTRS], [before[n] for n in ALL_ATTRS])
+        self.assertEqual({n: ratings[n] for n in HIDDEN_ATTR_OFFSETS if n != "Fastbreak"},
+                         {n: before[n] for n in HIDDEN_ATTR_OFFSETS if n != "Fastbreak"})
+        self.assertEqual(ratings["Fastbreak"], ratings["Speed"])
+        values = []
+        with patch("proa_attr_model.random.randint", return_value=3):
+            for minutes in (6, 12, 20, 30):
+                more_minutes = replace(ctx, minutes_total_sec=30 * minutes * 60)
+                values.append(self.overall(more_minutes, build_ratings(more_minutes)))
+        self.assertEqual(values, sorted(values))
+
+    def test_missing_fitted_model_is_an_explicit_error(self):
+        with patch("overall_model.predict_overall", return_value=None):
+            with self.assertRaisesRegex(ValueError, "finite fitted Overall"):
+                build_ratings(PlayerContext())
 
 
 if __name__ == "__main__":

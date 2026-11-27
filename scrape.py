@@ -76,7 +76,7 @@ KADER_URL_TPL   = f"{BASE_URL}/teams/kader/{{team_id}}/"
 PLAYER_URL_TPL  = f"{BASE_URL}/teams/kader/spieler/{{player_id}}/"
 PORTRAIT_URL_TPL = "https://api.2basketballbundesliga.de/pics2/{season}/pc/{player_id}"
 
-REQUEST_DELAY   = 0.5   # seconds between live requests
+REQUEST_DELAY   = 1.0   # seconds between live requests
 HISTORY_SEASONS = 5     # previous seasons pooled into the stats (see season_stats.py)
 DEFAULT_RATING  = 69
 MAX_PLAYERS     = 17  # team record capacity in build_roster.py (ROSTER_SLOTS)

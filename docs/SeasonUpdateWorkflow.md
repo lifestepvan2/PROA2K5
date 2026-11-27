@@ -13,6 +13,56 @@ in the ISO. The ID hashes the ISO creation timestamp rather than the payload;
 the manifest records the timestamp, and separate source/output hashes still
 verify publication. Add `--card PATH` for an optional memory-card export.
 
+Normal builds also set all **non-ProA main-table players' 19 visible ratings
+to 50**, including remaining NBA players, legends and unused main-table records,
+so they no longer dominate fantasy drafts. Protection follows the final ProA
+**record allocation**, not inherited team slots or shared model/PID numbers.
+Hidden attributes, identities, histories and the 20 auxiliary created-player
+templates are unchanged. This happens inside the roster builder before its
+CRC, reports, ISO publication and optional card export.
+
+To keep inherited non-ProA ratings instead:
+
+```powershell
+python build.py --keep-non-proa-ratings
+```
+
+The flag disables the reset in both provisional and final roster passes.
+Standalone `scripts/build_roster.py` preserves inherited ratings by default;
+add `--suppress-non-proa` to request the same reset there.
+
+### Stats-driven rating balance
+
+The stats model now balances **actual player attributes**, rather than changing
+the fitted Overall predictor or the workbook's display formula. The existing
+position, scoring, shooting, physical and age rules still establish each
+player's strengths. A final step uses the fitted Overall to choose an integer
+shift across the 19 visible attributes, retains positional playability floors,
+and updates hidden `Fastbreak` to match adjusted Speed. Other generated hidden
+fields are unchanged.
+
+The fixed quality curve expands the lower/middle tiers and softly compresses
+the elite tail. It is calibrated from the pooled rating inputs, not ranked
+player quotas: future seasons can legitimately have a different number of
+90+ players. Under-22 players at five or fewer pooled MPG receive a playable
+developmental baseline; their generated Overall stays around 70–75, even with
+small-sample shooting outliers. Above five MPG, the developmental ceiling
+relaxes gradually. Age uses the requested season's start year.
+
+The current 252-player workbook was refreshed offline from the enriched cache,
+without changing membership, identity, non-rating fields or permanent overrides:
+
+- Mean predicted Overall: **86.16 -> 80.79** (about -5.37).
+- Rounded 90+ players: **69 -> 11**; highest prediction **93.83**.
+- Overall standard deviation: **5.79 -> 6.46** (about 11% wider).
+- All 19 under-22 players at <=5 MPG: rounded **70–75** after current overrides.
+
+These are fitted predictions, not a new in-game calibration or a hardware test.
+`scrape.py` automatically uses the revised model on future regeneration.
+Ordinary builds consume existing workbook values and **do not apply another
+rating reduction**. Persistent rating overrides still apply after generation
+and may intentionally move a player outside the model's bands.
+
 ### Created-player hair and completion status
 
 The normal build now embeds the approved per-style low-detail hair meshes and

@@ -23,6 +23,11 @@ def run(script: str, *args: str) -> None:
     subprocess.run([sys.executable, str(ROOT / "scripts" / script), *args], cwd=ROOT, check=True)
 
 
+def build_roster(*args: str, suppress_non_proa: bool = True) -> None:
+    """Reset non-ProA ratings inside the roster builder, before checksums/exports."""
+    run("build_roster.py", *args, *(["--suppress-non-proa"] if suppress_non_proa else []))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", default=SEASON, help="season in consecutive YYYY_YYYY form")
@@ -30,6 +35,8 @@ def main() -> None:
     parser.add_argument("--rematch-faces", action="store_true", help="redo automatic face matches")
     parser.add_argument("--basic-meshes", action="store_true",
                         help="use the three stock low-detail hair meshes instead of the approved per-style set")
+    parser.add_argument("--keep-non-proa-ratings", action="store_true",
+                        help="keep inherited NBA/legend ratings instead of resetting their visible attributes to 50")
     args = parser.parse_args()
     years = args.season.split("_")
     if (len(years) != 2 or not all(len(year) == 4 and year.isdecimal() for year in years)
@@ -50,11 +57,11 @@ def main() -> None:
     run("player_database.py")
     run("crop_headshots.py", "--season", args.season)
     roster_args = ("--season", args.season, "--iso-source", str(SOURCE), "--team-palettes", str(palettes))
-    run("build_roster.py", *roster_args, "--prepare-faces")
+    build_roster(*roster_args, "--prepare-faces", suppress_non_proa=not args.keep_non_proa_ratings)
     run("face_embed.py")
     run("face_match.py", *(["--rematch"] if args.rematch_faces else []),
         "--iso-source", str(SOURCE), "--repack-archive")
-    run("build_roster.py", *roster_args)
+    build_roster(*roster_args, suppress_non_proa=not args.keep_non_proa_ratings)
     with SOURCE.open("rb") as stream:
         skins = skin_tones.populate_workspace(stream, workspace)
     print(f"Updated {skins['masters']} skin texture masters for {skins['players']} players.", flush=True)

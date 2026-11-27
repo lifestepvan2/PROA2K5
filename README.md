@@ -31,6 +31,8 @@ python build.py
 The ISO is named `C:\Tools\isos\proa2k5_<build-id>.iso`; existing outputs are not overwritten.
 Boot fresh without loading an older roster or savestate. Add `--card PATH` for an additional card export.
 Use `--basic-meshes` only to fall back to the three stock low-detail hair meshes.
+Non-ProA visible ratings default to 50 for fantasy drafts; add
+`--keep-non-proa-ratings` to retain inherited NBA/legend ratings.
 See [season setup and commands](docs/SeasonUpdateWorkflow.md#iso-first-roster-deployment).
 
 Optional manual-art helper: `python scripts\generate_fans.py --020` creates
