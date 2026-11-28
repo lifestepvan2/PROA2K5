@@ -54,7 +54,7 @@ present); the abbreviated example shows only `home`.
 | Value | Effect |
 |---|---|
 | `team.colorprimary` | Optional crowd clothing/cap and alternative undershirt colour for the standalone review-copy generator; no automatic build effect |
-| `team.colorsecondary` | Optional validated RGB metadata; currently unused by generators and builds |
+| `team.colorsecondary` | Optional varsity accents and low-resolution fan clothing/jersey trim for the standalone review-copy generator; no automatic build effect |
 | `team.colorjersey1` | Reserved for native cloth migration; legacy cloth uses the original workspace |
 | `team.colorjersey2` | Reserved for native cloth migration; legacy cloth uses the original workspace |
 | `team.colorui1`, `team.colorui2` | Two roster/UI RGB triplets; independent of cloth and lettering |
@@ -210,8 +210,50 @@ sRGB relative-luminance contrast against `colorprimary`. Each line is fitted
 independently inside the 128x128 sign, including multiword nicknames. Original
 sign alpha is preserved.
 
+#### Low-resolution crowd
+
+Every matching `3dcrowd00` through `3dcrowd12` master is included, across all
+packages assigned to the requested slot (including unnamed packages). Since
+other teams can associate different artwork with these numbers, every output
+starts from the same thirteen fixed pristine slot-020 `uh020.iff` references in
+[`texture_templates/reference/fans_3dcrowd`](../../texture_templates/reference/fans_3dcrowd).
+They were decoded from the European source ISO and verified against the native
+resource and original-image fingerprints. The generator never re-extracts them
+or reads live fan pixels as a reference.
+
+| Variant | Output |
+|---|---|
+| `00`, `02`, `06`..`09`, `12` | Unchanged reference, including grey `00` |
+| `01` | Upper-left blue fabric becomes desaturated primary (35% saturation) |
+| `03` | Upper-left fabric becomes primary |
+| `04` | Upper-left fabric becomes secondary, with a tiny team logo replacing the yellow badge |
+| `05` | Upper-left fabric becomes secondary |
+| `10` | Jersey front/back become primary; gold trim becomes secondary |
+| `11` | White fabric retained; large team logo replaces the NBA badge |
+
+Recolouring retains fabric folds and excludes skin, neck openings and white
+undershirts. Faces, shoes and other untouched regions come from the fixed
+reference, not from the target team's possibly different variant.
+
+All matching 64x64 `cheerteam` and `bboy` masters are also recoloured to primary,
+using their current artwork for folds and alpha. Cheerteam skin panels at the
+top (x=16..24 and 40..48, y=0..15) stay pixel-identical. Bboy shoe panels in
+the bottom corners (x=0..11 and 48..63, y=30..63) stay pixel-identical.
+
+Low-resolution outputs under `_low_res/` mirror their paths relative to the
+live workspace, e.g. `_low_res/uniforms/slot_020_Pacers/uh020/`. This retains every
+current native filename/ID even after masters have been renamed or moved, without
+conflating different destinations that happen to have the same folder name.
+The script prints each review-folder-to-live-folder destination. Manually copy
+accepted contents into those destinations; do not move `_low_res` itself into
+the live workspace or retain duplicate IDs. Each package must have exactly one
+editable 128x128 master of all thirteen variants; incomplete sets are errors.
+
 Each standard team run produces eleven main PNGs plus three alternatives
-in `_alt/` (fourteen PNGs total). Choose main **or** `_alt` independently for
+in `_alt/`, **plus thirteen low-resolution PNGs per matching crowd package
+and every matching cheerteam/bboy texture**.
+Slot 020 has two packages with both small textures, so its run produces forty-four PNGs total.
+Choose main **or** `_alt` independently for
 the crowd jersey, varsity and sign; each alternative keeps its final target
 filename. All required inputs are validated/rendered before a review folder is
 created, so input errors cannot publish a partial set.

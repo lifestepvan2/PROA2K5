@@ -49,13 +49,29 @@ class GenerateFansTests(unittest.TestCase):
             path = source.with_name(f"generic_{name}__{token}.png")
             Image.new("RGBA", fans.SIZE, (10 + index, 20 + index, 30 + index, 100 + index)).save(path)
             generics.append({**row, "id": token, "texture": f"generictshirt_{name}"})
+        low_crowd = []
+        for group in range(2):
+            for index, name in enumerate(fans.LOW_NAMES):
+                token = f"{0x70000000 + group * 256 + index:08x}"
+                Image.new("RGBA", (128, 128), "magenta").save(
+                    source.with_name(f"renamed_low_{group}_{index}__{token}.png"))
+                low_crowd.append({**row, "id": token, "texture": name,
+                                  "asset": f"low_package_{group}",
+                                  "surface": "game" if group == 0 else "unresolved",
+                                  "width": 128, "height": 128})
+            for index, texture in enumerate(("cheerteam", "bboy")):
+                token = f"{0x78000000 + group * 256 + index:08x}"
+                Image.new("RGBA", (64, 64), (25, 60, 120, 129)).save(
+                    source.with_name(f"small_{texture}_{group}__{token}.png"))
+                low_crowd.append({**row, "id": token, "texture": texture,
+                                  "asset": f"low_package_{group}", "width": 64, "height": 64})
         (workspace / fans.uniforms.MANIFEST).write_text(json.dumps({
             "schema": 1, "source_sha256": fans.native.SOURCE_SHA256,
             "sources": [row, {**row, "id": "76543210", "texture": "sweatshirt"},
                         {**row, "id": "89abcdef", "texture": "jersey"},
                         {**row, "id": "55555555", "texture": "varsity"},
                         {**row, "id": "66666666", "texture": "crowdsign",
-                         "width": 128, "height": 128}, *uniforms, *generics],
+                         "width": 128, "height": 128}, *uniforms, *generics, *low_crowd],
         }), encoding="utf-8")
         controls = {"mode": "monochrome", "fill": "#FFFFFF",
                     "outline1": "#000000", "outline2": "#000000"}
@@ -120,7 +136,14 @@ class GenerateFansTests(unittest.TestCase):
                 first = fans.generate(29, workspace=workspace, output_root=output,
                                       template_path=template, logo_dir=logos)
                 self.assertEqual(first.name, source.name)
-                self.assertEqual(len(list(first.parent.rglob("*.png"))), 14)
+                self.assertEqual(len(list(first.parent.rglob("*.png"))), 44)
+                low_outputs = sorted((first.parent / "_low_res").rglob("renamed_low_*.png"))
+                self.assertEqual(len(low_outputs), 26)
+                for index in range(13):
+                    with Image.open(low_outputs[index]) as a, Image.open(low_outputs[index + 13]) as b:
+                        np.testing.assert_array_equal(np.asarray(a), np.asarray(b))
+                        self.assertEqual(a.size, (128, 128))
+                        self.assertNotEqual(a.getpixel((50, 100))[:3], (255, 0, 255))
                 with Image.open(first) as image:
                     self.assertEqual(image.size, fans.SIZE)
                     self.assertEqual(image.getpixel((81, 54))[:3], (255, 0, 0))
@@ -149,6 +172,121 @@ class GenerateFansTests(unittest.TestCase):
             self.assertEqual(first.read_bytes(), b"manual review edits")
             self.assertEqual(alternate.read_bytes(), b"manual alternative edits")
             self.assertEqual(originals, {p: p.read_bytes() for p in workspace.rglob("*") if p.is_file()})
+
+    def test_low_crowd_uses_fixed_copies_preserves_faces_and_shades_selected_clothing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            _, _, _, _, _, logos = self.fixture(root)
+            for index in range(13):
+                with Image.open(fans.LOW_REFERENCE / f"3dcrowd{index:02}.png") as source:
+                    before = np.asarray(source).copy()
+                    result = fans.render_low_crowd(source, index, logos / "46.png",
+                                                   (200, 30, 20), (20, 180, 40))
+                    after = np.asarray(result)
+                    np.testing.assert_array_equal(np.asarray(source), before)
+                    np.testing.assert_array_equal(after[64:], before[64:])
+                    np.testing.assert_array_equal(after[:, :, 3], before[:, :, 3])
+                    if index in (0, 2, 6, 7, 8, 9, 12):
+                        np.testing.assert_array_equal(after, before)
+                    else:
+                        self.assertFalse(np.array_equal(after, before))
+                    if index in (1, 3, 4, 5):
+                        np.testing.assert_array_equal(after[:64, 64:], before[:64, 64:])
+                        self.assertGreater(np.std(after[20:30, 16:48, 0]), 0)
+                    if index == 1:
+                        red, green, blue = result.getpixel((20, 20))[:3]
+                        self.assertGreater(red, green)
+                        self.assertLess(red - blue, 100)  # Desaturated, not full primary.
+                    elif index == 3:
+                        red, green, blue = result.getpixel((20, 20))[:3]
+                        self.assertGreater(red, green * 3)
+                    elif index in (4, 5):
+                        red, green, blue = result.getpixel((20, 20))[:3]
+                        self.assertGreater(green, red * 3)
+                        if index == 4:
+                            self.assertEqual(result.getpixel((12, 16))[:3], (255, 0, 0))
+                    elif index == 10:
+                        red, green, blue = result.getpixel((20, 25))[:3]
+                        self.assertGreater(red, green * 3)
+                        red, green, blue = result.getpixel((5, 8))[:3]
+                        self.assertGreater(green, red * 3)
+                        self.assertGreater(result.getpixel((75, 20))[0],
+                                           result.getpixel((75, 20))[1])
+                        self.assertEqual(result.getpixel((8, 8)), source.getpixel((8, 8)))
+                        self.assertEqual(result.getpixel((21, 2)), source.getpixel((21, 2)))
+                    elif index == 11:
+                        np.testing.assert_array_equal(after[:64, 64:], before[:64, 64:])
+                        np.testing.assert_array_equal(after[40:64, :64], before[40:64, :64])
+                        self.assertEqual(result.getpixel((24, 20))[:3], (255, 0, 0))
+                        rgb = after[:40, :48, :3].astype(int)
+                        self.assertFalse(np.any((rgb[:, :, 2] > rgb[:, :, 0] + 10)
+                                                & (rgb[:, :, 2] > rgb[:, :, 1] + 5)))
+
+    def test_small_crowd_preserves_skin_shoes_alpha_and_shades_clothing(self):
+        for texture in ("cheerteam", "bboy"):
+            source = Image.new("RGBA", (64, 64), (25, 60, 120, 129))
+            draw = ImageDraw.Draw(source)
+            draw.rectangle((16, 0, 24, 15), fill=(177, 123, 87, 111))
+            draw.rectangle((40, 0, 48, 15), fill=(138, 97, 65, 123))
+            draw.rectangle((0, 30, 11, 63), fill=(180, 180, 180, 75))
+            draw.rectangle((48, 30, 63, 63), fill=(40, 40, 40, 67))
+            source.putpixel((20, 20), (12, 22, 48, 129))
+            before = np.asarray(source).copy()
+            result = fans.render_small_crowd(source, texture, (200, 30, 20))
+            after = np.asarray(result)
+            np.testing.assert_array_equal(np.asarray(source), before)
+            np.testing.assert_array_equal(after[:, :, 3], before[:, :, 3])
+            if texture == "cheerteam":
+                np.testing.assert_array_equal(after[:16, 16:25], before[:16, 16:25])
+                np.testing.assert_array_equal(after[:16, 40:49], before[:16, 40:49])
+            else:
+                np.testing.assert_array_equal(after[30:, :12], before[30:, :12])
+                np.testing.assert_array_equal(after[30:, 48:], before[30:, 48:])
+            red, green, blue = result.getpixel((28, 28))[:3]
+            self.assertGreater(red, green * 3)
+            self.assertLess(sum(result.getpixel((20, 20))[:3]),
+                            sum(result.getpixel((28, 28))[:3]))
+
+    def test_low_output_mirrors_distinct_live_destinations_with_the_same_folder_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace, output, _, _, template, logos = self.fixture(Path(directory))
+            targets = []
+            for group in range(2):
+                original = next((workspace / "moved").glob(f"renamed_low_{group}_0__*.png"))
+                destination = workspace / f"group_{group}" / "same"
+                destination.mkdir(parents=True)
+                targets.append(original.rename(destination / original.name))
+            with patch.object(fans, "proa_slots", return_value={29: 8}), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                result = fans.generate(29, workspace=workspace, output_root=output,
+                                       template_path=template, logo_dir=logos)
+            for target in targets:
+                self.assertTrue((result.parent / "_low_res" / target.relative_to(workspace)).is_file())
+                self.assertFalse((result.parent / "_low_res" / "same" / target.name).exists())
+
+    def test_low_crowd_missing_incomplete_invalid_or_missing_reference_refuses_publication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace, output, _, _, template, logos = self.fixture(Path(directory))
+            path = workspace / fans.uniforms.MANIFEST
+            manifest = json.loads(path.read_text())
+            rows = manifest["sources"]
+            low = [row for row in rows if row["texture"].startswith("3dcrowd")]
+            invalid = [{**row, "width": 256} if row is low[0] else row for row in rows]
+            with patch.object(fans, "proa_slots", return_value={29: 8}):
+                for sources in ([row for row in rows if row not in low],
+                                [row for row in rows if row is not low[0]],
+                                [*rows, low[0]], invalid):
+                    path.write_text(json.dumps({**manifest, "sources": sources}))
+                    with self.assertRaisesRegex(ValueError, "3dcrowd"):
+                        fans.generate(29, workspace=workspace, output_root=output,
+                                      template_path=template, logo_dir=logos)
+                    self.assertFalse(output.exists())
+                path.write_text(json.dumps(manifest))
+                with self.assertRaises(FileNotFoundError):
+                    fans.generate(29, workspace=workspace, output_root=output,
+                                  template_path=template, logo_dir=logos,
+                                  low_reference_path=workspace / "missing-reference")
+                self.assertFalse(output.exists())
 
     def test_refuses_missing_primary_and_output_inside_workspace_without_writing(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -36,6 +36,6 @@ Non-ProA visible ratings default to 50 for fantasy drafts; add
 See [season setup and commands](docs/SeasonUpdateWorkflow.md#iso-first-roster-deployment).
 
 Optional manual-art helper: `python scripts\generate_fans.py --020` creates
-crowd clothing, cap and sign review copies under `texture_auto`,
+crowd clothing, cap, sign and low-resolution `3dcrowd` review copies under `texture_auto`,
 outside the live workspace; see the
 [fan generator workflow](texture_workspace_ISO/team_palettes/README.md#optional-fan-texture-review-copies).

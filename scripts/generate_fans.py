@@ -10,6 +10,9 @@ caps alternating between primary and dark grey in alphabetical variant order.
 Varsity uses primary/secondary over home; _alt uses dark grey/primary over away.
 Its pooled-PPG leader's number uses each uniform's numbers.fill, without outlines.
 Signs use primary with a logo, or _alt with contrasting text and team nickname.
+Low-resolution 3dcrowd variants use fixed pristine slot-020 references in every
+matching package. Cheerteam/bboy retain live skin/shoes; _low_res contains
+copies grouped by live destination folder.
 """
 import argparse
 import csv
@@ -35,6 +38,8 @@ JERSEY_TEMPLATE = native.ROOT / "texture_templates" / "fan_jersey_undershirt.png
 SWEATSHIRT_TEMPLATE = native.ROOT / "texture_templates" / "fan_sweatshirt_tmpl.png"
 VARSITY_TEMPLATE = native.ROOT / "texture_templates" / "fan_varsity_tmpl.png"
 VARSITY_ACCENTS = native.ROOT / "texture_templates" / "fan_varsity_accents.png"
+LOW_REFERENCE = native.ROOT / "texture_templates" / "reference" / "fans_3dcrowd"
+LOW_NAMES = tuple(f"3dcrowd{index:02}" for index in range(13))
 OUTPUT = native.ROOT / "texture_auto" / "fans"
 SIZE = (256, 128)
 DARK_GREY = (48, 48, 48)
@@ -161,20 +166,107 @@ def render_varsity(source: Image.Image, jersey: Image.Image, template: Image.Ima
     return result
 
 
-def shaded_cloth(template: Image.Image, colour: tuple[int, int, int]) -> Image.Image:
+def shaded_cloth(template: Image.Image, colour: tuple[int, int, int],
+                 mask: np.ndarray | None = None) -> Image.Image:
     grey = np.asarray(template.convert("L"), dtype=np.float32)
-    median = float(np.median(grey[:, :158]))
+    if mask is not None and not np.any(mask):
+        raise ValueError("Fabric template has no selected cloth pixels")
+    median = float(np.median(grey[:, :158] if mask is None else grey[mask]))
     if median <= 0:
         raise ValueError("Fabric template has no usable cloth brightness")
     shade = grey / median - 1
     # Black/white normal-blend shading stays visible on dark and light fabrics.
     strength = np.where(shade < 0, -shade, shade * 0.2)
-    overlay = np.empty((SIZE[1], SIZE[0], 4), dtype=np.uint8)
+    overlay = np.empty((template.height, template.width, 4), dtype=np.uint8)
     overlay[:, :, :3] = np.where(shade[:, :, None] < 0, 0, 255)
     overlay[:, :, 3] = np.rint(np.clip(strength, 0, 1) * 255).astype(np.uint8)
-    cloth = Image.new("RGBA", SIZE, (*colour, 255))
+    cloth = Image.new("RGBA", template.size, (*colour, 255))
     cloth.alpha_composite(Image.fromarray(overlay))
     return cloth
+
+
+def render_low_crowd(source: Image.Image, index: int, logo: Path,
+                     primary: tuple[int, int, int], secondary: tuple[int, int, int]) -> Image.Image:
+    if source.size != (128, 128) or index not in range(13):
+        raise ValueError("Low-resolution crowd requires a 128x128 reference and index 00..12")
+    result = source.convert("RGBA")
+    if index in (0, 2, 6, 7, 8, 9, 12):
+        return result
+    if index == 11:
+        # Replace the entire NBA badge with neighbouring white-shirt folds.
+        result.paste(result.crop((36, 7, 43, 36)).resize((28, 29)), (8, 7))
+        result.alpha_composite(full_logo(logo, (38, 25)), (5, 10))
+    else:
+        if index == 4:
+            result.paste(result.crop((18, 11, 26, 21)), (8, 11))
+        rgb = np.asarray(result)[:, :, :3].astype(np.float32)
+        red, green, blue = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+        region = np.zeros((128, 128), dtype=bool)
+        region[:64, :128 if index == 10 else 64] = True
+        if index in (1, 3, 10):
+            cloth = (blue > red + 5) & (blue > green + 5)
+        elif index == 4:
+            cloth = (rgb.max(axis=2) - rgb.min(axis=2) < 12) & (red > 20)
+        else:
+            cloth = (red > blue + 8) & (green > blue + 6) & (red < green * 1.25)
+        mask = region & cloth
+        colour = secondary if index in (4, 5) else primary
+        if index == 1:
+            grey = float(np.dot(primary, (0.299, 0.587, 0.114)))
+            r, g, b = (int(round(channel * 0.35 + grey * 0.65)) for channel in primary)
+            colour = (r, g, b)
+        result.paste(shaded_cloth(result, colour, mask), (0, 0),
+                     Image.fromarray(mask.astype(np.uint8) * 255))
+        if index == 10:
+            trim = region & (red > blue + 15) & (green > blue + 15) & (red <= green * 1.18)
+            result.paste(shaded_cloth(source, secondary, trim), (0, 0),
+                         Image.fromarray(trim.astype(np.uint8) * 255))
+        elif index == 4:
+            result.alpha_composite(full_logo(logo, (8, 8)), (8, 12))
+    result.putalpha(source.convert("RGBA").getchannel("A"))
+    return result
+
+
+def render_small_crowd(source: Image.Image, texture: str,
+                       primary: tuple[int, int, int]) -> Image.Image:
+    if source.size != (64, 64) or texture not in ("cheerteam", "bboy"):
+        raise ValueError("Small crowd requires a 64x64 cheerteam or bboy atlas")
+    mask = np.ones((64, 64), dtype=np.uint8) * 255
+    boxes = ((16, 0, 25, 16), (40, 0, 49, 16)) if texture == "cheerteam" else (
+        (0, 30, 12, 64), (48, 30, 64, 64))
+    for left, top, right, bottom in boxes:
+        mask[top:bottom, left:right] = 0
+    result = source.convert("RGBA")
+    result.paste(shaded_cloth(source, primary, mask > 0), (0, 0), Image.fromarray(mask))
+    result.putalpha(source.convert("RGBA").getchannel("A"))
+    return result
+
+
+def small_crowd_masters(sources: list[dict], slot: int) -> list[dict]:
+    rows = [row for row in sources
+            if row["slot"] == slot and row["texture"] in ("cheerteam", "bboy")]
+    if {row["texture"] for row in rows} != {"cheerteam", "bboy"}:
+        raise ValueError(f"Slot {slot:03}: missing cheerteam/bboy masters")
+    if any(not row["editable"] or (row["width"], row["height"]) != (64, 64) for row in rows):
+        raise ValueError(f"Slot {slot:03}: cheerteam/bboy require editable 64x64 masters")
+    return rows
+
+
+def low_crowd_masters(sources: list[dict], slot: int) -> list[dict]:
+    rows = [row for row in sources
+            if row["slot"] == slot and row["texture"].startswith("3dcrowd")]
+    packages: dict[str, list[dict]] = {}
+    for row in rows:
+        packages.setdefault(row["asset"], []).append(row)
+    if not packages:
+        raise ValueError(f"Slot {slot:03}: missing low-resolution 3dcrowd masters")
+    for asset, members in packages.items():
+        if sorted(row["texture"] for row in members) != list(LOW_NAMES):
+            raise ValueError(f"Slot {slot:03}: {asset} requires exactly one of all 13 3dcrowd variants")
+        if any(not row["editable"] or (row["width"], row["height"]) != (128, 128)
+               for row in members):
+            raise ValueError(f"Slot {slot:03}: {asset} requires editable 128x128 3dcrowd masters")
+    return rows
 
 
 def render_cap(source: Image.Image, logo: Path,
@@ -260,7 +352,8 @@ def generate(slot: int, *, workspace: Path = native.DEFAULT_WS, output_root: Pat
              jersey_template_path: Path = JERSEY_TEMPLATE,
              sweatshirt_template_path: Path = SWEATSHIRT_TEMPLATE,
              varsity_template_path: Path = VARSITY_TEMPLATE,
-             varsity_accents_path: Path = VARSITY_ACCENTS) -> Path:
+             varsity_accents_path: Path = VARSITY_ACCENTS,
+             low_reference_path: Path = LOW_REFERENCE) -> Path:
     team_palettes.relative(slot)
     native.validate_workspace(workspace)
     if output_root.resolve().is_relative_to(workspace.resolve()):
@@ -297,10 +390,12 @@ def generate(slot: int, *, workspace: Path = native.DEFAULT_WS, output_root: Pat
     away = master(sources, slot, "unif", "game", "away")
     home = master(sources, slot, "unif", "game", "home")
     crowd_rows = [tshirt, crowd, sweatshirt, varsity, sign, *generic]
-    files = native.scan(workspace, [*crowd_rows, away, home])
+    low_rows = low_crowd_masters(sources, slot)
+    small_rows = small_crowd_masters(sources, slot)
+    files = native.scan(workspace, [*crowd_rows, *low_rows, *small_rows, away, home])
     tshirt_path, crowd_path = files[tshirt["id"]], files[crowd["id"]]
     sweatshirt_path = files[sweatshirt["id"]]
-    for row in crowd_rows:
+    for row in (*crowd_rows, *low_rows, *small_rows):
         path = files[row["id"]]
         if path.suffix.lower() != ".png":
             raise ValueError(f"Crowd master must be a PNG: {path}")
@@ -338,6 +433,19 @@ def generate(slot: int, *, workspace: Path = native.DEFAULT_WS, output_root: Pat
         with Image.open(path) as source:
             cap = render_cap(source, logo, primary if index % 2 == 0 else DARK_GREY)
         pending.append((Path(path.name), cap))
+    low_images = {}
+    for index, name in enumerate(LOW_NAMES):
+        with Image.open(low_reference_path / f"{name}.png") as source:
+            low_images[name] = render_low_crowd(source, index, logo, primary, secondary)
+    for row in low_rows:
+        path = files[row["id"]]
+        pending.append((Path("_low_res") / path.relative_to(workspace),
+                        low_images[row["texture"]]))
+    for row in small_rows:
+        path = files[row["id"]]
+        with Image.open(path) as source:
+            small = render_small_crowd(source, row["texture"], primary)
+        pending.append((Path("_low_res") / path.relative_to(workspace), small))
     output_root.mkdir(parents=True, exist_ok=True)
     directory = Path(tempfile.mkdtemp(prefix=f"slot_{slot:03}_", dir=output_root))
     for relative, image in pending:
@@ -348,6 +456,9 @@ def generate(slot: int, *, workspace: Path = native.DEFAULT_WS, output_root: Pat
         print(f"Review copy: {output}")
     for destination in sorted({files[row["id"]].parent for row in crowd_rows}):
         print(f"Live workspace unchanged. Crowd clothing destination: {destination}")
+    for destination in sorted({files[row["id"]].parent for row in (*low_rows, *small_rows)}):
+        print(f"Low-resolution copies: {directory / '_low_res' / destination.relative_to(workspace)} "
+              f"-> {destination} (manual acceptance only)")
     print(f"Varsity number: {player}, #{number} ({ppg:g} pooled PPG; ties: lowest ProA ID).")
     print("Choose main OR _alt separately for jersey, varsity and sign; never copy both.")
     return directory / tshirt_path.name
