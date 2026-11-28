@@ -64,7 +64,7 @@ class PlayerDatabaseTests(unittest.TestCase):
     def test_sparse_overrides_zero_clear_team_noop_and_immutable_csv(self):
         path = self.csv_file(db.OVERRIDE_COLUMNS, [
             {"Team": "Not this team", "ProA ID": 123, "First Name": "Preferred",
-             "Shooting Hand": "0", "headband": "0", "College": db.CLEAR},
+             "Shooting Hand": "0", "Headband": "0", "College": db.CLEAR},
             {"Team": "Future", "ProA ID": 999, "Dunk": "99"},
         ])
         before = path.read_bytes()
@@ -217,7 +217,7 @@ class PlayerDatabaseTests(unittest.TestCase):
 
     def test_xlsx_uses_edited_text_and_numeric_labels(self):
         wb = overrides_xlsx.make_workbook([
-            {"ProA ID": 123, "Shooting Hand": "0 - Left", "Head": 0, "arm_l": 6},
+            {"ProA ID": 123, "Shooting Hand": "0 - Left", "Head": 0, "Left Elbow Pad": 6},
         ], db.OVERRIDE_COLUMNS)
         enum, ws = wb["Enumerations"], wb["Overrides"]
         cols = {enum.cell(1, col).value: col for col in range(1, enum.max_column + 1, 2)}
@@ -230,7 +230,7 @@ class PlayerDatabaseTests(unittest.TestCase):
         wb.save(path)
         wb.close()
         values = db.load_overrides(path)[123]
-        self.assertEqual((values["Shooting Hand"], values["Head"], values["arm_l"]), (0, 0, 6))
+        self.assertEqual((values["Shooting Hand"], values["Head"], values["Left Elbow Pad"]), (0, 0, 6))
 
         wb = openpyxl.load_workbook(path)
         wb["Enumerations"].cell(3, cols["Shooting Hand"] + 1, "Left")
@@ -294,7 +294,7 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual((row["First Name"], row["Last Name"]), ("Juergen", "Gross"))
         self.assertEqual((row["Dunk"], row["Shooting Hand"]), (99, 0))
         self.assertEqual(row["College"], "Example")
-        self.assertEqual(row["headband"], 0)
+        self.assertEqual(row["Headband"], 0)
         self.assertEqual(row["Beard"], 0)
         self.assertIsNone(row["Hairstyle"])
         data = bytearray(0x94)
@@ -353,6 +353,102 @@ class PlayerDatabaseTests(unittest.TestCase):
         self.assertEqual((data[0x67], data[0x62], data[0x75], data[0x7F]), (0, 2, 7, 6))
         apply_accessories(data, 0, {"headband": 0, "wrist_l": 0})
         self.assertEqual((data[0x67], data[0x75]), (255, 0))
+
+    def test_named_accessories_write_raw_editor_indices_including_former_presets(self):
+        data = bytearray([0x55] * 0x94)
+        apply_accessories(data, 0, {"Headband": 1, "Left Wrist Band": 1,
+                                  "Right Wrist Band": 2, "Left Elbow Pad": 1,
+                                  "Right Elbow Pad": 2, "Left Knee Pad": 19,
+                                  "Right Knee Pad": 20})
+        self.assertEqual((data[0x67], data[0x75], data[0x76], data[0x77], data[0x78],
+                          data[0x7E], data[0x7F]), (0, 1, 2, 1, 2, 19, 20))
+        apply_accessories(data, 0, {"Headband": 0, "Right Wrist Band": 0})
+        self.assertEqual((data[0x67], data[0x76]), (255, 0))
+
+    def test_legacy_accessory_csv_preserves_item_indices_and_headband_build_byte(self):
+        path = self.csv_file(["ProA ID", *db.LEGACY_ACCESSORY_NAMES], [
+            {"ProA ID": 123, "headband": 2, "wrist_l": 1, "wrist_r": 2,
+             "arm_l": 1, "arm_r": 2, "knee_l": 1, "knee_r": 2},
+        ])
+        self.assertEqual(db.load_overrides(path)[123], {
+            "Headband": 1, "Legacy Accessory 0x62": 2,
+            "Left Wrist Band": 7, "Right Wrist Band": 3,
+            "Left Elbow Pad": 11, "Right Elbow Pad": 6,
+            "Left Knee Pad": 14, "Right Knee Pad": 6,
+        })
+        with self.assertRaisesRegex(ValueError, "Conflicting accessory"):
+            db.canonical_accessories({"wrist_l": 1, "Left Wrist Band": 2})
+
+    def test_refresh_accessories_preserves_custom_non_accessory_enums_values_and_styles(self):
+        options = overrides_xlsx.enumeration_options()
+        for old, new in db.LEGACY_ACCESSORY_NAMES.items():
+            del options[new]
+            options[old] = [(0, "None"), *[(i, f"Old option {i}") for i in range(1, 256)]]
+        del options["Legacy Accessory 0x62"]
+        with patch.object(overrides_xlsx, "enumeration_options", return_value=options):
+            wb = overrides_xlsx.make_workbook(
+                [{"ProA ID": 123, "wrist_l": 1, "headband": 2, "Hairstyle": 5, "Dunk": 99}],
+                ["Team", "ProA ID", "wrist_l", "Hairstyle", "headband", "Dunk"])
+        ws, enum = wb["Overrides"], wb["Enumerations"]
+        ws.column_dimensions["C"].width = 29
+        ws["C2"].font = openpyxl.styles.Font(color="ABC123")
+        columns = {enum.cell(1, col).value: col for col in range(1, enum.max_column + 1, 2)}
+        for row in range(2, enum.max_row + 1):
+            if enum.cell(row, columns["Hairstyle"]).value == 5:
+                enum.cell(row, columns["Hairstyle"] + 1, "Artist choice")
+        enum.cell(4, columns["headband"] + 1, "Alternate headband")
+        ws["D2"], ws["E2"] = "Artist choice", "Alternate headband"
+        for validation in ws.data_validations.dataValidation:
+            validation.formula1 = validation.formula1.lstrip("=")
+        path = self.root / "old-overrides.xlsx"
+        wb.save(path)
+        wb.close()
+        for _ in range(2):
+            overrides_xlsx.refresh_accessories(path)
+            self.assertEqual(db.load_overrides(path)[123], {
+                "Left Wrist Band": 7, "Headband": 1, "Legacy Accessory 0x62": 2,
+                "Hairstyle": 5, "Dunk": 99,
+            })
+            check = openpyxl.load_workbook(path)
+            ws, enum = check["Overrides"], check["Enumerations"]
+            cols = {cell.value: cell.column for cell in ws[1]}
+            self.assertEqual([cell.value for cell in ws[1]][-len(db.ACCESSORY_FIELDS):],
+                             list(db.ACCESSORY_FIELDS))
+            self.assertEqual(ws.cell(2, cols["Hairstyle"]).value, "Artist choice")
+            self.assertEqual(ws.cell(2, cols["Left Wrist Band"]).font.color.rgb, "00ABC123")
+            self.assertEqual(ws.column_dimensions[openpyxl.utils.get_column_letter(
+                cols["Left Wrist Band"])].width, 29)
+            self.assertEqual(ws.cell(2, cols["Right Knee Pad"]).value, None)
+            for name, count in (("Left Wrist Band", 13), ("Left Elbow Pad", 13), ("Left Knee Pad", 21)):
+                col = next(col for col in range(1, enum.max_column + 1, 2)
+                           if enum.cell(1, col).value == name)
+                self.assertEqual(sum(enum.cell(row, col).value is not None
+                                     for row in range(2, enum.max_row + 1)), count)
+            check.close()
+
+    def test_generated_accessory_column_upgrade_preserves_other_values_and_legacy_bytes(self):
+        wb = workbook()
+        ws = wb.active
+        columns = {cell.value: cell.column for cell in ws[1]}
+        ws.cell(1, columns["Headband"], "headband")
+        ws.cell(2, columns["Headband"], 2)
+        ws.cell(1, columns["Left Wrist Band"], "wrist_l")
+        ws.cell(2, columns["Left Wrist Band"], 1)
+        ws.delete_cols(columns["Legacy Accessory 0x62"])
+        ws.auto_filter.ref = f"A1:{openpyxl.utils.get_column_letter(ws.max_column)}{ws.max_row}"
+        before = dict(zip([cell.value for cell in ws[1]], next(ws.iter_rows(min_row=2, values_only=True))))
+        with contextlib.redirect_stdout(io.StringIO()):
+            db.apply_overrides(wb, {})
+        after = dict(zip([cell.value for cell in ws[1]], next(ws.iter_rows(min_row=2, values_only=True))))
+        self.assertEqual(after, db.canonical_accessories(before))
+        self.assertEqual(list(after)[-len(db.ACCESSORY_FIELDS)-1:-1], list(db.ACCESSORY_FIELDS))
+        self.assertEqual(ws.auto_filter.ref,
+                         f"A1:{openpyxl.utils.get_column_letter(ws.max_column)}{ws.max_row}")
+        for row in (before, after):
+            data = bytearray(0x94)
+            apply_accessories(data, 0, row)
+            self.assertEqual((data[0x67], data[0x62], data[0x75]), (0, 2, 7))
+        wb.close()
 
     def test_optional_accessory_bytes_and_created_model_are_independent(self):
         data = bytearray([0x55] * 0x94)

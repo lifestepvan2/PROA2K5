@@ -56,7 +56,7 @@ see [Static attribute probe](#static-attribute-probe-europe-iso).
 | 0x5F | u8 | **Consistency**; raw stock 50-99 | W (named column; age/minutes model) |
 | 0x60 | u8 | **Fastbreak**; raw stock 0-95 | W (named column; Speed clamped to 50..99) |
 | 0x61 | i8 | **hairstyle selector** in create-a-player; `0` Bald, `7` Afro; `-1`/`0xFF` common in stock players | W |
-| 0x62 | u8 | **build selector** in create-a-player: `0` Normal, `1` Thick, `2` Fat; also written by the NBA headband workflow, but its headband-style role is unproven | W |
+| 0x62 | u8 | **build selector** in create-a-player: `0` Normal, `1` Thick, `2` Fat; old NBA headband overrides are preserved as `Legacy Accessory 0x62`, but its headband-style role is unproven | W |
 | 0x67 | i8 | **headband selector**: `-1`/`0xFF` None, `0` Headband 1 | W (headband workflow) |
 | 0x68 | u8 | nonzero required with `+0x08` bit 0 for a created-model predicate; full meaning unproven | W (1 for created overrides) |
 | 0x69 | u8 | **skin tone 0-5**: selects `legs00`-`legs05`. Automatic casting inherits the PID's tone; manual workbook `Skin Tone` 1..6 writes `6 - value` with a matching model-local ISO recipe | W |
@@ -149,12 +149,14 @@ All 395 NBA records have `+0x08 = 4` and `+0x68 = 0`, so they fail the
 predicate above. Therefore these stock values must not be interpreted simply
 as created-player builds; effects of changing them on NBA models are unproven.
 
-The existing headband workflow also writes `+0x62`. Its proposed role as an
+The legacy headband workflow also wrote `+0x62`. Its proposed role as an
 NBA headband style is not established: the earlier test set `+0x62 = 2` and
 `+0x67 = 0` together on one player, rather than isolating `+0x62` on the same
 player. The apparent size difference could have another cause. Do not assume
 that changing `+0x62` changes headband style or that its NBA interpretation
-is the same as the created-player build selector.
+is the same as the created-player build selector. These old overrides are now
+preserved separately as `Legacy Accessory 0x62`; the canonical `Headband`
+selection writes only `+0x67`.
 
 ### Created-player headband probe
 
@@ -710,8 +712,8 @@ are chosen pseudo-randomly and reproducibly from the ProA ID and effective
 in-game skin byte: skin bytes 4 and 5 use heads 2-6 and hairstyles 5, 13 or 22;
 other skin bytes use heads 0-6 and hairstyles 1 or 2. Explicit Head and
 Hairstyle overrides win, including Hairstyle 0 (Bald). Created-model Build
-owns `+0x62`; for such players the existing headband
-style preset is ignored, but the headband itself remains enabled. The build
+owns `+0x62`; for such players the old headband
+build-byte override (`Legacy Accessory 0x62`) is ignored, but the headband itself remains enabled. The build
 report notes the conflict.
 
 ### Accessories (verified in game through the memory card)
@@ -729,7 +731,7 @@ The accessories are record bytes (not part of the pid model): they stay when the
 | 0x63 | **Shorts Length** | 0 Short, 1 Long; editor mapping only |
 | 0x83 | **Sock Length** | 0 Ankle Socks, 1 Short, 2 Medium, 3 Long; editor mapping only |
 | 0x84 / 0x85 | **Home / Away Sock Color** | 0 Black, 1 White; editor mapping only |
-| 0x62 | created-player build; NBA headband-style hypothesis remains unproven (see probes above) | existing NBA workflow writes 0 or 2 |
+| 0x62 | created-player build; NBA headband-style hypothesis remains unproven (see probes above) | `Legacy Accessory 0x62` preserves old overrides |
 | 0x61, 0x62 = 5 | nothing visible in the earlier real-player tests; `0x61` is also the created-player hairstyle selector above | |
 | 0x64-0x66 | legacy candidates: 0x64/0x65 = 9 on the 80's Celtics (historic teams?), 0x66 may be a goggles index (`goggles00`-`07`) | raw experimental overrides; meanings unconfirmed |
 
@@ -744,18 +746,52 @@ left/right assignment should be independently confirmed. Additional checks
 should cover individual created heads, hairstyles and player PIDs, and game
 modes not covered by the successful all-created roster stress test.
 
-`build_roster.py` clears the original accessory fields for every ProA player (NBA records have their own accessories), then reads the canonical workbook columns. The former `data/accessories.csv` values have been migrated into ID-keyed `data/overrides.xlsx`; edit only that file for persistent changes. Columns: `headband` (1 or 2: both enable the headband, and write 0 or 2 to `+0x62` for NBA models; a size difference is unproven), `wrist_l/r`, `arm_l/r`, `knee_l/r` (1 or 2 = presets from the table above: wrist 7/3, arm 11/6, knee 14/6; any number >= 3 is written raw as item index; 0 = none). An empty override cell means no override, not removal.
+`build_roster.py` clears the original accessory fields for every ProA player,
+then reads the canonical workbook columns. Edit `data/overrides.xlsx` for
+persistent selections. All fourteen accessory columns are grouped after the
+appearance columns in **in-game menu order**, with the exact English slot names.
+Their dropdowns use the Europe executable's literal option labels:
 
-Additional columns `Shades`, `Left Arm Band`, `Right Arm Band`, `Shorts Length`,
-`Sock Length`, `Home Sock Color` and `Away Sock Color` write their raw editor
-values from the table. `Legacy Accessory 0x64`, `Legacy Accessory 0x65` and
-`Legacy Goggles 0x66` are experimental raw bytes (0-255; 255 is the existing
-cleared default), not verified editor options. These columns do not enable a
-created model. Blank new columns preserve previous behavior: arm-band bytes
-are cleared to 0 and legacy bytes to 255, while shades, shorts and socks
-retain their inherited values. Explicit 0 is written, including for shorts
-and sock colours. See [Persistent player edits](SeasonUpdateWorkflow.md#persistent-player-edits-and-exclusions)
-for override correction and warning behavior.
+| Slot | Editor indices |
+|---|---|
+| Headband | 0 None, 1 Headband 1; encoded as signed `+0x67 = -1` / `0` |
+| Shades | 0 None, 1..8 Shades 1..8 |
+| Left / Right Arm Band | 0 None; 1..4 Upper Arm, 5..8 Lower Arm, 9..12 Sleeve |
+| Left / Right Elbow Pad | 0 None; 1..4 Pad, 5..8 Sleeve, 9..12 Band |
+| Left / Right Wrist Band | 0 None; 1..4 Forearm Band, 5..8 Wrist Band, 9..12 Dbl Wrist Band |
+| Left / Right Knee Pad | 0 None; 1..4 Pad, 5..8 Brace, 9..12 Sleeve, 13..16 Strap, 17..20 Calf Sleeve |
+
+Each four-entry colour group is White, Black, Team, 2nd Team; the dropdowns
+preserve the game's `Wht`/`Blk` abbreviations where used. Shorts, sock length
+and home/away sock colours retain the mappings above. String tables are at EE
+`0x8FD358` (headband), `0x8FD360` (shades), `0x8FD518` (wrist),
+`0x8FD550` (arm), `0x8FD588` (elbow), `0x8FD5C8` (knee),
+`0x8FD630` (shorts), `0x8FD638` (socks), `0x8FD648` (sock colours).
+They were checked in the complete 8,783,992-byte `SLES_530.22`, SHA256
+`d60570a00122aac72bdf1b7768308f68ddb5a44b091c2251c20891e6c7a47611`.
+
+Named wrist/elbow/knee values now mean **raw editor indices**, not the former
+1/2 convenience presets. Old `wrist_l/r` presets 1/2 migrate to 7/3,
+`arm_l/r` to **Elbow Pad** 11/6 (not Arm Band), and `knee_l/r` to 14/6.
+Older CSVs/workbooks remain readable through those aliases; conflicting old
+and named values are rejected. Other old raw item indices remain unchanged,
+including experimental 0..255 wrist/elbow/knee values outside the menu range.
+Dropdowns list only verified editor options, not invented names for raw indices.
+
+An old nonzero `headband` becomes `Headband = 1`. Its extra build-byte setting
+(preset 2 or other raw values) is preserved as `Legacy Accessory 0x62`.
+The regular Headband dropdown has **only None and Headband 1**; there is no
+verified alternate headband style. Created-player `Build` still owns `+0x62`
+and overrides that legacy byte after accessories, as before.
+
+`Legacy Accessory 0x62`, `Legacy Accessory 0x64`, `Legacy Accessory 0x65`
+and `Legacy Goggles 0x66` follow the menu fields in an explicitly raw block.
+They do not enable a created model. Blank columns preserve previous behavior:
+wrist/elbow/knee/arm bands are cleared to 0, headband to 255, `+0x62` to 0,
+other legacy bytes to 255, while shades, shorts and socks retain their
+inherited values. Explicit 0 is written, including for shorts and sock colours.
+An empty override cell means no override, not removal. See
+[Persistent player edits](SeasonUpdateWorkflow.md#persistent-player-edits-and-exclusions).
 
 `Shooting Hand` in the workbook writes byte `+0x2E`: 0 = left, 1 = right. It defaults to right until manually overridden. `College` defaults to English country names expanded from the site's `Nat` value (e.g. `Germany / United States`), and writes the player-card FROM label through `+0x00`. A manual College override is literal; `<CLEAR>` produces a valid empty label rather than retaining the inherited college. See [College / FROM labels](roster_payload_format.md#college--from-labels) for table layout and capacity safeguards.
 

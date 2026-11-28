@@ -35,7 +35,9 @@ from overall_data import player_extras  # noqa: E402
 from overall_model import predict_overall  # noqa: E402
 from team_palettes import DEFAULT_WS, team_colours  # noqa: E402
 from roster_stats import encode_history, repack as repack_stats  # noqa: E402
-from player_database import APPEARANCE_FIELDS, RAW_ACCESSORY_FIELDS, PLAYER_COLUMNS, field_value, player_id  # noqa: E402
+from player_database import (ACCESSORY_FIELDS, APPEARANCE_FIELDS, LEGACY_ACCESSORY_NAMES,
+                             RAW_ACCESSORY_FIELDS, PLAYER_COLUMNS, canonical_accessories,
+                             field_value, player_id)  # noqa: E402
 
 CARD_DIR = "/BESLES-53022Roster1/"
 DEFAULT_CARD = r"C:\Users\Sebastian\Documents\PCSX2\memcards\Mcd001.ps2"
@@ -49,17 +51,6 @@ P_JERSEY, P_POS, P_HEIGHT, P_WEIGHT, P_YEARS = 0x16, 0x17, 0x31, 0x34, 0x41  # w
 P_PID = 0x4  # u16 player-model id (p<ID>h/a.iff: face, body, ...), duplicated at +6
 P_SKIN = 0x69  # skin tone 0-5: selects the legs00-05 texture (face/neck/arm follow the pid instead)
 
-# Accessories (verified in game, see docs/player_record_layout.md): record bytes holding an item index, 0 = none.
-# column -> (offset, {preset: item index}); presets 1/2 are the looks found best, any other number >= 3 is used as a raw item index
-ACC_COLS = {
-    "wrist_l": (0x75, {1: 7, 2: 3}),   # wristband / long forearm tape
-    "wrist_r": (0x76, {1: 7, 2: 3}),
-    "arm_l": (0x77, {1: 11, 2: 6}),    # small band above the elbow / large elbow brace
-    "arm_r": (0x78, {1: 11, 2: 6}),
-    "knee_l": (0x7E, {1: 14, 2: 6}),   # small knee tape / knee brace
-    "knee_r": (0x7F, {1: 14, 2: 6}),
-}
-ACC_HEADBAND = {1: 0, 2: 2}  # headband (0x67 = 0 switches it on) -> style byte 0x62 (2 = slightly larger)
 ACC_NONE = {0x61: 255, 0x62: 0, 0x64: 255, 0x65: 255, 0x66: 255, 0x67: 255, 0x75: 0, 0x76: 0, 0x77: 0, 0x78: 0,
             0x79: 0, 0x7A: 0, 0x7E: 0, 0x7F: 0}  # every accessory byte "off"
 P_HAND, P_SIZE_INT, P_FAME = 0x2E, 0x30, 0x32  # right-handed flag, height-correlated trait, fame (10-44)
@@ -277,13 +268,14 @@ def load_proa(path):
             continue
         rows = list(wb[name].iter_rows(values_only=True))
         hdr, rows = rows[0], rows[1:]
-        if missing := set(PLAYER_COLUMNS) - {"Skin Tone", *APPEARANCE_FIELDS, *RAW_ACCESSORY_FIELDS} - set(hdr):
+        if missing := set(PLAYER_COLUMNS) - {"Skin Tone", *APPEARANCE_FIELDS, *RAW_ACCESSORY_FIELDS} - {
+                LEGACY_ACCESSORY_NAMES.get(name, name) for name in hdr}:
             raise ValueError(f"{name}: missing workbook columns {sorted(missing)}; regenerate with scraper")
         players = []
         for r in rows:
             if not r[1]:
                 continue
-            rowd = dict(zip(hdr, r))
+            rowd = canonical_accessories(dict(zip(hdr, r)))
             for col in PLAYER_COLUMNS:
                 if col != "ProA ID" and rowd.get(col) not in (None, ""):
                     field_value(col, rowd[col])
@@ -446,17 +438,11 @@ def apply_accessories(buf, off, row):
         buf[off + o] = v
     if not row:
         return
-    hb = _acc_val(row, "headband")
-    if hb:
-        buf[off + 0x67] = 0
-        buf[off + 0x62] = ACC_HEADBAND.get(hb, hb)
-    for col, (o, presets) in ACC_COLS.items():
-        v = _acc_val(row, col)
-        if v:
-            buf[off + o] = presets.get(v, v)
-    for col, (offset, _) in RAW_ACCESSORY_FIELDS.items():
+    row = canonical_accessories(row)
+    for col, (offset, _) in ACCESSORY_FIELDS.items():
         if row.get(col) not in (None, ""):
-            buf[off + offset] = field_value(col, row[col])
+            value = field_value(col, row[col])
+            buf[off + offset] = (255 if value == 0 else 0) if col == "Headband" else value
 
 
 def apply_created_appearance(buf, off, row, proa_id, *, force=False):
@@ -639,8 +625,8 @@ def main():
             elif not a.prepare_faces and str(p["proa_id"]) in reserve:
                 pl.d[rec_off(r) + P_SKIN] = reserve[str(p["proa_id"])]["leg_byte"]
             if apply_created_appearance(pl.d, rec_off(r), p["rowd"], p["proa_id"]):
-                if _acc_val(p["rowd"], "headband") not in (0, 1):
-                    notes.append(f"{first} {last}: created-model Build owns +0x62; headband style preset is ignored")
+                if _acc_val(p["rowd"], "Legacy Accessory 0x62") != 0:
+                    notes.append(f"{first} {last}: created-model Build owns +0x62; legacy headband build-byte override is ignored")
             player_rows.append({"team_slot": k, "proa_team": i_team, "sheet": tr["sheet"], "slot": i, "record": r, "offset": hex(rec_off(r)),
                                 "first": first, "last": last, "college": colleges[r], "skin_tone": skin_tone,
                                 "skin_target": targets.get(str(p["proa_id"]), ""),

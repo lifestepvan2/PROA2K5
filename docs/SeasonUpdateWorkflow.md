@@ -109,6 +109,30 @@ Cold boot new builds rather than reusing a savestate with old loaded models.
 default 1). Do not rely on manual workbook edits surviving a scrape.
 `Skin Tone` defaults to 0 (automatic).
 
+Accessory columns use the fourteen in-game menu names and appear together
+after the created-player appearance fields. Dropdowns contain the exact
+English ISO labels, including every wrist/arm/elbow option and all twenty
+knee options. `Left/Right Elbow Pad` replaces the misleading `arm_l/r`;
+`Left/Right Arm Band` remains a separate selector.
+Named selections use raw menu indices rather than the old 1/2 presets.
+Old files remain readable, and migration translates preset values without
+changing the encoded accessory bytes.
+
+To refresh an older override workbook's columns and dropdowns in place:
+
+```powershell
+python scripts\overrides_workbook.py --refresh-accessories
+```
+
+This preserves existing selections, custom non-accessory enumeration labels,
+cell formatting and column widths. It validates the new workbook before
+writing. Then run `python scripts\player_database.py` to upgrade/reorder the
+generated roster columns as well. The current workbooks have already been
+upgraded. Re-scraping also uses the new grouped schema automatically.
+The former alternate-headband build-byte setting is retained in
+`Legacy Accessory 0x62`, not presented as a second in-game headband option;
+created-player `Build` still overrides that byte.
+
 Edit **only `data/overrides.xlsx`** for permanent player corrections. Its `Overrides` sheet header
 contains informational `Team`, the unique lookup key `ProA ID`, and every player
 workbook column except the computed `Overall`. `Team` is ignored for matching

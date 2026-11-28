@@ -5,6 +5,7 @@
 """
 import argparse
 import csv
+from copy import copy
 import json
 from datetime import date
 import math
@@ -21,13 +22,38 @@ from rating_map_2k5 import HIDDEN_BOUNDS, HIDDEN_TIERS
 ROOT = Path(__file__).resolve().parent.parent
 OVERRIDES = ROOT / "data" / "overrides.xlsx"
 BLACKLIST = ROOT / "data" / "blacklist.csv"
-ACCESSORIES = ("headband", "wrist_l", "wrist_r", "arm_l", "arm_r", "knee_l", "knee_r")
+ACCESSORIES = ("Headband", "Left Elbow Pad", "Right Elbow Pad", "Left Wrist Band",
+               "Right Wrist Band", "Left Knee Pad", "Right Knee Pad")
+LEGACY_ACCESSORY_NAMES = {
+    "headband": "Headband", "wrist_l": "Left Wrist Band", "wrist_r": "Right Wrist Band",
+    "arm_l": "Left Elbow Pad", "arm_r": "Right Elbow Pad",
+    "knee_l": "Left Knee Pad", "knee_r": "Right Knee Pad",
+}
+LEGACY_ACCESSORY_PRESETS = {
+    "wrist_l": {1: 7, 2: 3}, "wrist_r": {1: 7, 2: 3},
+    "arm_l": {1: 11, 2: 6}, "arm_r": {1: 11, 2: 6},
+    "knee_l": {1: 14, 2: 6}, "knee_r": {1: 14, 2: 6},
+}
 RAW_ACCESSORY_FIELDS = {
     "Shades": (0x72, 8), "Left Arm Band": (0x79, 12), "Right Arm Band": (0x7A, 12),
     "Shorts Length": (0x63, 1), "Sock Length": (0x83, 3),
     "Home Sock Color": (0x84, 1), "Away Sock Color": (0x85, 1),
+    "Legacy Accessory 0x62": (0x62, 255),
     "Legacy Accessory 0x64": (0x64, 255), "Legacy Accessory 0x65": (0x65, 255),
     "Legacy Goggles 0x66": (0x66, 255),
+}
+ACCESSORY_FIELDS = {
+    "Headband": (0x67, 1), "Shades": RAW_ACCESSORY_FIELDS["Shades"],
+    "Left Arm Band": RAW_ACCESSORY_FIELDS["Left Arm Band"],
+    "Right Arm Band": RAW_ACCESSORY_FIELDS["Right Arm Band"],
+    "Left Elbow Pad": (0x77, 255), "Right Elbow Pad": (0x78, 255),
+    "Left Wrist Band": (0x75, 255), "Right Wrist Band": (0x76, 255),
+    "Shorts Length": RAW_ACCESSORY_FIELDS["Shorts Length"],
+    "Left Knee Pad": (0x7E, 255), "Right Knee Pad": (0x7F, 255),
+    "Sock Length": RAW_ACCESSORY_FIELDS["Sock Length"],
+    "Home Sock Color": RAW_ACCESSORY_FIELDS["Home Sock Color"],
+    "Away Sock Color": RAW_ACCESSORY_FIELDS["Away Sock Color"],
+    **{name: value for name, value in RAW_ACCESSORY_FIELDS.items() if name.startswith("Legacy")},
 }
 APPEARANCE_FIELDS = {
     "Head": (0x71, 6), "Hairstyle": (0x61, 25), "Build": (0x62, 2),
@@ -41,7 +67,7 @@ IDENTITY_COLS = [
     "First Name", "Last Name", "Position", "Secondary Position", "Jersey Number",
     "Birth Year", "Birth Month", "Birth Day", "Years Pro", "Height", "Weight",
 ]
-SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + list(HIDDEN_ATTRS) + ["Headshot ID", "College", "Shooting Hand", *ACCESSORIES, *RAW_ACCESSORY_FIELDS, "Skin Tone", *APPEARANCE_FIELDS]
+SHEET_COLUMNS = IDENTITY_COLS + list(ALL_ATTRS) + list(HIDDEN_ATTRS) + ["Headshot ID", "College", "Shooting Hand", "Skin Tone", *APPEARANCE_FIELDS, *ACCESSORY_FIELDS]
 PLAYER_COLUMNS = SHEET_COLUMNS + ["ProA ID"]
 OVERRIDE_COLUMNS = ["Team", "ProA ID", *(c for c in SHEET_COLUMNS)]
 TEXT_COLUMNS = {"First Name", "Last Name", "Position", "Secondary Position", "College"}
@@ -173,9 +199,9 @@ def field_value(column, value, *, clamp=False):
         "Jersey Number": (0, 99), "Birth Year": (1900, 2100), "Birth Month": (1, 12),
         "Birth Day": (1, 31), "Years Pro": (1, 127), "Height": (1.0, 2.7),
         "Weight": (30, 250), "Headshot ID": (0, 65535), "Shooting Hand": (0, 1), "Skin Tone": (0, 6),
-        **dict.fromkeys(ALL_ATTRS, (25, 99)), **dict.fromkeys(ACCESSORIES, (0, 255)),
+        **dict.fromkeys(ALL_ATTRS, (25, 99)), **dict.fromkeys(LEGACY_ACCESSORY_NAMES, (0, 255)),
         **HIDDEN_BOUNDS,
-        **{name: (0, maximum) for name, (_, maximum) in RAW_ACCESSORY_FIELDS.items()},
+        **{name: (0, maximum) for name, (_, maximum) in ACCESSORY_FIELDS.items()},
         **{name: (0, maximum) for name, (_, maximum) in APPEARANCE_FIELDS.items()},
     }
     if column not in bounds:
@@ -197,6 +223,87 @@ def field_value(column, value, *, clamp=False):
     if column in HIDDEN_TIERS and int(number) not in HIDDEN_TIERS[column]:
         raise ValueError(f"{column}: expected one of {HIDDEN_TIERS[column]}, got {value!r}")
     return int(number)
+
+
+def canonical_accessories(row):
+    result = dict(row)
+    for old, name in LEGACY_ACCESSORY_NAMES.items():
+        value = result.pop(old, None)
+        if value in (None, ""):
+            continue
+        value = field_value(old, value)
+        changes = {name: LEGACY_ACCESSORY_PRESETS.get(old, {}).get(value, value)}
+        if old == "headband":
+            changes[name] = int(value != 0)
+            if value not in (0, 1):
+                changes["Legacy Accessory 0x62"] = value
+        for target, replacement in changes.items():
+            if (result.get(target) not in (None, "")
+                    and field_value(target, result[target]) != replacement):
+                raise ValueError(f"Conflicting accessory values: {old} and {target}")
+            result[target] = replacement
+    return result
+
+
+def reorder_columns(ws, headers, *, replacements=None, aliases=None):
+    """Move named columns without losing cell formatting or column dimensions."""
+    old_headers = [cell.value for cell in ws[1]]
+    if len(set(old_headers)) != len(old_headers) or None in old_headers:
+        raise ValueError(f"{ws.title}: duplicate or empty column headers")
+    replacements, aliases = replacements or {}, aliases or {}
+    height = max(ws.max_row, max(replacements, default=0))
+    cells = {name: [copy(ws.cell(row, col)) for row in range(1, ws.max_row + 1)]
+             for col, name in enumerate(old_headers, 1)}
+    dimensions = {}
+    for col, name in enumerate(old_headers, 1):
+        letter = openpyxl.utils.get_column_letter(col)
+        dimension = ws.column_dimensions.get(letter)
+        if dimension is None:
+            dimension = next((d for d in ws.column_dimensions.values()
+                              if d.min and d.min <= col <= d.max), None)
+        if dimension is not None:
+            dimensions[name] = copy(dimension)
+    ws.delete_cols(1, ws.max_column)
+    ws.column_dimensions.clear()
+    for col, name in enumerate(headers, 1):
+        origin = name if name in cells else next((old for old, new in aliases.items()
+                                                 if new == name and old in cells), None)
+        if origin in dimensions:
+            dimension = copy(dimensions[origin])
+            dimension.index = openpyxl.utils.get_column_letter(col)
+            dimension.min = dimension.max = col
+            ws.column_dimensions[dimension.index] = dimension
+        for row in range(1, height + 1):
+            target = ws.cell(row, col)
+            source = cells[origin][row - 1] if origin in cells and row <= len(cells[origin]) else None
+            if source is not None:
+                target.value = source.value
+                target._style = copy(source._style)
+                target.comment = copy(source.comment)
+                target.hyperlink = copy(source.hyperlink)
+            if row == 1:
+                target.value = name
+                if source is None:
+                    target._style = copy(next(iter(cells.values()))[0]._style)
+            elif name in replacements.get(row, {}):
+                target.value = replacements[row][name]
+
+
+def migrate_accessory_columns(ws):
+    headers = [cell.value for cell in ws[1]]
+    fields = set(ACCESSORY_FIELDS) | set(LEGACY_ACCESSORY_NAMES)
+    tail = [name for name in headers if name in ("ProA ID", "Overall")]
+    ordered = [name for name in headers if name not in fields and name not in tail]
+    ordered += [*ACCESSORY_FIELDS, *tail]
+    if ordered == headers:
+        return
+    replacements = {}
+    for index, values in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
+        normalized = canonical_accessories(dict(zip(headers, values)))
+        replacements[index] = {name: normalized.get(name) for name in ACCESSORY_FIELDS}
+    reorder_columns(ws, ordered, replacements=replacements, aliases=LEGACY_ACCESSORY_NAMES)
+    if ws.auto_filter.ref:
+        ws.auto_filter.ref = f"A1:{openpyxl.utils.get_column_letter(ws.max_column)}{ws.max_row}"
 
 
 def read_csv(path, allowed, required):
@@ -227,7 +334,7 @@ def load_overrides(path=OVERRIDES):
         from overrides_workbook import read_overrides
         rows = read_overrides(path)
     elif path.suffix.lower() == ".csv":
-        rows = read_csv(path, OVERRIDE_COLUMNS, ["ProA ID"])
+        rows = read_csv(path, [*OVERRIDE_COLUMNS, *LEGACY_ACCESSORY_NAMES], ["ProA ID"])
     else:
         raise ValueError(f"{path}: overrides must be an .xlsx or .csv file")
     result = {}
@@ -247,11 +354,12 @@ def load_overrides(path=OVERRIDES):
                     print(f"Warning: {path}: ProA ID {pid}, {column}: {value!r} adjusted to {corrected}",
                           file=sys.stderr)
                 changes[column] = corrected
-        result[pid] = changes
+        result[pid] = canonical_accessories(changes)
     return result
 
 
 def apply_overrides(workbook, overrides, *, blacklist=None):
+    overrides = {pid: canonical_accessories(changes) for pid, changes in overrides.items()}
     seen, changes = set(), 0
     for ws in workbook:
         if ws.title.startswith("_"):
@@ -267,6 +375,7 @@ def apply_overrides(workbook, overrides, *, blacklist=None):
         for name in (*RAW_ACCESSORY_FIELDS, *APPEARANCE_FIELDS):
             if name not in columns:
                 ws.cell(1, ws.max_column + 1, name)
+        migrate_accessory_columns(ws)
         columns = {cell.value: cell.column for cell in ws[1] if cell.value}
         missing = set(PLAYER_COLUMNS) - set(columns)
         if missing:
